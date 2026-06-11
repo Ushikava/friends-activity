@@ -3,7 +3,7 @@
 A personal website for a small group of people — photo gallery, favorite places, movies and games tracker.
 
 <p align="center">
-  <img src="docs/hii.gif" alt="Hii" width="800" />
+  <img src="docs/hii.gif" alt="Hii" width="500" />
 </p>
 
 ---
