@@ -1,11 +1,39 @@
 # FriendsActivity
 
-A personal website for small group of people — photo gallery, favorite places, movies and games.
+A personal website for a small group of people — photo gallery, favorite places, movies and games tracker.
+
+<p align="center">
+  <img src="docs/hii.gif" alt="Hii" width="800" />
+</p>
+
+---
+
+## Screenshots
+
+<p align="center">
+  <img src="docs/screenshots/home.png" alt="Home page" width="800" />
+</p>
+
+<p align="center">
+  <img src="docs/screenshots/gallery.png" alt="Gallery" width="800" />
+</p>
+
+---
 
 ## Stack
 
-**Backend:** Python (FastAPI, SQLAlchemy, Alembic, PostgreSQL, JWT)  
-**Frontend:** React 19 (Vite, React Router)
+**Backend:** Python · FastAPI · SQLAlchemy · Alembic · PostgreSQL · JWT  
+**Frontend:** React 19 · Vite · React Router
+
+## Features
+
+- Photo gallery and IRL places with lightbox viewer
+- Movies & games tracker with watched/played status
+- Activity heatmap
+- Mini-statistics dashboard
+- Simple role-based access without registration
+- Pagination on all listing pages
+- Russian / English interface
 
 ## Project Structure
 
@@ -24,7 +52,8 @@ friends-activity/
 │   └── src/
 │       ├── pages/           # application pages
 │       ├── components/      # reusable components
-│       └── api/             # backend client
+│       ├── api/             # backend client
+│       └── i18n/            # translations (ru / en)
 └── .env.template
 ```
 
