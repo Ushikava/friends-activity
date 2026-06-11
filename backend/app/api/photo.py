@@ -1,0 +1,85 @@
+import os
+import uuid
+
+from fastapi import APIRouter, Depends, UploadFile, File, Form
+from sqlalchemy.orm import Session
+
+from core.auth import get_user_from_token, get_optional_user
+from db.session import SessionLocal
+from db import photo as photo_db
+from db import user as user_db
+from schemas.photo import PhotoOut
+from utils.image import compress_image
+from core.exceptions import ForbiddenError, NotFoundError, BadRequestError
+
+UPLOADS_DIR = "uploads/photos"
+ALLOWED_EXTENSIONS = {".jpg", ".jpeg", ".png", ".webp", ".gif"}
+
+router = APIRouter(prefix="/photos", tags=["photos"])
+
+
+def get_db():
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
+
+
+@router.get("/", response_model=list[PhotoOut])
+def list_photos(db: Session = Depends(get_db)):
+    return photo_db.get_all_photos(db)
+
+
+@router.post("/", response_model=PhotoOut)
+def upload_photo(
+    file: UploadFile = File(...),
+    description: str | None = Form(None),
+    user_id: int = Depends(get_user_from_token),
+    db: Session = Depends(get_db),
+):
+    user = user_db.get_user_by_id(db, user_id)
+    if not user or user.role == "observer":
+        raise ForbiddenError()
+
+    ext = os.path.splitext(file.filename or "")[1].lower()
+    if ext not in ALLOWED_EXTENSIONS:
+        raise BadRequestError("Недопустимый формат файла")
+
+    try:
+        data, ext = compress_image(file.file.read(), max_dimension=1920)
+    except ValueError as e:
+        raise BadRequestError(str(e))
+
+    filename = f"{uuid.uuid4()}{ext}"
+    filepath = os.path.join(UPLOADS_DIR, filename)
+    os.makedirs(UPLOADS_DIR, exist_ok=True)
+
+    with open(filepath, "wb") as f:
+        f.write(data)
+
+    return photo_db.create_photo(db, filename=filename, description=description, user_id=user_id)
+
+
+@router.delete("/{photo_id}")
+def delete_photo(
+    photo_id: int,
+    user_id: int = Depends(get_user_from_token),
+    db: Session = Depends(get_db),
+):
+    user = user_db.get_user_by_id(db, user_id)
+    if not user or user.role == "observer":
+        raise ForbiddenError()
+
+    photo = photo_db.get_photo_by_id(db, photo_id)
+    if not photo:
+        raise NotFoundError("Фото")
+    if photo.uploaded_by != user_id:
+        raise ForbiddenError("Можно удалять только свои фото")
+
+    filepath = os.path.join(UPLOADS_DIR, photo.filename)
+    if os.path.exists(filepath):
+        os.remove(filepath)
+
+    photo_db.delete_photo(db, photo_id)
+    return {"status": "ok"}

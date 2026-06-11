@@ -1,0 +1,64 @@
+@import '@fontsource/comfortaa/400.css';
+@import '@fontsource/comfortaa/500.css';
+@import '@fontsource/comfortaa/600.css';
+@import '@fontsource/comfortaa/700.css';
+
+:root {
+  --text: #000000;
+  --text-h: #08060d;
+  --bg: #fdf8f2;
+  --border: #e5e4e7;
+  --accent: #d66a7c;
+  --accent-bg: rgba(255, 97, 147, 0.15);
+  --accent-border: rgba(255, 255, 255, 0.5);
+
+  --sans: 'Comfortaa', system-ui, sans-serif;
+
+  font: 16px/150% var(--sans);
+  color: var(--text);
+  background: var(--bg);
+  color-scheme: light;
+  -webkit-font-smoothing: antialiased;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --text: #000000;
+    --text-h: #000000;
+    --bg:  #cccccc;
+    --border: #000000;
+    --accent: #d66a7c;
+    --accent-bg: rgba(255, 97, 147, 0.15);
+    --accent-border: rgba(255, 255, 255, 0.5);
+  }
+}
+
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+input, button, select, textarea {
+  font-family: inherit;
+  font-size: inherit;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  font-family: var(--sans);
+  font-weight: 1000;
+}
+
+h1, h2, h3 {
+  color: var(--text-h);
+  font-weight: 500;
+  margin: 0;
+}
+
+p {
+  margin: 0;
+}
+
+#root {
+  min-height: 100svh;
+}
