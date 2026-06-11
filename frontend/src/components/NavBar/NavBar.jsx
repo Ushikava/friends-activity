@@ -35,7 +35,7 @@ export default function NavBar() {
       <div className="navbar__center">
         <NavIcon to="/gallery" label="Галерея" icon={galleryIcon} />
         <NavIcon to="/games"   label="Игры"    icon={gamesIcon} />
-        <NavIcon to="/places"  label="Места"   icon={placesIcon} />
+        <NavIcon to="/places"  label="ИРЛ фото"   icon={placesIcon} />
         <NavIcon to="/movies"  label="Кино"    icon={moviesIcon} />
       </div>
 

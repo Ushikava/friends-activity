@@ -6,20 +6,78 @@ import { fetchPhotos, photoSrc } from '../../api/photos'
 import { fetchPlaces, placeSrc } from '../../api/places'
 import { fetchMovies, toggleWatched } from '../../api/movies'
 import { fetchGames, togglePlayed } from '../../api/games'
+import { getRole } from '../../api/auth'
+import { fetchActivity } from '../../api/activity'
+import ActivityGrid from '../../components/ActivityGrid/ActivityGrid'
 import '../page.css'
 import '../../components/MediaGrid/mediaGrid.css'
 import './Home.css'
 
-const PHOTO_LIMIT = 4
-const MEDIA_LIMIT = 6
+const PHOTO_LIMIT = 2
+const MEDIA_LIMIT = 5
+
+const CIRCLE_R = 40
+const CIRCLE_SW = 5
+const CIRCLE_SIZE = (CIRCLE_R + CIRCLE_SW) * 2
+const CIRCLE_C = 2 * Math.PI * CIRCLE_R
+
+function NumberStat({ value, label }) {
+  return (
+    <div className="home-stat">
+      <span className="home-stat__big">{value}</span>
+      <span className="home-stat__label">{label}</span>
+    </div>
+  )
+}
+
+function CircleStat({ done, total, label }) {
+  const progress = total > 0 ? done / total : 0
+  const offset = CIRCLE_C * (1 - progress)
+  const cx = CIRCLE_R + CIRCLE_SW
+  return (
+    <div className="home-stat">
+      <div className="home-stat__ring-wrap">
+        <svg width={CIRCLE_SIZE} height={CIRCLE_SIZE} style={{ transform: 'rotate(-90deg)' }}>
+          <circle cx={cx} cy={cx} r={CIRCLE_R} fill="none" stroke="#b0b0b0" strokeWidth={CIRCLE_SW} />
+          {done > 0 && (
+            <circle
+              cx={cx} cy={cx} r={CIRCLE_R}
+              fill="none"
+              stroke="var(--accent)"
+              strokeWidth={CIRCLE_SW}
+              strokeLinecap="round"
+              strokeDasharray={CIRCLE_C}
+              strokeDashoffset={offset}
+            />
+          )}
+        </svg>
+        <div className="home-stat__ring-label">
+          <strong>{done}</strong><span>/{total}</span>
+        </div>
+      </div>
+      <span className="home-stat__label">{label}</span>
+    </div>
+  )
+}
+
+function getTodayDate() {
+  return new Date().toLocaleDateString('ru-RU', {
+    weekday: 'long',
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric',
+  })
+}
 
 export default function Home() {
   const [photos, setPhotos] = useState([])
   const [places, setPlaces] = useState([])
   const [movies, setMovies] = useState([])
   const [games, setGames] = useState([])
+  const [activity, setActivity] = useState({})
   const [loading, setLoading] = useState(true)
   const navigate = useNavigate()
+  const canEdit = getRole() !== 'observer'
 
   useEffect(() => {
     Promise.allSettled([
@@ -27,6 +85,7 @@ export default function Home() {
       fetchPlaces().then(setPlaces),
       fetchMovies().then(setMovies),
       fetchGames().then(setGames),
+      fetchActivity().then(setActivity),
     ]).finally(() => setLoading(false))
   }, [])
 
@@ -49,116 +108,136 @@ export default function Home() {
       <NavBar />
       <main className="page__main">
 
+        {/* Status bar */}
+        <div className="home-statusbar">
+          <span className="home-statusbar__title">Главная</span>
+          <span className="home-statusbar__date">{getTodayDate()}</span>
+        </div>
+
         {loading
           ? <div className="loading-spinner" />
           : isEmpty && <p className="media-empty">Пока ничего нет</p>
         }
 
-        {photos.length > 0 && (
-          <section className="home-section">
-            <div className="home-section__header">
-              <h2 className="home-section__title">Галерея</h2>
-              {photos.length > PHOTO_LIMIT && (
-                <button className="home-section__more" onClick={() => navigate('/gallery')}>
-                  Показать больше →
-                </button>
-              )}
+        {/* Activity + placeholder */}
+        {!loading && (
+          <div className="home-row">
+            <div className="home-col">
+              <ActivityGrid activity={activity} />
             </div>
-            <div className="home-photos">
-              {photos.slice(0, PHOTO_LIMIT).map(photo => (
-                <div
-                  key={photo.id}
-                  className="home-photo"
-                  onClick={() => navigate('/gallery')}
-                >
-                  <img
-                    src={photoSrc(photo.filename)}
-                    alt={photo.description || ''}
-                  />
+            <div className="home-col">
+              <h2 className="home-section__title" style={{ marginBottom: 12 }}>Статистика</h2>
+              <div className="home-stats">
+                <NumberStat value={photos.length} label="скриншотов" />
+                <NumberStat value={places.length} label="фото" />
+                <CircleStat done={movies.filter(m => m.is_watched).length} total={movies.length} label="фильмов" />
+                <CircleStat done={games.filter(g => g.is_played).length} total={games.length} label="игр" />
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Row 1: Gallery + Places */}
+        {!loading && (photos.length > 0 || places.length > 0) && (
+          <div className="home-row">
+            {photos.length > 0 && (
+              <section className="home-col">
+                <div className="home-section__header">
+                  <h2 className="home-section__title">Галерея</h2>
+                  {photos.length > PHOTO_LIMIT && (
+                    <button className="home-section__more" onClick={() => navigate('/gallery')}>
+                      Показать больше →
+                    </button>
+                  )}
                 </div>
-              ))}
-            </div>
-          </section>
-        )}
-
-        {places.length > 0 && (
-          <section className="home-section">
-            <div className="home-section__header">
-              <h2 className="home-section__title">Места</h2>
-              {places.length > PHOTO_LIMIT && (
-                <button className="home-section__more" onClick={() => navigate('/places')}>
-                  Показать больше →
-                </button>
-              )}
-            </div>
-            <div className="home-photos">
-              {places.slice(0, PHOTO_LIMIT).map(place => (
-                <div
-                  key={place.id}
-                  className="home-photo"
-                  onClick={() => navigate('/places')}
-                >
-                  <img
-                    src={placeSrc(place.filename)}
-                    alt={place.description || ''}
-                  />
+                <div className="home-photos">
+                  {photos.slice(0, PHOTO_LIMIT).map(photo => (
+                    <div key={photo.id} className="home-photo" onClick={() => navigate('/gallery')}>
+                      <img src={photoSrc(photo.filename)} alt={photo.description || ''} />
+                    </div>
+                  ))}
                 </div>
-              ))}
-            </div>
-          </section>
+              </section>
+            )}
+
+            {places.length > 0 && (
+              <section className="home-col">
+                <div className="home-section__header">
+                  <h2 className="home-section__title">ИРЛ Фото</h2>
+                  {places.length > PHOTO_LIMIT && (
+                    <button className="home-section__more" onClick={() => navigate('/places')}>
+                      Показать больше →
+                    </button>
+                  )}
+                </div>
+                <div className="home-photos">
+                  {places.slice(0, PHOTO_LIMIT).map(place => (
+                    <div key={place.id} className="home-photo" onClick={() => navigate('/places')}>
+                      <img src={placeSrc(place.filename)} alt={place.description || ''} />
+                    </div>
+                  ))}
+                </div>
+              </section>
+            )}
+          </div>
         )}
 
-        {movies.length > 0 && (
-          <section className="home-section">
-            <div className="home-section__header">
-              <h2 className="home-section__title">Фильмы / Сериалы</h2>
-              {movies.length > MEDIA_LIMIT && (
-                <button className="home-section__more" onClick={() => navigate('/movies')}>
-                  Показать больше →
-                </button>
-              )}
-            </div>
-            <div className="media-grid">
-              {movies.slice(0, MEDIA_LIMIT).map(m => (
-                <MediaCard
-                  key={m.id}
-                  item={m}
-                  checkedField="is_watched"
-                  checkLabel="Просмотрено"
-                  canEdit={false}
-                  onToggle={handleToggleMovie}
-                  onDelete={() => {}}
-                />
-              ))}
-            </div>
-          </section>
-        )}
+        {/* Row 2: Movies + Games */}
+        {!loading && (movies.length > 0 || games.length > 0) && (
+          <div className="home-row">
+            {movies.length > 0 && (
+              <section className="home-col">
+                <div className="home-section__header">
+                  <h2 className="home-section__title">Фильмы / Сериалы</h2>
+                  {movies.length > MEDIA_LIMIT && (
+                    <button className="home-section__more" onClick={() => navigate('/movies')}>
+                      Показать больше →
+                    </button>
+                  )}
+                </div>
+                <div className="media-grid">
+                  {movies.slice(0, MEDIA_LIMIT).map(m => (
+                    <MediaCard
+                      key={m.id}
+                      item={m}
+                      checkedField="is_watched"
+                      checkLabel="Просмотрено"
+                      canEdit={canEdit}
+                      onToggle={handleToggleMovie}
+                      onDelete={() => {}}
+                    />
+                  ))}
+                </div>
+              </section>
+            )}
 
-        {games.length > 0 && (
-          <section className="home-section">
-            <div className="home-section__header">
-              <h2 className="home-section__title">Игры</h2>
-              {games.length > MEDIA_LIMIT && (
-                <button className="home-section__more" onClick={() => navigate('/games')}>
-                  Показать больше →
-                </button>
-              )}
-            </div>
-            <div className="media-grid">
-              {games.slice(0, MEDIA_LIMIT).map(g => (
-                <MediaCard
-                  key={g.id}
-                  item={g}
-                  checkedField="is_played"
-                  checkLabel="Пройдено"
-                  linkField="steam_link"
-                  canEdit={false}
-                  onToggle={handleToggleGame}
-                  onDelete={() => {}}
-                />
-              ))}
-            </div>
-          </section>
+            {games.length > 0 && (
+              <section className="home-col">
+                <div className="home-section__header">
+                  <h2 className="home-section__title">Игры</h2>
+                  {games.length > MEDIA_LIMIT && (
+                    <button className="home-section__more" onClick={() => navigate('/games')}>
+                      Показать больше →
+                    </button>
+                  )}
+                </div>
+                <div className="media-grid">
+                  {games.slice(0, MEDIA_LIMIT).map(g => (
+                    <MediaCard
+                      key={g.id}
+                      item={g}
+                      checkedField="is_played"
+                      checkLabel="Пройдено"
+                      linkField="steam_link"
+                      canEdit={canEdit}
+                      onToggle={handleToggleGame}
+                      onDelete={() => {}}
+                    />
+                  ))}
+                </div>
+              </section>
+            )}
+          </div>
         )}
 
       </main>

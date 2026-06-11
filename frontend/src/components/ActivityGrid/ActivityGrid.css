@@ -1,0 +1,93 @@
+:root {
+  --activity-0: #e0e0e0;
+  --activity-1: rgba(214, 106, 124, 0.25);
+  --activity-2: rgba(214, 106, 124, 0.55);
+  --activity-3: rgba(214, 106, 124, 0.82);
+  --activity-4: #d66a7c;
+}
+
+.activity {
+  margin-bottom: 44px;
+}
+
+.activity__wrap {
+  overflow-x: auto;
+  padding-bottom: 4px;
+}
+
+/* Month labels */
+.activity__months {
+  position: relative;
+  height: 18px;
+  margin-bottom: 4px;
+}
+
+.activity__month {
+  position: absolute;
+  font-size: 11px;
+  color: var(--text);
+  opacity: 0.5;
+  white-space: nowrap;
+}
+
+/* Grid */
+.activity__grid {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+}
+
+.activity__days {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  flex-shrink: 0;
+}
+
+.activity__days span {
+  width: 20px;
+  height: 13px;
+  font-size: 10px;
+  line-height: 13px;
+  text-align: right;
+  color: var(--text);
+  opacity: 0.45;
+}
+
+.activity__weeks {
+  display: flex;
+  gap: 3px;
+}
+
+.activity__week {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.activity__cell {
+  width: 13px;
+  height: 13px;
+  border-radius: 2px;
+  cursor: default;
+}
+
+.activity__cell--future {
+  background: transparent !important;
+}
+
+/* Legend */
+.activity__legend {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  margin-top: 8px;
+  margin-left: 26px;
+  font-size: 11px;
+  color: var(--text);
+  opacity: 0.45;
+}
+
+.activity__legend span {
+  margin: 0 3px;
+}

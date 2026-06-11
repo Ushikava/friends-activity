@@ -1,5 +1,13 @@
-.home-section {
+.home-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 32px;
   margin-bottom: 44px;
+  align-items: start;
+}
+
+.home-col {
+  min-width: 0;
 }
 
 .home-section__header {
@@ -23,21 +31,108 @@
   cursor: pointer;
   padding: 0;
   transition: opacity 0.15s;
+  white-space: nowrap;
 }
 
 .home-section__more:hover {
   opacity: 0.65;
 }
 
-/* ── Photo preview ── */
-.home-photos {
+/* ── Status bar ── */
+.home-statusbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #dadada;
+  border-radius: 16px;
+  padding: 12px 20px;
+  margin-bottom: 32px;
+  box-shadow: 0 4px 3px 0 rgba(0, 0, 0, 0.15);
+}
+
+.home-statusbar__title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  min-width: 80px;
+}
+
+.home-statusbar__date {
+  font-size: 0.85rem;
+  opacity: 0.55;
+  text-align: right;
+  min-width: 80px;
+}
+
+/* ── Stats ── */
+.home-stats {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 10px;
+  gap: 12px;
+}
+
+.home-stat {
+  background: #dadada;
+  border-radius: 16px;
+  padding: 16px 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  box-shadow: 0 4px 3px 0 rgba(0, 0, 0, 0.15);
+}
+
+.home-stat__big {
+  font-size: 2.8rem;
+  font-weight: 700;
+  color: var(--text-h);
+  line-height: 1;
+}
+
+.home-stat__label {
+  font-size: 0.75rem;
+  opacity: 0.5;
+  text-align: center;
+}
+
+/* circle */
+.home-stat__ring-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.home-stat__ring-label {
+  position: absolute;
+  display: flex;
+  align-items: baseline;
+  gap: 1px;
+  font-size: 0.95rem;
+}
+
+.home-stat__ring-label strong {
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: var(--text-h);
+}
+
+.home-stat__ring-label span {
+  font-size: 1rem;
+  opacity: 0.4;
 }
 
 @media (max-width: 640px) {
-  .home-photos { grid-template-columns: repeat(2, 1fr); }
+  .home-stats {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* ── Photo preview ── */
+.home-photos {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
 }
 
 .home-photo {
@@ -59,4 +154,12 @@
 .home-photo:hover img {
   transform: scale(1.04);
   filter: brightness(0.88);
+}
+
+@media (max-width: 640px) {
+  .home-row {
+    grid-template-columns: 1fr;
+    gap: 24px;
+    margin-bottom: 28px;
+  }
 }

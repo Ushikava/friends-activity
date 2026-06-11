@@ -62,7 +62,7 @@ function UploadModal({ onClose, onUploaded }) {
     >
       <div className="modal">
         <button className="modal__close" onClick={close}>×</button>
-        <h2 className="modal__title">Добавить место</h2>
+        <h2 className="modal__title">Добавить фото</h2>
 
         <div
           ref={uploadZoneRef}
@@ -158,7 +158,7 @@ export default function Places() {
       <NavBar />
       <main className="page__main">
         <div className="media-header">
-          <h1 className="media-header__title">Места</h1>
+          <h1 className="media-header__title">ИРЛ фото</h1>
           {canEdit && (
             <button className="media-header__add" onClick={() => setShowModal(true)}>+</button>
           )}

@@ -10,6 +10,7 @@ from api.photo import router as photo_router
 from api.movie import router as movie_router
 from api.games import router as games_router
 from api.place import router as place_router
+from api.activity import router as activity_router
 
 os.makedirs("uploads/photos", exist_ok=True)
 os.makedirs("uploads/posters", exist_ok=True)
@@ -34,5 +35,6 @@ app.include_router(photo_router, prefix="/api")
 app.include_router(movie_router, prefix="/api")
 app.include_router(games_router, prefix="/api")
 app.include_router(place_router, prefix="/api")
+app.include_router(activity_router, prefix="/api")
 
 app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")
