@@ -1,4 +1,4 @@
-# FriendsActivity
+# 🥳 Friends Activity Site 🫂
 
 A personal website for a small group of people — photo gallery, favorite places, movies and games tracker.
 
