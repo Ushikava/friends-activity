@@ -1,14 +1,14 @@
 import os
 import uuid
 
-from fastapi import APIRouter, Depends, UploadFile, File, Form
+from fastapi import APIRouter, Depends, Query, UploadFile, File, Form
 from sqlalchemy.orm import Session
 
 from core.auth import get_user_from_token
 from db.session import SessionLocal
 from db import movie as movie_db
 from db import user as user_db
-from schemas.movie import MovieOut
+from schemas.movie import MovieOut, MoviePage
 from utils.image import compress_image
 from core.exceptions import ForbiddenError, NotFoundError, BadRequestError
 
@@ -26,9 +26,13 @@ def get_db():
         db.close()
 
 
-@router.get("/", response_model=list[MovieOut])
-def list_movies(db: Session = Depends(get_db)):
-    return movie_db.get_all_movies(db)
+@router.get("/", response_model=MoviePage)
+def list_movies(
+    skip: int = Query(0, ge=0),
+    limit: int = Query(20, ge=1, le=200),
+    db: Session = Depends(get_db),
+):
+    return {"items": movie_db.get_all_movies(db, skip=skip, limit=limit), "total": movie_db.count_movies(db)}
 
 
 @router.post("/", response_model=MovieOut)

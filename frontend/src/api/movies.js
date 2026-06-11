@@ -4,8 +4,9 @@ function authHeaders() {
   return { Authorization: `Bearer ${localStorage.getItem('access_token')}` }
 }
 
-export async function fetchMovies() {
-  const res = await fetch(`${API}/movies/`, { headers: authHeaders() })
+export async function fetchMovies(page = 1, limit = 20) {
+  const skip = (page - 1) * limit
+  const res = await fetch(`${API}/movies/?skip=${skip}&limit=${limit}`, { headers: authHeaders() })
   if (!res.ok) throw new Error('Ошибка загрузки')
   return res.json()
 }

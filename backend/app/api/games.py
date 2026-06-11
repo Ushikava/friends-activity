@@ -1,14 +1,14 @@
 import os
 import uuid
 
-from fastapi import APIRouter, Depends, UploadFile, File, Form
+from fastapi import APIRouter, Depends, Query, UploadFile, File, Form
 from sqlalchemy.orm import Session
 
 from core.auth import get_user_from_token
 from db.session import SessionLocal
 from db import games as game_db
 from db import user as user_db
-from schemas.games import GameOut
+from schemas.games import GameOut, GamePage
 from utils.image import compress_image
 from core.exceptions import ForbiddenError, NotFoundError, BadRequestError
 
@@ -26,9 +26,13 @@ def get_db():
         db.close()
 
 
-@router.get("/", response_model=list[GameOut])
-def list_games(db: Session = Depends(get_db)):
-    return game_db.get_all_games(db)
+@router.get("/", response_model=GamePage)
+def list_games(
+    skip: int = Query(0, ge=0),
+    limit: int = Query(20, ge=1, le=200),
+    db: Session = Depends(get_db),
+):
+    return {"items": game_db.get_all_games(db, skip=skip, limit=limit), "total": game_db.count_games(db)}
 
 
 @router.post("/", response_model=GameOut)

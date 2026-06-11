@@ -1,10 +1,15 @@
+from sqlalchemy import func
 from sqlalchemy.orm import Session
 
 from db.models import Movie
 
 
-def get_all_movies(db: Session) -> list[Movie]:
-    return db.query(Movie).order_by(Movie.created_at.desc()).all()
+def get_all_movies(db: Session, skip: int = 0, limit: int = 20) -> list[Movie]:
+    return db.query(Movie).order_by(Movie.created_at.desc()).offset(skip).limit(limit).all()
+
+
+def count_movies(db: Session) -> int:
+    return db.query(func.count(Movie.id)).scalar()
 
 
 def create_movie(db: Session, title: str, poster: str | None, user_id: int) -> Movie:

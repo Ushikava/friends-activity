@@ -14,5 +14,10 @@ class PhotoOut(BaseModel):
         from_attributes = True
 
 
+class PhotoPage(BaseModel):
+    items: list[PhotoOut]
+    total: int
+
+
 class PhotoCreate(BaseModel):
     description: str | None = None

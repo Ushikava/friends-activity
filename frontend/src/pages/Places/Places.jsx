@@ -1,10 +1,13 @@
 import { useState, useEffect, useRef } from 'react'
 import NavBar from '../../components/NavBar/NavBar'
+import Pagination from '../../components/Pagination/Pagination'
 import { fetchPlaces, uploadPlace, deletePlace, placeSrc } from '../../api/places'
 import { getRole } from '../../api/auth'
 import '../page.css'
 import '../../components/MediaGrid/mediaGrid.css'
 import '../Gallery/Gallery.css'
+
+const PAGE_SIZE = 20
 
 function UploadModal({ onClose, onUploaded }) {
   const [closing, setClosing] = useState(false)
@@ -138,19 +141,39 @@ function Lightbox({ place, onClose, onDelete, canEdit }) {
 
 export default function Places() {
   const [places, setPlaces] = useState([])
+  const [total, setTotal] = useState(0)
+  const [page, setPage] = useState(1)
   const [loading, setLoading] = useState(true)
   const [showModal, setShowModal] = useState(false)
   const [selected, setSelected] = useState(null)
   const canEdit = getRole() !== 'observer'
 
   useEffect(() => {
-    fetchPlaces().then(setPlaces).catch(console.error).finally(() => setLoading(false))
-  }, [])
+    setLoading(true)
+    fetchPlaces(page, PAGE_SIZE)
+      .then(data => { setPlaces(data.items); setTotal(data.total) })
+      .catch(console.error)
+      .finally(() => setLoading(false))
+  }, [page])
 
   function handleDelete(id) {
+    const isLastOnPage = places.length === 1 && page > 1
     deletePlace(id)
-      .then(() => setPlaces(p => p.filter(pl => pl.id !== id)))
+      .then(() => {
+        setPlaces(p => p.filter(pl => pl.id !== id))
+        setTotal(t => t - 1)
+        if (isLastOnPage) setPage(p => p - 1)
+      })
       .catch(console.error)
+  }
+
+  function handleUploaded(place) {
+    if (page === 1) {
+      setPlaces(p => [place, ...p.slice(0, PAGE_SIZE - 1)])
+      setTotal(t => t + 1)
+    } else {
+      setPage(1)
+    }
   }
 
   return (
@@ -166,34 +189,37 @@ export default function Places() {
 
         {loading
           ? <div className="loading-spinner" />
-          : places.length === 0
+          : places.length === 0 && total === 0
           ? <p className="media-empty">Пока ничего нет</p>
           : (
-            <div className="gallery-grid">
-              {places.map(place => (
-                <div
-                  key={place.id}
-                  className="gallery-item"
-                  onClick={() => setSelected(place)}
-                >
-                  <img
-                    src={placeSrc(place.filename)}
-                    alt={place.description || ''}
-                    className="gallery-item__img"
-                  />
-                  {place.description && (
-                    <p className="gallery-item__desc">{place.description}</p>
-                  )}
-                </div>
-              ))}
-            </div>
+            <>
+              <div className="gallery-grid">
+                {places.map(place => (
+                  <div
+                    key={place.id}
+                    className="gallery-item"
+                    onClick={() => setSelected(place)}
+                  >
+                    <img
+                      src={placeSrc(place.filename)}
+                      alt={place.description || ''}
+                      className="gallery-item__img"
+                    />
+                    {place.description && (
+                      <p className="gallery-item__desc">{place.description}</p>
+                    )}
+                  </div>
+                ))}
+              </div>
+              <Pagination page={page} total={total} limit={PAGE_SIZE} onChange={setPage} />
+            </>
           )
         }
 
         {showModal && (
           <UploadModal
             onClose={() => setShowModal(false)}
-            onUploaded={place => setPlaces(p => [place, ...p])}
+            onUploaded={handleUploaded}
           />
         )}
 

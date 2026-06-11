@@ -1,14 +1,14 @@
 import os
 import uuid
 
-from fastapi import APIRouter, Depends, UploadFile, File, Form
+from fastapi import APIRouter, Depends, Query, UploadFile, File, Form
 from sqlalchemy.orm import Session
 
 from core.auth import get_user_from_token, get_optional_user
 from db.session import SessionLocal
 from db import photo as photo_db
 from db import user as user_db
-from schemas.photo import PhotoOut
+from schemas.photo import PhotoOut, PhotoPage
 from utils.image import compress_image
 from core.exceptions import ForbiddenError, NotFoundError, BadRequestError
 
@@ -26,9 +26,13 @@ def get_db():
         db.close()
 
 
-@router.get("/", response_model=list[PhotoOut])
-def list_photos(db: Session = Depends(get_db)):
-    return photo_db.get_all_photos(db)
+@router.get("/", response_model=PhotoPage)
+def list_photos(
+    skip: int = Query(0, ge=0),
+    limit: int = Query(20, ge=1, le=200),
+    db: Session = Depends(get_db),
+):
+    return {"items": photo_db.get_all_photos(db, skip=skip, limit=limit), "total": photo_db.count_photos(db)}
 
 
 @router.post("/", response_model=PhotoOut)

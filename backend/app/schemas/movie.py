@@ -12,3 +12,8 @@ class MovieOut(BaseModel):
 
     class Config:
         from_attributes = True
+
+
+class MoviePage(BaseModel):
+    items: list[MovieOut]
+    total: int

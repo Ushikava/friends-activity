@@ -13,3 +13,8 @@ class GameOut(BaseModel):
 
     class Config:
         from_attributes = True
+
+
+class GamePage(BaseModel):
+    items: list[GameOut]
+    total: int

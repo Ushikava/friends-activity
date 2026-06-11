@@ -5,3 +5,9 @@ export async function fetchActivity() {
   if (!res.ok) throw new Error('Ошибка загрузки активности')
   return res.json()
 }
+
+export async function fetchStats() {
+  const res = await fetch(`${API}/stats`)
+  if (!res.ok) throw new Error('Ошибка загрузки статистики')
+  return res.json()
+}

@@ -1,10 +1,13 @@
 import { useState, useEffect, useRef } from 'react'
 import NavBar from '../../components/NavBar/NavBar'
+import Pagination from '../../components/Pagination/Pagination'
 import { fetchPhotos, uploadPhoto, deletePhoto, photoSrc } from '../../api/photos'
 import { getRole } from '../../api/auth'
 import '../page.css'
 import '../../components/MediaGrid/mediaGrid.css'
 import './Gallery.css'
+
+const PAGE_SIZE = 20
 
 function UploadModal({ onClose, onUploaded }) {
   const [closing, setClosing] = useState(false)
@@ -138,19 +141,39 @@ function Lightbox({ photo, onClose, onDelete, canEdit }) {
 
 export default function Gallery() {
   const [photos, setPhotos] = useState([])
+  const [total, setTotal] = useState(0)
+  const [page, setPage] = useState(1)
   const [loading, setLoading] = useState(true)
   const [showModal, setShowModal] = useState(false)
   const [selected, setSelected] = useState(null)
   const canEdit = getRole() !== 'observer'
 
   useEffect(() => {
-    fetchPhotos().then(setPhotos).catch(console.error).finally(() => setLoading(false))
-  }, [])
+    setLoading(true)
+    fetchPhotos(page, PAGE_SIZE)
+      .then(data => { setPhotos(data.items); setTotal(data.total) })
+      .catch(console.error)
+      .finally(() => setLoading(false))
+  }, [page])
 
   function handleDelete(id) {
+    const isLastOnPage = photos.length === 1 && page > 1
     deletePhoto(id)
-      .then(() => setPhotos(p => p.filter(ph => ph.id !== id)))
+      .then(() => {
+        setPhotos(p => p.filter(ph => ph.id !== id))
+        setTotal(t => t - 1)
+        if (isLastOnPage) setPage(p => p - 1)
+      })
       .catch(console.error)
+  }
+
+  function handleUploaded(photo) {
+    if (page === 1) {
+      setPhotos(p => [photo, ...p.slice(0, PAGE_SIZE - 1)])
+      setTotal(t => t + 1)
+    } else {
+      setPage(1)
+    }
   }
 
   return (
@@ -166,34 +189,37 @@ export default function Gallery() {
 
         {loading
           ? <div className="loading-spinner" />
-          : photos.length === 0
+          : photos.length === 0 && total === 0
           ? <p className="media-empty">Пока ничего нет</p>
           : (
-            <div className="gallery-grid">
-              {photos.map(photo => (
-                <div
-                  key={photo.id}
-                  className="gallery-item"
-                  onClick={() => setSelected(photo)}
-                >
-                  <img
-                    src={photoSrc(photo.filename)}
-                    alt={photo.description || ''}
-                    className="gallery-item__img"
-                  />
-                  {photo.description && (
-                    <p className="gallery-item__desc">{photo.description}</p>
-                  )}
-                </div>
-              ))}
-            </div>
+            <>
+              <div className="gallery-grid">
+                {photos.map(photo => (
+                  <div
+                    key={photo.id}
+                    className="gallery-item"
+                    onClick={() => setSelected(photo)}
+                  >
+                    <img
+                      src={photoSrc(photo.filename)}
+                      alt={photo.description || ''}
+                      className="gallery-item__img"
+                    />
+                    {photo.description && (
+                      <p className="gallery-item__desc">{photo.description}</p>
+                    )}
+                  </div>
+                ))}
+              </div>
+              <Pagination page={page} total={total} limit={PAGE_SIZE} onChange={setPage} />
+            </>
           )
         }
 
         {showModal && (
           <UploadModal
             onClose={() => setShowModal(false)}
-            onUploaded={photo => setPhotos(p => [photo, ...p])}
+            onUploaded={handleUploaded}
           />
         )}
 

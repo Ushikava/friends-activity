@@ -7,7 +7,7 @@ import { fetchPlaces, placeSrc } from '../../api/places'
 import { fetchMovies, toggleWatched } from '../../api/movies'
 import { fetchGames, togglePlayed } from '../../api/games'
 import { getRole } from '../../api/auth'
-import { fetchActivity } from '../../api/activity'
+import { fetchActivity, fetchStats } from '../../api/activity'
 import ActivityGrid from '../../components/ActivityGrid/ActivityGrid'
 import '../page.css'
 import '../../components/MediaGrid/mediaGrid.css'
@@ -74,6 +74,7 @@ export default function Home() {
   const [places, setPlaces] = useState([])
   const [movies, setMovies] = useState([])
   const [games, setGames] = useState([])
+  const [stats, setStats] = useState(null)
   const [activity, setActivity] = useState({})
   const [loading, setLoading] = useState(true)
   const navigate = useNavigate()
@@ -81,10 +82,11 @@ export default function Home() {
 
   useEffect(() => {
     Promise.allSettled([
-      fetchPhotos().then(setPhotos),
-      fetchPlaces().then(setPlaces),
-      fetchMovies().then(setMovies),
-      fetchGames().then(setGames),
+      fetchStats().then(setStats),
+      fetchPhotos(1, PHOTO_LIMIT).then(d => setPhotos(d.items)),
+      fetchPlaces(1, PHOTO_LIMIT).then(d => setPlaces(d.items)),
+      fetchMovies(1, MEDIA_LIMIT).then(d => setMovies(d.items)),
+      fetchGames(1, MEDIA_LIMIT).then(d => setGames(d.items)),
       fetchActivity().then(setActivity),
     ]).finally(() => setLoading(false))
   }, [])
@@ -101,7 +103,7 @@ export default function Home() {
       .catch(console.error)
   }
 
-  const isEmpty = photos.length === 0 && places.length === 0 && movies.length === 0 && games.length === 0
+  const isEmpty = !stats || (stats.photos === 0 && stats.places === 0 && stats.movies.total === 0 && stats.games.total === 0)
 
   return (
     <div className="page">
@@ -119,7 +121,7 @@ export default function Home() {
           : isEmpty && <p className="media-empty">Пока ничего нет</p>
         }
 
-        {/* Activity + placeholder */}
+        {/* Activity + stats */}
         {!loading && (
           <div className="home-row">
             <div className="home-col">
@@ -128,10 +130,18 @@ export default function Home() {
             <div className="home-col">
               <h2 className="home-section__title" style={{ marginBottom: 12 }}>Статистика</h2>
               <div className="home-stats">
-                <NumberStat value={photos.length} label="скриншотов" />
-                <NumberStat value={places.length} label="фото" />
-                <CircleStat done={movies.filter(m => m.is_watched).length} total={movies.length} label="фильмов" />
-                <CircleStat done={games.filter(g => g.is_played).length} total={games.length} label="игр" />
+                <NumberStat value={stats?.photos ?? 0} label="скриншотов" />
+                <NumberStat value={stats?.places ?? 0} label="фото" />
+                <CircleStat
+                  done={stats?.movies.watched ?? 0}
+                  total={stats?.movies.total ?? 0}
+                  label="фильмов"
+                />
+                <CircleStat
+                  done={stats?.games.played ?? 0}
+                  total={stats?.games.total ?? 0}
+                  label="игр"
+                />
               </div>
             </div>
           </div>
@@ -144,14 +154,14 @@ export default function Home() {
               <section className="home-col">
                 <div className="home-section__header">
                   <h2 className="home-section__title">Галерея</h2>
-                  {photos.length > PHOTO_LIMIT && (
+                  {(stats?.photos ?? 0) > PHOTO_LIMIT && (
                     <button className="home-section__more" onClick={() => navigate('/gallery')}>
                       Показать больше →
                     </button>
                   )}
                 </div>
                 <div className="home-photos">
-                  {photos.slice(0, PHOTO_LIMIT).map(photo => (
+                  {photos.map(photo => (
                     <div key={photo.id} className="home-photo" onClick={() => navigate('/gallery')}>
                       <img src={photoSrc(photo.filename)} alt={photo.description || ''} />
                     </div>
@@ -164,14 +174,14 @@ export default function Home() {
               <section className="home-col">
                 <div className="home-section__header">
                   <h2 className="home-section__title">ИРЛ Фото</h2>
-                  {places.length > PHOTO_LIMIT && (
+                  {(stats?.places ?? 0) > PHOTO_LIMIT && (
                     <button className="home-section__more" onClick={() => navigate('/places')}>
                       Показать больше →
                     </button>
                   )}
                 </div>
                 <div className="home-photos">
-                  {places.slice(0, PHOTO_LIMIT).map(place => (
+                  {places.map(place => (
                     <div key={place.id} className="home-photo" onClick={() => navigate('/places')}>
                       <img src={placeSrc(place.filename)} alt={place.description || ''} />
                     </div>
@@ -189,14 +199,14 @@ export default function Home() {
               <section className="home-col">
                 <div className="home-section__header">
                   <h2 className="home-section__title">Фильмы / Сериалы</h2>
-                  {movies.length > MEDIA_LIMIT && (
+                  {(stats?.movies.total ?? 0) > MEDIA_LIMIT && (
                     <button className="home-section__more" onClick={() => navigate('/movies')}>
                       Показать больше →
                     </button>
                   )}
                 </div>
                 <div className="media-grid">
-                  {movies.slice(0, MEDIA_LIMIT).map(m => (
+                  {movies.map(m => (
                     <MediaCard
                       key={m.id}
                       item={m}
@@ -215,14 +225,14 @@ export default function Home() {
               <section className="home-col">
                 <div className="home-section__header">
                   <h2 className="home-section__title">Игры</h2>
-                  {games.length > MEDIA_LIMIT && (
+                  {(stats?.games.total ?? 0) > MEDIA_LIMIT && (
                     <button className="home-section__more" onClick={() => navigate('/games')}>
                       Показать больше →
                     </button>
                   )}
                 </div>
                 <div className="media-grid">
-                  {games.slice(0, MEDIA_LIMIT).map(g => (
+                  {games.map(g => (
                     <MediaCard
                       key={g.id}
                       item={g}

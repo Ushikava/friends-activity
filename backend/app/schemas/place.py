@@ -11,3 +11,8 @@ class PlaceOut(BaseModel):
 
     class Config:
         from_attributes = True
+
+
+class PlacePage(BaseModel):
+    items: list[PlaceOut]
+    total: int

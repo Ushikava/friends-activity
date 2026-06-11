@@ -1,10 +1,15 @@
+from sqlalchemy import func
 from sqlalchemy.orm import Session
 
 from db.models import Game
 
 
-def get_all_games(db: Session) -> list[Game]:
-    return db.query(Game).order_by(Game.created_at.desc()).all()
+def get_all_games(db: Session, skip: int = 0, limit: int = 20) -> list[Game]:
+    return db.query(Game).order_by(Game.created_at.desc()).offset(skip).limit(limit).all()
+
+
+def count_games(db: Session) -> int:
+    return db.query(func.count(Game.id)).scalar()
 
 
 def create_game(db: Session, title: str, poster: str | None, user_id: int, steam_link: str | None) -> Game:

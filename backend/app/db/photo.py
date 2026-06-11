@@ -1,3 +1,4 @@
+from sqlalchemy import func
 from sqlalchemy.orm import Session
 
 from db.models import Photo
@@ -11,8 +12,12 @@ def create_photo(db: Session, filename: str, description: str | None, user_id: i
     return photo
 
 
-def get_all_photos(db: Session) -> list[Photo]:
-    return db.query(Photo).order_by(Photo.uploaded_at.desc()).all()
+def get_all_photos(db: Session, skip: int = 0, limit: int = 20) -> list[Photo]:
+    return db.query(Photo).order_by(Photo.uploaded_at.desc()).offset(skip).limit(limit).all()
+
+
+def count_photos(db: Session) -> int:
+    return db.query(func.count(Photo.id)).scalar()
 
 
 def get_photo_by_id(db: Session, photo_id: int) -> Photo | None:
