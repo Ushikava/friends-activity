@@ -8,6 +8,7 @@ import { fetchMovies, toggleWatched } from '../../api/movies'
 import { fetchGames, togglePlayed } from '../../api/games'
 import { getRole } from '../../api/auth'
 import { fetchActivity, fetchStats } from '../../api/activity'
+import { useLang } from '../../i18n/LangContext'
 import ActivityGrid from '../../components/ActivityGrid/ActivityGrid'
 import '../page.css'
 import '../../components/MediaGrid/mediaGrid.css'
@@ -60,8 +61,8 @@ function CircleStat({ done, total, label }) {
   )
 }
 
-function getTodayDate() {
-  return new Date().toLocaleDateString('ru-RU', {
+function getTodayDate(lang) {
+  return new Date().toLocaleDateString(lang === 'ru' ? 'ru-RU' : 'en-US', {
     weekday: 'long',
     day: 'numeric',
     month: 'long',
@@ -70,6 +71,7 @@ function getTodayDate() {
 }
 
 export default function Home() {
+  const { t, lang } = useLang()
   const [photos, setPhotos] = useState([])
   const [places, setPlaces] = useState([])
   const [movies, setMovies] = useState([])
@@ -110,53 +112,50 @@ export default function Home() {
       <NavBar />
       <main className="page__main">
 
-        {/* Status bar */}
         <div className="home-statusbar">
-          <span className="home-statusbar__title">Главная</span>
-          <span className="home-statusbar__date">{getTodayDate()}</span>
+          <span className="home-statusbar__title">{t('home.title')}</span>
+          <span className="home-statusbar__date">{getTodayDate(lang)}</span>
         </div>
 
         {loading
           ? <div className="loading-spinner" />
-          : isEmpty && <p className="media-empty">Пока ничего нет</p>
+          : isEmpty && <p className="media-empty">{t('common.empty')}</p>
         }
 
-        {/* Activity + stats */}
         {!loading && (
           <div className="home-row">
             <div className="home-col">
               <ActivityGrid activity={activity} />
             </div>
             <div className="home-col">
-              <h2 className="home-section__title" style={{ marginBottom: 12 }}>Статистика</h2>
+              <h2 className="home-section__title" style={{ marginBottom: 12 }}>{t('home.stats')}</h2>
               <div className="home-stats">
-                <NumberStat value={stats?.photos ?? 0} label="скриншотов" />
-                <NumberStat value={stats?.places ?? 0} label="фото" />
+                <NumberStat value={stats?.photos ?? 0}  label={t('home.stat.screenshots')} />
+                <NumberStat value={stats?.places ?? 0}  label={t('home.stat.photos')} />
                 <CircleStat
                   done={stats?.movies.watched ?? 0}
                   total={stats?.movies.total ?? 0}
-                  label="фильмов"
+                  label={t('home.stat.movies')}
                 />
                 <CircleStat
                   done={stats?.games.played ?? 0}
                   total={stats?.games.total ?? 0}
-                  label="игр"
+                  label={t('home.stat.games')}
                 />
               </div>
             </div>
           </div>
         )}
 
-        {/* Row 1: Gallery + Places */}
         {!loading && (photos.length > 0 || places.length > 0) && (
           <div className="home-row">
             {photos.length > 0 && (
               <section className="home-col">
                 <div className="home-section__header">
-                  <h2 className="home-section__title">Галерея</h2>
+                  <h2 className="home-section__title">{t('home.gallery')}</h2>
                   {(stats?.photos ?? 0) > PHOTO_LIMIT && (
                     <button className="home-section__more" onClick={() => navigate('/gallery')}>
-                      Показать больше →
+                      {t('common.showMore')}
                     </button>
                   )}
                 </div>
@@ -173,10 +172,10 @@ export default function Home() {
             {places.length > 0 && (
               <section className="home-col">
                 <div className="home-section__header">
-                  <h2 className="home-section__title">ИРЛ Фото</h2>
+                  <h2 className="home-section__title">{t('home.places')}</h2>
                   {(stats?.places ?? 0) > PHOTO_LIMIT && (
                     <button className="home-section__more" onClick={() => navigate('/places')}>
-                      Показать больше →
+                      {t('common.showMore')}
                     </button>
                   )}
                 </div>
@@ -192,16 +191,15 @@ export default function Home() {
           </div>
         )}
 
-        {/* Row 2: Movies + Games */}
         {!loading && (movies.length > 0 || games.length > 0) && (
           <div className="home-row">
             {movies.length > 0 && (
               <section className="home-col">
                 <div className="home-section__header">
-                  <h2 className="home-section__title">Фильмы / Сериалы</h2>
+                  <h2 className="home-section__title">{t('home.movies')}</h2>
                   {(stats?.movies.total ?? 0) > MEDIA_LIMIT && (
                     <button className="home-section__more" onClick={() => navigate('/movies')}>
-                      Показать больше →
+                      {t('common.showMore')}
                     </button>
                   )}
                 </div>
@@ -211,7 +209,7 @@ export default function Home() {
                       key={m.id}
                       item={m}
                       checkedField="is_watched"
-                      checkLabel="Просмотрено"
+                      checkLabel={t('movies.watched')}
                       canEdit={canEdit}
                       onToggle={handleToggleMovie}
                       onDelete={() => {}}
@@ -224,10 +222,10 @@ export default function Home() {
             {games.length > 0 && (
               <section className="home-col">
                 <div className="home-section__header">
-                  <h2 className="home-section__title">Игры</h2>
+                  <h2 className="home-section__title">{t('home.games')}</h2>
                   {(stats?.games.total ?? 0) > MEDIA_LIMIT && (
                     <button className="home-section__more" onClick={() => navigate('/games')}>
-                      Показать больше →
+                      {t('common.showMore')}
                     </button>
                   )}
                 </div>
@@ -237,7 +235,7 @@ export default function Home() {
                       key={g.id}
                       item={g}
                       checkedField="is_played"
-                      checkLabel="Пройдено"
+                      checkLabel={t('games.played')}
                       linkField="steam_link"
                       canEdit={canEdit}
                       onToggle={handleToggleGame}

@@ -4,11 +4,13 @@ import MediaGrid from '../../components/MediaGrid/MediaGrid'
 import Pagination from '../../components/Pagination/Pagination'
 import { fetchMovies, addMovie, toggleWatched, deleteMovie } from '../../api/movies'
 import { getRole } from '../../api/auth'
+import { useLang } from '../../i18n/LangContext'
 import '../page.css'
 
 const PAGE_SIZE = 20
 
 export default function Movies() {
+  const { t } = useLang()
   const [movies, setMovies] = useState([])
   const [total, setTotal] = useState(0)
   const [page, setPage] = useState(1)
@@ -31,7 +33,7 @@ export default function Movies() {
     const isLastOnPage = movies.length === 1 && page > 1
     deleteMovie(id).then(() => {
       setMovies(p => p.filter(m => m.id !== id))
-      setTotal(t => t - 1)
+      setTotal(n => n - 1)
       if (isLastOnPage) setPage(p => p - 1)
     })
   }
@@ -39,7 +41,7 @@ export default function Movies() {
   function handleItemAdded(movie) {
     if (page === 1) {
       setMovies(p => [movie, ...p.slice(0, PAGE_SIZE - 1)])
-      setTotal(t => t + 1)
+      setTotal(n => n + 1)
     } else {
       setPage(1)
     }
@@ -50,12 +52,12 @@ export default function Movies() {
       <NavBar />
       <main className="page__main">
         <MediaGrid
-          pageTitle="Фильмы / Сериалы"
-          modalTitle="Добавить фильм"
+          pageTitle={t('movies.title')}
+          modalTitle={t('movies.add')}
           items={movies}
           loading={loading}
           checkedField="is_watched"
-          checkLabel="Просмотрено"
+          checkLabel={t('movies.watched')}
           canEdit={canEdit}
           onToggle={handleToggle}
           onDelete={handleDelete}

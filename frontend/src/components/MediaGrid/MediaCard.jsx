@@ -1,3 +1,5 @@
+import { useLang } from '../../i18n/LangContext'
+
 const UPLOADS = import.meta.env.VITE_UPLOADS_URL
 
 function posterSrc(poster) {
@@ -7,6 +9,7 @@ function posterSrc(poster) {
 }
 
 export default function MediaCard({ item, checkedField, checkLabel, linkField, onToggle, onDelete, canEdit }) {
+  const { t } = useLang()
   const src = posterSrc(item.poster)
   const isChecked = item[checkedField]
   const link = linkField ? item[linkField] : null
@@ -36,7 +39,7 @@ export default function MediaCard({ item, checkedField, checkLabel, linkField, o
             <button
               className="media-card__delete"
               onClick={e => { e.preventDefault(); onDelete(item.id) }}
-              title="Удалить"
+              title={t('common.delete')}
             >×</button>
           )}
         </div>

@@ -1,6 +1,8 @@
 import { useState, useRef } from 'react'
+import { useLang } from '../../i18n/LangContext'
 
 export default function AddModal({ title, onClose, onSubmit, extraFields = [] }) {
+  const { t } = useLang()
   const [closing, setClosing] = useState(false)
   const [name, setName] = useState('')
   const [preview, setPreview] = useState(null)
@@ -31,7 +33,7 @@ export default function AddModal({ title, onClose, onSubmit, extraFields = [] })
 
   async function handleSubmit(e) {
     e.preventDefault()
-    if (!name.trim()) { setError('Введите название'); return }
+    if (!name.trim()) { setError(t('common.errNoTitle')); return }
 
     setLoading(true)
     setError('')
@@ -39,7 +41,7 @@ export default function AddModal({ title, onClose, onSubmit, extraFields = [] })
       await onSubmit(name.trim(), imageSource, null, extras)
       onClose()
     } catch {
-      setError('Не удалось добавить')
+      setError(t('common.errAdd'))
     } finally {
       setLoading(false)
     }
@@ -57,7 +59,7 @@ export default function AddModal({ title, onClose, onSubmit, extraFields = [] })
 
         <input
           className="modal__input"
-          placeholder="Название"
+          placeholder={t('common.titlePlaceholder')}
           value={name}
           onChange={e => setName(e.target.value)}
           autoFocus
@@ -71,7 +73,7 @@ export default function AddModal({ title, onClose, onSubmit, extraFields = [] })
         >
           {preview
             ? <img src={preview} className="modal__upload-preview" alt="preview" />
-            : <span>Нажмите или вставьте (Ctrl+V)</span>
+            : <span>{t('common.uploadHint')}</span>
           }
           <input
             ref={fileInputRef}
@@ -95,7 +97,7 @@ export default function AddModal({ title, onClose, onSubmit, extraFields = [] })
         {error && <p className="modal__error">{error}</p>}
 
         <button className="modal__submit" onClick={handleSubmit} disabled={loading}>
-          {loading ? 'Добавляем…' : 'Добавить'}
+          {loading ? t('common.adding') : t('common.add')}
         </button>
       </div>
     </div>

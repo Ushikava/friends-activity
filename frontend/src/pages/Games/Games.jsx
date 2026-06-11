@@ -4,19 +4,22 @@ import MediaGrid from '../../components/MediaGrid/MediaGrid'
 import Pagination from '../../components/Pagination/Pagination'
 import { fetchGames, addGame, togglePlayed, deleteGame } from '../../api/games'
 import { getRole } from '../../api/auth'
+import { useLang } from '../../i18n/LangContext'
 import '../page.css'
 
 const PAGE_SIZE = 20
-const EXTRA_FIELDS = [
-  { name: 'steam_link', placeholder: 'Ссылка на Steam (необязательно)' },
-]
 
 export default function Games() {
+  const { t } = useLang()
   const [games, setGames] = useState([])
   const [total, setTotal] = useState(0)
   const [page, setPage] = useState(1)
   const [loading, setLoading] = useState(true)
   const canEdit = getRole() !== 'observer'
+
+  const extraFields = [
+    { name: 'steam_link', placeholder: t('games.steamLink') },
+  ]
 
   useEffect(() => {
     setLoading(true)
@@ -34,7 +37,7 @@ export default function Games() {
     const isLastOnPage = games.length === 1 && page > 1
     deleteGame(id).then(() => {
       setGames(p => p.filter(g => g.id !== id))
-      setTotal(t => t - 1)
+      setTotal(n => n - 1)
       if (isLastOnPage) setPage(p => p - 1)
     })
   }
@@ -42,7 +45,7 @@ export default function Games() {
   function handleItemAdded(game) {
     if (page === 1) {
       setGames(p => [game, ...p.slice(0, PAGE_SIZE - 1)])
-      setTotal(t => t + 1)
+      setTotal(n => n + 1)
     } else {
       setPage(1)
     }
@@ -53,19 +56,19 @@ export default function Games() {
       <NavBar />
       <main className="page__main">
         <MediaGrid
-          pageTitle="Игры"
-          modalTitle="Добавить игру"
+          pageTitle={t('games.title')}
+          modalTitle={t('games.add')}
           items={games}
           loading={loading}
           checkedField="is_played"
-          checkLabel="Пройдено"
+          checkLabel={t('games.played')}
           linkField="steam_link"
           canEdit={canEdit}
           onToggle={handleToggle}
           onDelete={handleDelete}
           onAdd={(title, file, url, extras) => addGame(title, file, url, extras?.steam_link)}
           onItemAdded={handleItemAdded}
-          extraFields={EXTRA_FIELDS}
+          extraFields={extraFields}
         />
         <Pagination page={page} total={total} limit={PAGE_SIZE} onChange={setPage} />
       </main>

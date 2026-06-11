@@ -3,6 +3,7 @@ import NavBar from '../../components/NavBar/NavBar'
 import Pagination from '../../components/Pagination/Pagination'
 import { fetchPhotos, uploadPhoto, deletePhoto, photoSrc } from '../../api/photos'
 import { getRole } from '../../api/auth'
+import { useLang } from '../../i18n/LangContext'
 import '../page.css'
 import '../../components/MediaGrid/mediaGrid.css'
 import './Gallery.css'
@@ -10,6 +11,7 @@ import './Gallery.css'
 const PAGE_SIZE = 20
 
 function UploadModal({ onClose, onUploaded }) {
+  const { t } = useLang()
   const [closing, setClosing] = useState(false)
   const [preview, setPreview] = useState(null)
   const [imageSource, setImageSource] = useState(null)
@@ -42,7 +44,7 @@ function UploadModal({ onClose, onUploaded }) {
 
   async function handleSubmit(e) {
     e.preventDefault()
-    if (!imageSource) { setError('Выберите изображение'); return }
+    if (!imageSource) { setError(t('common.errNoFile')); return }
 
     setLoading(true)
     setError('')
@@ -51,7 +53,7 @@ function UploadModal({ onClose, onUploaded }) {
       onUploaded(photo)
       onClose()
     } catch {
-      setError('Не удалось загрузить')
+      setError(t('common.errUpload'))
     } finally {
       setLoading(false)
     }
@@ -65,7 +67,7 @@ function UploadModal({ onClose, onUploaded }) {
     >
       <div className="modal">
         <button className="modal__close" onClick={close}>×</button>
-        <h2 className="modal__title">Добавить фото</h2>
+        <h2 className="modal__title">{t('gallery.addPhoto')}</h2>
 
         <div
           ref={uploadZoneRef}
@@ -76,7 +78,7 @@ function UploadModal({ onClose, onUploaded }) {
         >
           {preview
             ? <img src={preview} className="modal__upload-preview" alt="preview" />
-            : <span>Нажмите или вставьте (Ctrl+V)</span>
+            : <span>{t('common.uploadHint')}</span>
           }
           <input
             ref={fileInputRef}
@@ -89,7 +91,7 @@ function UploadModal({ onClose, onUploaded }) {
 
         <input
           className="modal__input"
-          placeholder="Описание (необязательно)"
+          placeholder={t('common.descPlaceholder')}
           value={description}
           onChange={e => setDescription(e.target.value)}
         />
@@ -97,7 +99,7 @@ function UploadModal({ onClose, onUploaded }) {
         {error && <p className="modal__error">{error}</p>}
 
         <button className="modal__submit" onClick={handleSubmit} disabled={loading}>
-          {loading ? 'Загружаем…' : 'Загрузить'}
+          {loading ? t('common.uploading') : t('common.upload')}
         </button>
       </div>
     </div>
@@ -105,6 +107,7 @@ function UploadModal({ onClose, onUploaded }) {
 }
 
 function Lightbox({ photo, onClose, onDelete, canEdit }) {
+  const { t } = useLang()
   const src = photoSrc(photo.filename)
   const [closing, setClosing] = useState(false)
 
@@ -132,7 +135,7 @@ function Lightbox({ photo, onClose, onDelete, canEdit }) {
           <button
             className="lightbox__delete"
             onClick={() => { onDelete(photo.id); onClose() }}
-          >Удалить</button>
+          >{t('common.delete')}</button>
         )}
       </div>
     </div>
@@ -140,6 +143,7 @@ function Lightbox({ photo, onClose, onDelete, canEdit }) {
 }
 
 export default function Gallery() {
+  const { t } = useLang()
   const [photos, setPhotos] = useState([])
   const [total, setTotal] = useState(0)
   const [page, setPage] = useState(1)
@@ -161,7 +165,7 @@ export default function Gallery() {
     deletePhoto(id)
       .then(() => {
         setPhotos(p => p.filter(ph => ph.id !== id))
-        setTotal(t => t - 1)
+        setTotal(n => n - 1)
         if (isLastOnPage) setPage(p => p - 1)
       })
       .catch(console.error)
@@ -170,7 +174,7 @@ export default function Gallery() {
   function handleUploaded(photo) {
     if (page === 1) {
       setPhotos(p => [photo, ...p.slice(0, PAGE_SIZE - 1)])
-      setTotal(t => t + 1)
+      setTotal(n => n + 1)
     } else {
       setPage(1)
     }
@@ -181,7 +185,7 @@ export default function Gallery() {
       <NavBar />
       <main className="page__main">
         <div className="media-header">
-          <h1 className="media-header__title">Галерея</h1>
+          <h1 className="media-header__title">{t('gallery.title')}</h1>
           {canEdit && (
             <button className="media-header__add" onClick={() => setShowModal(true)}>+</button>
           )}
@@ -190,7 +194,7 @@ export default function Gallery() {
         {loading
           ? <div className="loading-spinner" />
           : photos.length === 0 && total === 0
-          ? <p className="media-empty">Пока ничего нет</p>
+          ? <p className="media-empty">{t('common.empty')}</p>
           : (
             <>
               <div className="gallery-grid">

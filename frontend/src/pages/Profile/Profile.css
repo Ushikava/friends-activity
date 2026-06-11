@@ -88,6 +88,34 @@
   color: #dc2626;
 }
 
+.profile-lang-toggle {
+  display: flex;
+  gap: 8px;
+}
+
+.profile-lang-btn {
+  flex: 1;
+  padding: 12px;
+  border-radius: 8px;
+  border: 2px solid transparent;
+  background: var(--bg);
+  color: var(--text);
+  font-size: 15px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.profile-lang-btn:hover:not(.profile-lang-btn--active) {
+  background: rgba(0, 0, 0, 0.06);
+}
+
+.profile-lang-btn--active {
+  border-color: var(--accent);
+  color: var(--accent);
+  font-weight: 700;
+}
+
 @media (max-width: 640px) {
   .profile-grid {
     grid-template-columns: 1fr;

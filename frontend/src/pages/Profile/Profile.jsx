@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Navigate } from 'react-router-dom'
 import NavBar from '../../components/NavBar/NavBar'
 import { getUsername, getRole, changeUsername, changePassword } from '../../api/auth'
+import { useLang } from '../../i18n/LangContext'
 import '../page.css'
 import './Profile.css'
 import '../../components/MediaGrid/mediaGrid.css'
@@ -25,6 +26,7 @@ function StatusMessage({ status }) {
 }
 
 export default function Profile() {
+  const { t, lang, setLanguage } = useLang()
   const [currentUsername, setCurrentUsername] = useState(getUsername() || '')
 
   const [newUsername, setNewUsername] = useState('')
@@ -48,7 +50,7 @@ export default function Profile() {
       setCurrentUsername(data.username)
       setNewUsername('')
       setUsernamePassword('')
-      setUsernameStatus({ ok: true, text: 'Имя пользователя изменено' })
+      setUsernameStatus({ ok: true, text: t('profile.changeName.saved') })
     } catch (err) {
       setUsernameStatus({ ok: false, text: err.message })
     } finally {
@@ -60,7 +62,7 @@ export default function Profile() {
     e.preventDefault()
     setPasswordStatus(null)
     if (newPassword !== confirmPassword) {
-      setPasswordStatus({ ok: false, text: 'Пароли не совпадают' })
+      setPasswordStatus({ ok: false, text: t('profile.changePass.mismatch') })
       return
     }
     setPasswordLoading(true)
@@ -69,7 +71,7 @@ export default function Profile() {
       setCurrentPassword('')
       setNewPassword('')
       setConfirmPassword('')
-      setPasswordStatus({ ok: true, text: 'Пароль изменён' })
+      setPasswordStatus({ ok: true, text: t('profile.changePass.saved') })
     } catch (err) {
       setPasswordStatus({ ok: false, text: err.message })
     } finally {
@@ -83,61 +85,78 @@ export default function Profile() {
     <div className="page">
       <NavBar />
       <main className="page__main">
-        <h1 className="media-header__title">Профиль</h1>
-        <p className="profile-greeting">Привет, {currentUsername}</p>
+        <h1 className="media-header__title">{t('profile.title')}</h1>
+        <p className="profile-greeting">{t('profile.greeting')} {currentUsername}</p>
 
         <div className="profile-grid">
-          <SettingCard title="Изменить имя">
+          <SettingCard title={t('profile.changeName.title')}>
             <form onSubmit={handleUsernameSubmit} className="profile-form">
               <input
                 type="text"
-                placeholder="Новое имя"
+                placeholder={t('profile.changeName.new')}
                 value={newUsername}
                 onChange={e => setNewUsername(e.target.value)}
                 required
               />
               <input
                 type="password"
-                placeholder="Текущий пароль"
+                placeholder={t('profile.changeName.password')}
                 value={usernamePassword}
                 onChange={e => setUsernamePassword(e.target.value)}
                 required
               />
               <StatusMessage status={usernameStatus} />
               <button type="submit" disabled={usernameLoading || !newUsername || !usernamePassword}>
-                {usernameLoading ? 'Сохранение...' : 'Сохранить'}
+                {usernameLoading ? t('common.saving') : t('common.save')}
               </button>
             </form>
           </SettingCard>
 
-          <SettingCard title="Изменить пароль">
+          <SettingCard title={t('profile.changePass.title')}>
             <form onSubmit={handlePasswordSubmit} className="profile-form">
               <input
                 type="password"
-                placeholder="Текущий пароль"
+                placeholder={t('profile.changePass.current')}
                 value={currentPassword}
                 onChange={e => setCurrentPassword(e.target.value)}
                 required
               />
               <input
                 type="password"
-                placeholder="Новый пароль"
+                placeholder={t('profile.changePass.new')}
                 value={newPassword}
                 onChange={e => setNewPassword(e.target.value)}
                 required
               />
               <input
                 type="password"
-                placeholder="Повторите пароль"
+                placeholder={t('profile.changePass.confirm')}
                 value={confirmPassword}
                 onChange={e => setConfirmPassword(e.target.value)}
                 required
               />
               <StatusMessage status={passwordStatus} />
               <button type="submit" disabled={passwordLoading || !currentPassword || !newPassword || !confirmPassword}>
-                {passwordLoading ? 'Сохранение...' : 'Сохранить'}
+                {passwordLoading ? t('common.saving') : t('common.save')}
               </button>
             </form>
+          </SettingCard>
+
+          <SettingCard title={t('profile.lang.title')}>
+            <div className="profile-lang-toggle">
+              <button
+                className={`profile-lang-btn${lang === 'ru' ? ' profile-lang-btn--active' : ''}`}
+                onClick={() => setLanguage('ru')}
+              >
+                {t('profile.lang.ru')}
+              </button>
+              <button
+                className={`profile-lang-btn${lang === 'en' ? ' profile-lang-btn--active' : ''}`}
+                onClick={() => setLanguage('en')}
+              >
+                {t('profile.lang.en')}
+              </button>
+            </div>
           </SettingCard>
         </div>
       </main>

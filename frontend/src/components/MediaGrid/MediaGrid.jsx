@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import MediaCard from './MediaCard'
 import AddModal from './AddModal'
+import { useLang } from '../../i18n/LangContext'
 import './mediaGrid.css'
 
 export default function MediaGrid({
@@ -18,6 +19,7 @@ export default function MediaGrid({
   extraFields = [],
   loading = false,
 }) {
+  const { t } = useLang()
   const [showModal, setShowModal] = useState(false)
 
   async function handleSubmit(title, file, url, extras) {
@@ -37,7 +39,7 @@ export default function MediaGrid({
       {loading
         ? <div className="loading-spinner" />
         : items.length === 0
-        ? <p className="media-empty">Пока ничего нет</p>
+        ? <p className="media-empty">{t('common.empty')}</p>
         : (
           <div className="media-grid">
             {items.map(item => (

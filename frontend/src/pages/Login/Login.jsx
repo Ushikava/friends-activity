@@ -1,11 +1,12 @@
 import { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { login, saveSession, fetchUsers } from '../../api/auth'
+import { useLang } from '../../i18n/LangContext'
 import './Login.css'
 
 import layout1 from '../../assets/Login/layout_1.svg'
 import layout2 from '../../assets/Login/layout_2.svg'
-import maskot from '../../assets/Login/maskot.svg'
+import maskot  from '../../assets/Login/maskot.svg'
 
 function IconEye() {
   return (
@@ -26,7 +27,7 @@ function IconEyeOff() {
   )
 }
 
-function CustomSelect({ options, value, onChange }) {
+function CustomSelect({ options, value, onChange, observerLabel }) {
   const [open, setOpen] = useState(false)
   const ref = useRef(null)
 
@@ -62,7 +63,7 @@ function CustomSelect({ options, value, onChange }) {
               onClick={() => { onChange(o.username); setOpen(false) }}
             >
               {o.username}
-              {o.role === 'observer' && <span className="custom-select__badge">наблюдатель</span>}
+              {o.role === 'observer' && <span className="custom-select__badge">{observerLabel}</span>}
             </li>
           ))}
         </ul>
@@ -72,6 +73,7 @@ function CustomSelect({ options, value, onChange }) {
 }
 
 export default function Login() {
+  const { t } = useLang()
   const [users, setUsers] = useState([])
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
@@ -121,7 +123,12 @@ export default function Login() {
           <h1 className="login-title">FA Login</h1>
 
           <div className="login-field">
-            <CustomSelect options={users} value={username} onChange={setUsername} />
+            <CustomSelect
+              options={users}
+              value={username}
+              onChange={setUsername}
+              observerLabel={t('login.observer')}
+            />
           </div>
 
           {!isObserver && (
@@ -132,7 +139,7 @@ export default function Login() {
                   value={password}
                   onChange={e => setPassword(e.target.value)}
                   autoComplete="current-password"
-                  placeholder="Пароль"
+                  placeholder={t('login.password')}
                 />
                 <button
                   type="button"
@@ -149,7 +156,7 @@ export default function Login() {
           {error && <p className="login-error">{error}</p>}
 
           <button className="login-btn" type="submit" disabled={loading || (!isObserver && !password)}>
-            {loading ? 'Вход...' : 'Войти'}
+            {loading ? t('login.loading') : t('login.submit')}
           </button>
         </form>
       </div>

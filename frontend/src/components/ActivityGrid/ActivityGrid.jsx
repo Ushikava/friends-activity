@@ -1,3 +1,4 @@
+import { useLang } from '../../i18n/LangContext'
 import './ActivityGrid.css'
 
 const WEEKS = 52
@@ -5,8 +6,6 @@ const CELL = 13
 const GAP = 3
 const STEP = CELL + GAP
 const DAY_LABEL_WIDTH = 26
-
-const MONTHS_RU = ['янв', 'фев', 'мар', 'апр', 'май', 'июн', 'июл', 'авг', 'сен', 'окт', 'ноя', 'дек']
 
 function dateKey(d) {
   const y = d.getFullYear()
@@ -46,7 +45,7 @@ function buildGrid(activity) {
   return weeks
 }
 
-function getMonthLabels(weeks) {
+function getMonthLabels(weeks, months) {
   return weeks.reduce((acc, week, i) => {
     const day = week.find(Boolean)
     if (!day) return acc
@@ -54,8 +53,8 @@ function getMonthLabels(weeks) {
     const prev = weeks[i - 1]?.find(Boolean)
     if (!prev || prev.date.getMonth() !== m) {
       const text = m === 0
-        ? `${MONTHS_RU[m]} ${day.date.getFullYear()}`
-        : MONTHS_RU[m]
+        ? `${months[m]} ${day.date.getFullYear()}`
+        : months[m]
       acc.push({ col: i, text })
     }
     return acc
@@ -70,23 +69,26 @@ function getColor(count) {
   return 'var(--activity-4)'
 }
 
-function plural(n) {
-  if (n === 1) return '1 событие'
-  if (n >= 2 && n <= 4) return `${n} события`
-  return `${n} событий`
-}
-
-function formatDate(d) {
-  return d.toLocaleDateString('ru-RU', { day: 'numeric', month: 'long', year: 'numeric' })
+function formatDate(d, lang) {
+  return d.toLocaleDateString(lang === 'ru' ? 'ru-RU' : 'en-US', {
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric',
+  })
 }
 
 export default function ActivityGrid({ activity }) {
+  const { t, lang } = useLang()
+  const months = t('activity.months')
+  const days = t('activity.days')
+  const plural = t('activity.plural')
+
   const weeks = buildGrid(activity)
-  const monthLabels = getMonthLabels(weeks)
+  const monthLabels = getMonthLabels(weeks, months)
 
   return (
     <div className="activity">
-      <h2 className="home-section__title" style={{ marginBottom: 12 }}>Активность</h2>
+      <h2 className="home-section__title" style={{ marginBottom: 12 }}>{t('activity.title')}</h2>
 
       <div className="activity__wrap">
         {/* Month labels */}
@@ -101,7 +103,7 @@ export default function ActivityGrid({ activity }) {
         {/* Grid */}
         <div className="activity__grid">
           <div className="activity__days">
-            {['Пн', '', 'Ср', '', 'Пт', '', ''].map((label, i) => (
+            {days.map((label, i) => (
               <span key={i}>{label}</span>
             ))}
           </div>
@@ -115,7 +117,10 @@ export default function ActivityGrid({ activity }) {
                       key={di}
                       className="activity__cell"
                       style={{ background: getColor(day.count) }}
-                      title={day.count > 0 ? `${formatDate(day.date)}: ${plural(day.count)}` : formatDate(day.date)}
+                      title={day.count > 0
+                        ? `${formatDate(day.date, lang)}: ${plural(day.count)}`
+                        : formatDate(day.date, lang)
+                      }
                     />
                   ) : (
                     <div key={di} className="activity__cell activity__cell--future" />
@@ -128,11 +133,11 @@ export default function ActivityGrid({ activity }) {
 
         {/* Legend */}
         <div className="activity__legend">
-          <span>меньше</span>
+          <span>{t('activity.less')}</span>
           {[0, 1, 2, 4, 6].map((count, i) => (
             <div key={i} className="activity__cell" style={{ background: getColor(count) }} />
           ))}
-          <span>больше</span>
+          <span>{t('activity.more')}</span>
         </div>
       </div>
     </div>
