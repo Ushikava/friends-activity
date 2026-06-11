@@ -70,6 +70,9 @@ def toggle_watched(
     user_id: int = Depends(get_user_from_token),
     db: Session = Depends(get_db),
 ):
+    user = user_db.get_user_by_id(db, user_id)
+    if not user or user.role == "observer":
+        raise ForbiddenError()
     movie = movie_db.toggle_watched(db, movie_id)
     if not movie:
         raise NotFoundError("Фильм")

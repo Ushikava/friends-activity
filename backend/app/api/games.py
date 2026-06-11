@@ -71,6 +71,9 @@ def toggle_played(
     user_id: int = Depends(get_user_from_token),
     db: Session = Depends(get_db),
 ):
+    user = user_db.get_user_by_id(db, user_id)
+    if not user or user.role == "observer":
+        raise ForbiddenError()
     game = game_db.toggle_played(db, game_id)
     if not game:
         raise NotFoundError("Игра")

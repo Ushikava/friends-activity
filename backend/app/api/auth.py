@@ -30,7 +30,9 @@ def user_login(body: LoginRequest):
     db = SessionLocal()
     try:
         user = user_db.get_user_by_username(db, body.username)
-        if not user or not pwd_context.verify(body.password, user.hashed_password):
+        if not user:
+            raise UnauthorizedError("Неверные учетные данные")
+        if user.role != 'observer' and not pwd_context.verify(body.password, user.hashed_password):
             raise UnauthorizedError("Неверные учетные данные")
 
         access_token = create_access_token(user.id, user.username)

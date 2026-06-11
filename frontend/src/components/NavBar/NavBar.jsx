@@ -1,4 +1,5 @@
 import { NavLink } from 'react-router-dom'
+import { getRole } from '../../api/auth'
 import homeIcon from '../../assets/NavBar/Home_na.svg'
 import galleryIcon from '../../assets/NavBar/Gallery_na.svg'
 import gamesIcon from '../../assets/NavBar/Games_na.svg'
@@ -23,6 +24,8 @@ function NavIcon({ to, label, end, icon }) {
 }
 
 export default function NavBar() {
+  const isObserver = getRole() === 'observer'
+
   return (
     <nav className="navbar">
       <div className="navbar__left">
@@ -37,7 +40,7 @@ export default function NavBar() {
       </div>
 
       <div className="navbar__right">
-        <NavIcon to="/profile" label="Профиль" icon={profileIcon} />
+        {!isObserver && <NavIcon to="/profile" label="Профиль" icon={profileIcon} />}
       </div>
     </nav>
   )

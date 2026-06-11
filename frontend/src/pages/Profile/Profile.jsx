@@ -1,6 +1,7 @@
 import { useState } from 'react'
+import { Navigate } from 'react-router-dom'
 import NavBar from '../../components/NavBar/NavBar'
-import { getUsername, changeUsername, changePassword } from '../../api/auth'
+import { getUsername, getRole, changeUsername, changePassword } from '../../api/auth'
 import '../page.css'
 import './Profile.css'
 import '../../components/MediaGrid/mediaGrid.css'
@@ -76,6 +77,8 @@ export default function Profile() {
     }
   }
 
+  if (getRole() === 'observer') return <Navigate to="/" replace />
+
   return (
     <div className="page">
       <NavBar />
@@ -101,7 +104,7 @@ export default function Profile() {
                 required
               />
               <StatusMessage status={usernameStatus} />
-              <button type="submit" disabled={usernameLoading}>
+              <button type="submit" disabled={usernameLoading || !newUsername || !usernamePassword}>
                 {usernameLoading ? 'Сохранение...' : 'Сохранить'}
               </button>
             </form>
@@ -131,7 +134,7 @@ export default function Profile() {
                 required
               />
               <StatusMessage status={passwordStatus} />
-              <button type="submit" disabled={passwordLoading}>
+              <button type="submit" disabled={passwordLoading || !currentPassword || !newPassword || !confirmPassword}>
                 {passwordLoading ? 'Сохранение...' : 'Сохранить'}
               </button>
             </form>

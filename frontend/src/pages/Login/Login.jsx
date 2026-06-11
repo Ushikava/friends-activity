@@ -80,12 +80,19 @@ export default function Login() {
   const [loading, setLoading] = useState(false)
   const navigate = useNavigate()
 
+  const selectedUser = users.find(u => u.username === username)
+  const isObserver = selectedUser?.role === 'observer'
+
   useEffect(() => {
     fetchUsers().then(data => {
       setUsers(data)
       if (data.length > 0) setUsername(data[0].username)
     })
   }, [])
+
+  useEffect(() => {
+    if (isObserver) setPassword('')
+  }, [isObserver])
 
   async function handleSubmit(e) {
     e.preventDefault()
@@ -117,30 +124,31 @@ export default function Login() {
             <CustomSelect options={users} value={username} onChange={setUsername} />
           </div>
 
-          <div className="login-field">
-            <div className="password-wrap">
-              <input
-                type={showPassword ? 'text' : 'password'}
-                value={password}
-                onChange={e => setPassword(e.target.value)}
-                autoComplete="current-password"
-                placeholder="Пароль"
-                required
-              />
-              <button
-                type="button"
-                className="password-toggle"
-                onClick={() => setShowPassword(v => !v)}
-                tabIndex={-1}
-              >
-                {showPassword ? <IconEyeOff /> : <IconEye />}
-              </button>
+          {!isObserver && (
+            <div className="login-field">
+              <div className="password-wrap">
+                <input
+                  type={showPassword ? 'text' : 'password'}
+                  value={password}
+                  onChange={e => setPassword(e.target.value)}
+                  autoComplete="current-password"
+                  placeholder="Пароль"
+                />
+                <button
+                  type="button"
+                  className="password-toggle"
+                  onClick={() => setShowPassword(v => !v)}
+                  tabIndex={-1}
+                >
+                  {showPassword ? <IconEyeOff /> : <IconEye />}
+                </button>
+              </div>
             </div>
-          </div>
+          )}
 
           {error && <p className="login-error">{error}</p>}
 
-          <button className="login-btn" type="submit" disabled={loading}>
+          <button className="login-btn" type="submit" disabled={loading || (!isObserver && !password)}>
             {loading ? 'Вход...' : 'Войти'}
           </button>
         </form>

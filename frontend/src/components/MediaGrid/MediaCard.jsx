@@ -23,11 +23,12 @@ export default function MediaCard({ item, checkedField, checkLabel, linkField, o
           : <div className="media-card__no-poster">{item.title[0]}</div>
         }
         <div className="media-card__overlay">
-          <label className="media-card__check" onClick={e => e.stopPropagation()}>
+          <label className={`media-card__check${!canEdit ? ' media-card__check--readonly' : ''}`} onClick={e => e.stopPropagation()}>
             <input
               type="checkbox"
               checked={isChecked}
-              onChange={() => onToggle(item.id)}
+              onChange={() => canEdit && onToggle(item.id)}
+              readOnly={!canEdit}
             />
             <span>{checkLabel}</span>
           </label>
