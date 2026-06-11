@@ -26,3 +26,13 @@ class UserOut(BaseModel):
 
     class Config:
         from_attributes = True
+
+
+class ChangeUsernameRequest(BaseModel):
+    new_username: str
+    password: str
+
+
+class ChangePasswordRequest(BaseModel):
+    current_password: str
+    new_password: str

@@ -13,17 +13,14 @@ def compress_image(data: bytes, max_dimension: int = 1920, quality: int = 85) ->
     except UnidentifiedImageError:
         raise ValueError("Неподдерживаемый формат изображения")
 
-    # Анимированные GIF не трогаем
     if getattr(img, "is_animated", False):
         return data, ".gif"
 
-    # Нормализуем цветовой режим
     if img.mode == "P":
         img = img.convert("RGBA")
     elif img.mode not in ("RGB", "RGBA"):
         img = img.convert("RGB")
 
-    # Уменьшаем если нужно
     if max(img.size) > max_dimension:
         img.thumbnail((max_dimension, max_dimension), Image.LANCZOS)
 

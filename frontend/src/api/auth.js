@@ -44,3 +44,35 @@ export function getUsername() {
 export function getRole() {
   return localStorage.getItem('role')
 }
+
+export async function changeUsername(newUsername, password) {
+  const res = await fetch(`${API}/me/username`, {
+    method: 'PATCH',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${getToken()}`,
+    },
+    body: JSON.stringify({ new_username: newUsername, password }),
+  })
+  if (!res.ok) {
+    const err = await res.json()
+    throw new Error(err.detail || 'Ошибка')
+  }
+  return res.json()
+}
+
+export async function changePassword(currentPassword, newPassword) {
+  const res = await fetch(`${API}/me/password`, {
+    method: 'PATCH',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${getToken()}`,
+    },
+    body: JSON.stringify({ current_password: currentPassword, new_password: newPassword }),
+  })
+  if (!res.ok) {
+    const err = await res.json()
+    throw new Error(err.detail || 'Ошибка')
+  }
+  return res.json()
+}

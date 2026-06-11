@@ -1,0 +1,99 @@
+.profile-greeting {
+  font-size: 18px;
+  color: var(--text);
+  margin: 12px 0 32px;
+}
+
+.profile-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 400px));
+  gap: 24px;
+}
+
+.profile-card {
+  background: #dadada;
+  border-radius: 24px;
+  padding: 32px;
+  box-shadow: 0 4px 3px 0 rgba(0, 0, 0, 0.3);
+}
+
+.profile-card__title {
+  font-size: 20px;
+  font-weight: 500;
+  margin: 0 0 24px;
+}
+
+.profile-form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.profile-form input {
+  padding: 12px 18px;
+  border-radius: 50px;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  color: var(--text-h);
+  font-size: 16px;
+  outline: none;
+  transition: border-color 0.15s;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.profile-form input:focus {
+  border-color: var(--accent);
+}
+
+.profile-form button {
+  margin-top: 4px;
+  padding: 12px;
+  border-radius: 8px;
+  border: none;
+  background: var(--accent);
+  color: #fff;
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 4px 3px 0 rgba(0, 0, 0, 0.3);
+  transition: opacity 0.15s;
+  align-self: flex-start;
+  min-width: 120px;
+}
+
+.profile-form button:hover:not(:disabled) {
+  opacity: 0.85;
+}
+
+.profile-form button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.profile-status {
+  font-size: 14px;
+  margin: 0;
+  padding: 8px 14px;
+  border-radius: 8px;
+}
+
+.profile-status--ok {
+  background: rgba(74, 222, 128, 0.15);
+  color: #16a34a;
+}
+
+.profile-status--err {
+  background: rgba(248, 113, 113, 0.15);
+  color: #dc2626;
+}
+
+@media (max-width: 640px) {
+  .profile-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .profile-card {
+    padding: 24px 20px;
+  }
+}

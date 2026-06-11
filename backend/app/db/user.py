@@ -31,3 +31,17 @@ def delete_refresh_token(db: Session, token: str):
 def delete_all_refresh_tokens(db: Session, user_id: int):
     db.query(RefreshToken).filter(RefreshToken.user_id == user_id).delete()
     db.commit()
+
+
+def update_username(db: Session, user_id: int, new_username: str) -> UserData:
+    user = get_user_by_id(db, user_id)
+    user.username = new_username
+    db.commit()
+    db.refresh(user)
+    return user
+
+
+def update_password(db: Session, user_id: int, new_hashed_password: str) -> None:
+    user = get_user_by_id(db, user_id)
+    user.hashed_password = new_hashed_password
+    db.commit()

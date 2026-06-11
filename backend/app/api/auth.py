@@ -1,13 +1,13 @@
 from datetime import timezone, datetime
 
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
 from passlib.context import CryptContext
 
 from core.auth import create_access_token, create_refresh_token, get_user_from_token
 from db.session import SessionLocal
 from db import user as user_db
-from schemas.user import LoginRequest, RefreshRequest, TokenResponse
-from core.exceptions import UnauthorizedError
+from schemas.user import LoginRequest, RefreshRequest, TokenResponse, ChangeUsernameRequest, ChangePasswordRequest
+from core.exceptions import UnauthorizedError, BadRequestError
 
 pwd_context = CryptContext(schemes=["bcrypt"])
 
@@ -83,6 +83,35 @@ def logout(body: RefreshRequest):
     db = SessionLocal()
     try:
         user_db.delete_refresh_token(db, body.refresh_token)
+        return {"status": "ok"}
+    finally:
+        db.close()
+
+
+@router.patch("/me/username")
+def change_username(body: ChangeUsernameRequest, user_id: int = Depends(get_user_from_token)):
+    db = SessionLocal()
+    try:
+        user = user_db.get_user_by_id(db, user_id)
+        if not pwd_context.verify(body.password, user.hashed_password):
+            raise UnauthorizedError("Неверный пароль")
+        if user_db.get_user_by_username(db, body.new_username):
+            raise BadRequestError("Имя пользователя уже занято")
+        updated = user_db.update_username(db, user_id, body.new_username)
+        return {"username": updated.username}
+    finally:
+        db.close()
+
+
+@router.patch("/me/password")
+def change_password(body: ChangePasswordRequest, user_id: int = Depends(get_user_from_token)):
+    db = SessionLocal()
+    try:
+        user = user_db.get_user_by_id(db, user_id)
+        if not pwd_context.verify(body.current_password, user.hashed_password):
+            raise UnauthorizedError("Неверный текущий пароль")
+        new_hash = pwd_context.hash(body.new_password)
+        user_db.update_password(db, user_id, new_hash)
         return {"status": "ok"}
     finally:
         db.close()
