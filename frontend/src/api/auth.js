@@ -106,6 +106,22 @@ export async function changeUsername(newUsername, password) {
   return res.json()
 }
 
+export async function createUser(username, password) {
+  const res = await apiFetch(`${API}/users`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${getToken()}`,
+    },
+    body: JSON.stringify({ username, password }),
+  })
+  if (!res.ok) {
+    const err = await res.json()
+    throw new Error(err.detail || 'Ошибка создания пользователя')
+  }
+  return res.json()
+}
+
 export async function changePassword(currentPassword, newPassword) {
   const res = await apiFetch(`${API}/me/password`, {
     method: 'PATCH',

@@ -45,3 +45,11 @@ def update_password(db: Session, user_id: int, new_hashed_password: str) -> None
     user = get_user_by_id(db, user_id)
     user.hashed_password = new_hashed_password
     db.commit()
+
+
+def create_user(db: Session, username: str, hashed_password: str) -> UserData:
+    user = UserData(username=username, hashed_password=hashed_password, role="user")
+    db.add(user)
+    db.commit()
+    db.refresh(user)
+    return user

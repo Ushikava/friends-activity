@@ -6,7 +6,7 @@ from passlib.context import CryptContext
 from core.auth import create_access_token, create_refresh_token, get_user_from_token
 from db.session import SessionLocal
 from db import user as user_db
-from schemas.user import LoginRequest, RefreshRequest, TokenResponse, ChangeUsernameRequest, ChangePasswordRequest
+from schemas.user import LoginRequest, RefreshRequest, TokenResponse, ChangeUsernameRequest, ChangePasswordRequest, CreateUserRequest, UserOut
 from core.exceptions import UnauthorizedError, BadRequestError
 
 pwd_context = CryptContext(schemes=["bcrypt"])
@@ -21,6 +21,18 @@ def list_users():
         from db.models import UserData
         users = db.query(UserData.username, UserData.role).all()
         return [{"username": u.username, "role": u.role} for u in users]
+    finally:
+        db.close()
+
+
+@router.post("/users", response_model=UserOut)
+def create_user(body: CreateUserRequest, _: int = Depends(get_user_from_token)):
+    db = SessionLocal()
+    try:
+        if user_db.get_user_by_username(db, body.username):
+            raise BadRequestError("Пользователь с таким именем уже существует")
+        hashed = pwd_context.hash(body.password)
+        return user_db.create_user(db, body.username, hashed)
     finally:
         db.close()
 

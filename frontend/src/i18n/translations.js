@@ -87,6 +87,15 @@ export const ru = {
   'profile.lang.title':         'Язык',
   'profile.lang.ru':            'Русский',
   'profile.lang.en':            'English',
+  'confirm.title':              'Удалить?',
+  'confirm.body':               'Это действие нельзя отменить.',
+  'confirm.delete':             'Удалить',
+  'confirm.cancel':             'Отмена',
+  'profile.addUser.title':      'Добавить пользователя',
+  'profile.addUser.username':   'Имя пользователя',
+  'profile.addUser.password':   'Пароль',
+  'profile.addUser.submit':     'Создать',
+  'profile.addUser.saved':      'Пользователь создан',
 }
 
 export const en = {
@@ -174,4 +183,13 @@ export const en = {
   'profile.lang.title':         'Language',
   'profile.lang.ru':            'Русский',
   'profile.lang.en':            'English',
+  'confirm.title':              'Delete?',
+  'confirm.body':               'This action cannot be undone.',
+  'confirm.delete':             'Delete',
+  'confirm.cancel':             'Cancel',
+  'profile.addUser.title':      'Add user',
+  'profile.addUser.username':   'Username',
+  'profile.addUser.password':   'Password',
+  'profile.addUser.submit':     'Create',
+  'profile.addUser.saved':      'User created',
 }

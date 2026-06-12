@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Navigate } from 'react-router-dom'
 import NavBar from '../../components/NavBar/NavBar'
-import { getUsername, getRole, changeUsername, changePassword } from '../../api/auth'
+import { getUsername, getRole, changeUsername, changePassword, createUser } from '../../api/auth'
 import { useLang } from '../../i18n/LangContext'
 import '../page.css'
 import './Profile.css'
@@ -34,11 +34,32 @@ export default function Profile() {
   const [usernameStatus, setUsernameStatus] = useState(null)
   const [usernameLoading, setUsernameLoading] = useState(false)
 
+  const [newUserUsername, setNewUserUsername] = useState('')
+  const [newUserPassword, setNewUserPassword] = useState('')
+  const [newUserStatus, setNewUserStatus] = useState(null)
+  const [newUserLoading, setNewUserLoading] = useState(false)
+
   const [currentPassword, setCurrentPassword] = useState('')
   const [newPassword, setNewPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
   const [passwordStatus, setPasswordStatus] = useState(null)
   const [passwordLoading, setPasswordLoading] = useState(false)
+
+  async function handleNewUserSubmit(e) {
+    e.preventDefault()
+    setNewUserStatus(null)
+    setNewUserLoading(true)
+    try {
+      await createUser(newUserUsername, newUserPassword)
+      setNewUserUsername('')
+      setNewUserPassword('')
+      setNewUserStatus({ ok: true, text: t('profile.addUser.saved') })
+    } catch (err) {
+      setNewUserStatus({ ok: false, text: err.message })
+    } finally {
+      setNewUserLoading(false)
+    }
+  }
 
   async function handleUsernameSubmit(e) {
     e.preventDefault()
@@ -138,6 +159,29 @@ export default function Profile() {
               <StatusMessage status={passwordStatus} />
               <button type="submit" disabled={passwordLoading || !currentPassword || !newPassword || !confirmPassword}>
                 {passwordLoading ? t('common.saving') : t('common.save')}
+              </button>
+            </form>
+          </SettingCard>
+
+          <SettingCard title={t('profile.addUser.title')}>
+            <form onSubmit={handleNewUserSubmit} className="profile-form">
+              <input
+                type="text"
+                placeholder={t('profile.addUser.username')}
+                value={newUserUsername}
+                onChange={e => setNewUserUsername(e.target.value)}
+                required
+              />
+              <input
+                type="password"
+                placeholder={t('profile.addUser.password')}
+                value={newUserPassword}
+                onChange={e => setNewUserPassword(e.target.value)}
+                required
+              />
+              <StatusMessage status={newUserStatus} />
+              <button type="submit" disabled={newUserLoading || !newUserUsername || !newUserPassword}>
+                {newUserLoading ? t('common.saving') : t('profile.addUser.submit')}
               </button>
             </form>
           </SettingCard>

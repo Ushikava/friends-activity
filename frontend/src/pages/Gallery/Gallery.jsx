@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react'
 import { motion } from 'framer-motion'
 import NavBar from '../../components/NavBar/NavBar'
 import Pagination from '../../components/Pagination/Pagination'
+import ConfirmModal from '../../components/ConfirmModal/ConfirmModal'
 import { fetchPhotos, uploadPhoto, deletePhoto, photoSrc } from '../../api/photos'
 import { getRole } from '../../api/auth'
 import { useLang } from '../../i18n/LangContext'
@@ -109,9 +110,10 @@ function UploadModal({ onClose, onUploaded }) {
 }
 
 function Lightbox({ photo, onClose, onDelete, canEdit }) {
-  const { t } = useLang()
+  const { t, lang } = useLang()
   const src = photoSrc(photo.filename)
   const [closing, setClosing] = useState(false)
+  const [confirmOpen, setConfirmOpen] = useState(false)
 
   function close() { setClosing(true) }
 
@@ -121,23 +123,35 @@ function Lightbox({ photo, onClose, onDelete, canEdit }) {
     return () => window.removeEventListener('keydown', onKey)
   }, [])
 
+  const dateStr = new Date(photo.uploaded_at).toLocaleDateString(
+    lang === 'ru' ? 'ru-RU' : 'en-US',
+    { day: 'numeric', month: 'long', year: 'numeric' }
+  )
+
   return (
     <div
       className={`lightbox${closing ? ' lightbox--closing' : ''}`}
       onClick={e => { if (e.target === e.currentTarget) close() }}
       onAnimationEnd={e => { if (e.animationName === 'lightbox-out') onClose() }}
     >
-      <div className="lightbox__inner" onClick={e => { if (e.target === e.currentTarget) close() }}>
+      <div className="lightbox__inner" onClick={close}>
         <button className="lightbox__close" onClick={close}>×</button>
         <img src={src} alt={photo.description || ''} className="lightbox__img" />
-        {photo.description && (
-          <p className="lightbox__desc">{photo.description}</p>
-        )}
+        <div className="lightbox__footer">
+          <p className="lightbox__desc">{photo.description || ''}</p>
+          <span className="lightbox__date">{dateStr}</span>
+        </div>
         {canEdit && (
           <button
             className="lightbox__delete"
-            onClick={() => { onDelete(photo.id); onClose() }}
+            onClick={e => { e.stopPropagation(); setConfirmOpen(true) }}
           >{t('common.delete')}</button>
+        )}
+        {confirmOpen && (
+          <ConfirmModal
+            onConfirm={() => { setConfirmOpen(false); onDelete(photo.id); onClose() }}
+            onCancel={() => setConfirmOpen(false)}
+          />
         )}
       </div>
     </div>

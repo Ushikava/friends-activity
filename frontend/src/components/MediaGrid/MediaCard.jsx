@@ -1,4 +1,6 @@
+import { useState } from 'react'
 import { useLang } from '../../i18n/LangContext'
+import ConfirmModal from '../ConfirmModal/ConfirmModal'
 
 const UPLOADS = import.meta.env.VITE_UPLOADS_URL
 
@@ -10,6 +12,7 @@ function posterSrc(poster) {
 
 export default function MediaCard({ item, checkedField, checkLabel, linkField, onToggle, onDelete, canEdit }) {
   const { t } = useLang()
+  const [confirmOpen, setConfirmOpen] = useState(false)
   const src = posterSrc(item.poster)
   const isChecked = item[checkedField]
   const link = linkField ? item[linkField] : null
@@ -41,7 +44,7 @@ export default function MediaCard({ item, checkedField, checkLabel, linkField, o
           {canEdit && (
             <button
               className="media-card__delete"
-              onClick={e => { e.preventDefault(); onDelete(item.id) }}
+              onClick={e => { e.preventDefault(); e.stopPropagation(); setConfirmOpen(true) }}
               title={t('common.delete')}
             >
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -55,6 +58,12 @@ export default function MediaCard({ item, checkedField, checkLabel, linkField, o
         </div>
       </Wrap>
       <p className="media-card__title">{item.title}</p>
+      {confirmOpen && (
+        <ConfirmModal
+          onConfirm={() => { setConfirmOpen(false); onDelete(item.id) }}
+          onCancel={() => setConfirmOpen(false)}
+        />
+      )}
     </div>
   )
 }

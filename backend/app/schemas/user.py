@@ -36,3 +36,8 @@ class ChangeUsernameRequest(BaseModel):
 class ChangePasswordRequest(BaseModel):
     current_password: str
     new_password: str
+
+
+class CreateUserRequest(BaseModel):
+    username: str
+    password: str
