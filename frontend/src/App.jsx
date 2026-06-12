@@ -7,6 +7,7 @@ import Games from './pages/Games/Games'
 import Places from './pages/Places/Places'
 import Movies from './pages/Movies/Movies'
 import Profile from './pages/Profile/Profile'
+import Chat from './pages/Chat/Chat'
 
 function PrivateRoute({ children }) {
   return getToken() ? children : <Navigate to="/login" replace />
@@ -22,6 +23,7 @@ export default function App() {
       <Route path="/places"  element={<PrivateRoute><Places /></PrivateRoute>} />
       <Route path="/movies"  element={<PrivateRoute><Movies /></PrivateRoute>} />
       <Route path="/profile" element={<PrivateRoute><Profile /></PrivateRoute>} />
+      <Route path="/chat"    element={<PrivateRoute><Chat /></PrivateRoute>} />
       <Route path="*"        element={<Navigate to="/" replace />} />
     </Routes>
   )

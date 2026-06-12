@@ -3,7 +3,7 @@ from datetime import timezone, datetime
 from fastapi import APIRouter, Depends
 from passlib.context import CryptContext
 
-from core.auth import create_access_token, create_refresh_token, get_user_from_token
+from core.auth import create_access_token, create_refresh_token, get_user_from_token, require_not_observer
 from db.session import SessionLocal
 from db import user as user_db
 from schemas.user import LoginRequest, RefreshRequest, TokenResponse, ChangeUsernameRequest, ChangePasswordRequest, CreateUserRequest, UserOut
@@ -47,7 +47,7 @@ def user_login(body: LoginRequest):
         if user.role != 'observer' and not pwd_context.verify(body.password, user.hashed_password):
             raise UnauthorizedError("Неверные учетные данные")
 
-        access_token = create_access_token(user.id, user.username)
+        access_token = create_access_token(user.id, user.username, user.role)
         refresh_token, expires_at = create_refresh_token()
         user_db.save_refresh_token(db, user.id, refresh_token, expires_at)
 
@@ -78,7 +78,7 @@ def refresh_token(body: RefreshRequest):
 
         user_db.delete_refresh_token(db, body.refresh_token)
 
-        access_token = create_access_token(user.id, user.username)
+        access_token = create_access_token(user.id, user.username, user.role)
         new_refresh_token, expires_at = create_refresh_token()
         user_db.save_refresh_token(db, user.id, new_refresh_token, expires_at)
 

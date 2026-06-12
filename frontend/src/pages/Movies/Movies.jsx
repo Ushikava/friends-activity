@@ -15,7 +15,13 @@ export default function Movies() {
   const [total, setTotal] = useState(0)
   const [page, setPage] = useState(1)
   const [loading, setLoading] = useState(true)
+  const [errMsg, setErrMsg] = useState('')
   const canEdit = getRole() !== 'observer'
+
+  function showErr(msg) {
+    setErrMsg(msg)
+    setTimeout(() => setErrMsg(''), 4000)
+  }
 
   useEffect(() => {
     setLoading(true)
@@ -26,16 +32,20 @@ export default function Movies() {
   }, [page])
 
   function handleToggle(id) {
-    toggleWatched(id).then(u => setMovies(p => p.map(m => m.id === id ? u : m)))
+    toggleWatched(id)
+      .then(u => setMovies(p => p.map(m => m.id === id ? u : m)))
+      .catch(() => showErr(t('common.errAction')))
   }
 
   function handleDelete(id) {
     const isLastOnPage = movies.length === 1 && page > 1
-    deleteMovie(id).then(() => {
-      setMovies(p => p.filter(m => m.id !== id))
-      setTotal(n => n - 1)
-      if (isLastOnPage) setPage(p => p - 1)
-    })
+    deleteMovie(id)
+      .then(() => {
+        setMovies(p => p.filter(m => m.id !== id))
+        setTotal(n => n - 1)
+        if (isLastOnPage) setPage(p => p - 1)
+      })
+      .catch(() => showErr(t('common.errDeleteFail')))
   }
 
   function handleItemAdded(movie) {
@@ -51,6 +61,7 @@ export default function Movies() {
     <div className="page">
       <NavBar />
       <main className="page__main">
+        {errMsg && <p className="page-error">{errMsg}</p>}
         <MediaGrid
           pageTitle={t('movies.title')}
           modalTitle={t('movies.add')}

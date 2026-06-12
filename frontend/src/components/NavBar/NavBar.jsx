@@ -24,6 +24,18 @@ function NavIcon({ to, label, end, icon }) {
   )
 }
 
+function NavIconSvg({ to, label, children }) {
+  return (
+    <NavLink
+      to={to}
+      className={({ isActive }) => `navbar__item ${isActive ? 'navbar__item--active' : ''}`}
+      title={label}
+    >
+      <span className="navbar__icon">{children}</span>
+    </NavLink>
+  )
+}
+
 export default function NavBar() {
   const isObserver = getRole() === 'observer'
   const { t } = useLang()
@@ -39,6 +51,13 @@ export default function NavBar() {
         <NavIcon to="/games"   label={t('nav.games')}   icon={gamesIcon} />
         <NavIcon to="/places"  label={t('nav.places')}  icon={placesIcon} />
         <NavIcon to="/movies"  label={t('nav.movies')}  icon={moviesIcon} />
+        {!isObserver && (
+          <NavIconSvg to="/chat" label={t('chat.title')}>
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+            </svg>
+          </NavIconSvg>
+        )}
       </div>
 
       <div className="navbar__right">

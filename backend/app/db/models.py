@@ -66,3 +66,23 @@ class Game(Base):
     steam_link = Column(Text, nullable=True)
     added_by = Column(Integer, ForeignKey("users_data.id"), nullable=False)
     created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
+
+
+class ChatRoom(Base):
+    __tablename__ = "chat_rooms"
+
+    id = Column(Integer, primary_key=True)
+    user_id = Column(Integer, ForeignKey("users_data.id"), nullable=False)
+    name = Column(String, nullable=False, default="Новый чат")
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
+
+
+class ChatMessage(Base):
+    __tablename__ = "chat_messages"
+
+    id = Column(Integer, primary_key=True)
+    user_id = Column(Integer, ForeignKey("users_data.id"), nullable=False)
+    room_id = Column(Integer, ForeignKey("chat_rooms.id"), nullable=False)
+    role = Column(String, nullable=False)   # "user" | "assistant"
+    content = Column(Text, nullable=False)
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))

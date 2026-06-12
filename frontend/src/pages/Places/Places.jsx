@@ -166,7 +166,13 @@ export default function Places() {
   const [loading, setLoading] = useState(true)
   const [showModal, setShowModal] = useState(false)
   const [selected, setSelected] = useState(null)
+  const [errMsg, setErrMsg] = useState('')
   const canEdit = getRole() !== 'observer'
+
+  function showErr(msg) {
+    setErrMsg(msg)
+    setTimeout(() => setErrMsg(''), 4000)
+  }
 
   useEffect(() => {
     setLoading(true)
@@ -184,7 +190,7 @@ export default function Places() {
         setTotal(n => n - 1)
         if (isLastOnPage) setPage(p => p - 1)
       })
-      .catch(console.error)
+      .catch(() => showErr(t('common.errDeleteFail')))
   }
 
   function handleUploaded(place) {
@@ -200,6 +206,7 @@ export default function Places() {
     <div className="page">
       <NavBar />
       <main className="page__main">
+        {errMsg && <p className="page-error">{errMsg}</p>}
         <div className="media-header">
           <h1 className="media-header__title">{t('places.title')}</h1>
           {canEdit && (

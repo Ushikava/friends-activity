@@ -30,3 +30,4 @@ nginx.conf
 *.sw?
 *.env
 *venv
+deploy.sh

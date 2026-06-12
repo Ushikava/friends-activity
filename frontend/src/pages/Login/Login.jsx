@@ -79,6 +79,7 @@ export default function Login() {
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
   const [error, setError] = useState('')
+  const [loadErr, setLoadErr] = useState(false)
   const [loading, setLoading] = useState(false)
   const navigate = useNavigate()
 
@@ -86,10 +87,12 @@ export default function Login() {
   const isObserver = selectedUser?.role === 'observer'
 
   useEffect(() => {
-    fetchUsers().then(data => {
-      setUsers(data)
-      if (data.length > 0) setUsername(data[0].username)
-    })
+    fetchUsers()
+      .then(data => {
+        setUsers(data)
+        if (data.length > 0) setUsername(data[0].username)
+      })
+      .catch(() => setLoadErr(true))
   }, [])
 
   useEffect(() => {
@@ -153,6 +156,7 @@ export default function Login() {
             </div>
           )}
 
+          {loadErr && <p className="login-error">{t('common.errLoadUsers')}</p>}
           {error && <p className="login-error">{error}</p>}
 
           <button className="login-btn" type="submit" disabled={loading || (!isObserver && !password)}>

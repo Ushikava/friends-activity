@@ -15,9 +15,9 @@ oauth2_scheme = HTTPBearer()
 oauth2_scheme_optional = HTTPBearer(auto_error=False)
 
 
-def create_access_token(user_id: int, username: str) -> str:
+def create_access_token(user_id: int, username: str, role: str = "user") -> str:
     expire = datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
-    return jwt.encode({"sub": str(user_id), "username": username, "exp": expire}, SECRET_KEY, algorithm=ALGORITHM)
+    return jwt.encode({"sub": str(user_id), "username": username, "role": role, "exp": expire}, SECRET_KEY, algorithm=ALGORITHM)
 
 
 def create_refresh_token() -> Tuple[str, datetime.datetime]:
@@ -26,14 +26,26 @@ def create_refresh_token() -> Tuple[str, datetime.datetime]:
     return token, expires_at
 
 
-def get_user_from_token(credentials: HTTPAuthorizationCredentials = Depends(oauth2_scheme)) -> int:
+def _decode_token(credentials: HTTPAuthorizationCredentials) -> dict:
     try:
-        payload = jwt.decode(credentials.credentials, SECRET_KEY, algorithms=[ALGORITHM])
-        return int(payload.get("sub"))
+        return jwt.decode(credentials.credentials, SECRET_KEY, algorithms=[ALGORITHM])
     except jwt.ExpiredSignatureError:
         raise UnauthorizedError("Токен истёк")
     except (jwt.InvalidTokenError, ValueError, TypeError):
         raise UnauthorizedError("Недействительный токен")
+
+
+def get_user_from_token(credentials: HTTPAuthorizationCredentials = Depends(oauth2_scheme)) -> int:
+    payload = _decode_token(credentials)
+    return int(payload.get("sub"))
+
+
+def require_not_observer(credentials: HTTPAuthorizationCredentials = Depends(oauth2_scheme)) -> int:
+    from core.exceptions import ForbiddenError
+    payload = _decode_token(credentials)
+    if payload.get("role") == "observer":
+        raise ForbiddenError("Доступ запрещён")
+    return int(payload.get("sub"))
 
 
 def get_optional_user(credentials: Optional[HTTPAuthorizationCredentials] = Depends(oauth2_scheme_optional)) -> Optional[int]:

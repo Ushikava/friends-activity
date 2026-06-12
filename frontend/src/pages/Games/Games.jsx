@@ -15,7 +15,13 @@ export default function Games() {
   const [total, setTotal] = useState(0)
   const [page, setPage] = useState(1)
   const [loading, setLoading] = useState(true)
+  const [errMsg, setErrMsg] = useState('')
   const canEdit = getRole() !== 'observer'
+
+  function showErr(msg) {
+    setErrMsg(msg)
+    setTimeout(() => setErrMsg(''), 4000)
+  }
 
   const extraFields = [
     { name: 'steam_link', placeholder: t('games.steamLink') },
@@ -30,16 +36,20 @@ export default function Games() {
   }, [page])
 
   function handleToggle(id) {
-    togglePlayed(id).then(u => setGames(p => p.map(g => g.id === id ? u : g)))
+    togglePlayed(id)
+      .then(u => setGames(p => p.map(g => g.id === id ? u : g)))
+      .catch(() => showErr(t('common.errAction')))
   }
 
   function handleDelete(id) {
     const isLastOnPage = games.length === 1 && page > 1
-    deleteGame(id).then(() => {
-      setGames(p => p.filter(g => g.id !== id))
-      setTotal(n => n - 1)
-      if (isLastOnPage) setPage(p => p - 1)
-    })
+    deleteGame(id)
+      .then(() => {
+        setGames(p => p.filter(g => g.id !== id))
+        setTotal(n => n - 1)
+        if (isLastOnPage) setPage(p => p - 1)
+      })
+      .catch(() => showErr(t('common.errDeleteFail')))
   }
 
   function handleItemAdded(game) {
@@ -55,6 +65,7 @@ export default function Games() {
     <div className="page">
       <NavBar />
       <main className="page__main">
+        {errMsg && <p className="page-error">{errMsg}</p>}
         <MediaGrid
           pageTitle={t('games.title')}
           modalTitle={t('games.add')}
