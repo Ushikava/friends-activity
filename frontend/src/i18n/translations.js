@@ -6,6 +6,7 @@ export const ru = {
   'nav.places':  'ИРЛ фото',
   'nav.movies':  'Кино',
   'nav.profile': 'Профиль',
+  'nav.login':   'Войти',
 
   // common
   'common.empty':           'Пока ничего нет',
@@ -122,6 +123,7 @@ export const en = {
   'nav.places':  'IRL Photos',
   'nav.movies':  'Movies',
   'nav.profile': 'Profile',
+  'nav.login':   'Sign in',
 
   // common
   'common.empty':           'Nothing here yet',
