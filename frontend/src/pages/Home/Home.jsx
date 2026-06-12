@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { motion } from 'framer-motion'
 import NavBar from '../../components/NavBar/NavBar'
 import MediaCard from '../../components/MediaGrid/MediaCard'
 import { fetchPhotos, photoSrc } from '../../api/photos'
@@ -9,6 +10,7 @@ import { fetchGames, togglePlayed } from '../../api/games'
 import { getRole } from '../../api/auth'
 import { fetchActivity, fetchStats } from '../../api/activity'
 import { useLang } from '../../i18n/LangContext'
+import { containerVariants, statVariants, sectionVariants } from '../../utils/animations'
 import ActivityGrid from '../../components/ActivityGrid/ActivityGrid'
 import '../page.css'
 import '../../components/MediaGrid/mediaGrid.css'
@@ -24,10 +26,10 @@ const CIRCLE_C = 2 * Math.PI * CIRCLE_R
 
 function NumberStat({ value, label }) {
   return (
-    <div className="home-stat">
+    <motion.div className="home-stat" variants={statVariants}>
       <span className="home-stat__big">{value}</span>
       <span className="home-stat__label">{label}</span>
-    </div>
+    </motion.div>
   )
 }
 
@@ -36,7 +38,7 @@ function CircleStat({ done, total, label }) {
   const offset = CIRCLE_C * (1 - progress)
   const cx = CIRCLE_R + CIRCLE_SW
   return (
-    <div className="home-stat">
+    <motion.div className="home-stat" variants={statVariants}>
       <div className="home-stat__ring-wrap">
         <svg width={CIRCLE_SIZE} height={CIRCLE_SIZE} style={{ transform: 'rotate(-90deg)' }}>
           <circle cx={cx} cy={cx} r={CIRCLE_R} fill="none" stroke="#b0b0b0" strokeWidth={CIRCLE_SW} />
@@ -57,7 +59,7 @@ function CircleStat({ done, total, label }) {
         </div>
       </div>
       <span className="home-stat__label">{label}</span>
-    </div>
+    </motion.div>
   )
 }
 
@@ -123,13 +125,23 @@ export default function Home() {
         }
 
         {!loading && (
-          <div className="home-row">
+          <motion.div
+            className="home-row"
+            variants={sectionVariants}
+            initial="hidden"
+            animate="show"
+          >
             <div className="home-col">
               <ActivityGrid activity={activity} />
             </div>
             <div className="home-col">
               <h2 className="home-section__title" style={{ marginBottom: 12 }}>{t('home.stats')}</h2>
-              <div className="home-stats">
+              <motion.div
+                className="home-stats"
+                variants={containerVariants}
+                initial="hidden"
+                animate="show"
+              >
                 <NumberStat value={stats?.photos ?? 0}  label={t('home.stat.screenshots')} />
                 <NumberStat value={stats?.places ?? 0}  label={t('home.stat.photos')} />
                 <CircleStat
@@ -142,13 +154,18 @@ export default function Home() {
                   total={stats?.games.total ?? 0}
                   label={t('home.stat.games')}
                 />
-              </div>
+              </motion.div>
             </div>
-          </div>
+          </motion.div>
         )}
 
         {!loading && (photos.length > 0 || places.length > 0) && (
-          <div className="home-row">
+          <motion.div
+            className="home-row"
+            initial={{ opacity: 0, y: 24 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.48, ease: [0.25, 0.46, 0.45, 0.94], delay: 0.15 }}
+          >
             {photos.length > 0 && (
               <section className="home-col">
                 <div className="home-section__header">
@@ -188,11 +205,16 @@ export default function Home() {
                 </div>
               </section>
             )}
-          </div>
+          </motion.div>
         )}
 
         {!loading && (movies.length > 0 || games.length > 0) && (
-          <div className="home-row">
+          <motion.div
+            className="home-row"
+            initial={{ opacity: 0, y: 24 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.48, ease: [0.25, 0.46, 0.45, 0.94], delay: 0.3 }}
+          >
             {movies.length > 0 && (
               <section className="home-col">
                 <div className="home-section__header">
@@ -245,7 +267,7 @@ export default function Home() {
                 </div>
               </section>
             )}
-          </div>
+          </motion.div>
         )}
 
       </main>

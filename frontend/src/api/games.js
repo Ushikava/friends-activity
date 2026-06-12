@@ -1,3 +1,5 @@
+import { apiFetch } from './auth'
+
 const API = import.meta.env.VITE_API_URL
 
 function authHeaders() {
@@ -6,7 +8,7 @@ function authHeaders() {
 
 export async function fetchGames(page = 1, limit = 20) {
   const skip = (page - 1) * limit
-  const res = await fetch(`${API}/games/?skip=${skip}&limit=${limit}`, { headers: authHeaders() })
+  const res = await apiFetch(`${API}/games/?skip=${skip}&limit=${limit}`, { headers: authHeaders() })
   if (!res.ok) throw new Error('Ошибка загрузки')
   return res.json()
 }
@@ -18,7 +20,7 @@ export async function addGame(title, posterFile, posterUrl, steamLink) {
   if (posterUrl && !posterFile) form.append('poster_url', posterUrl)
   if (steamLink) form.append('steam_link', steamLink)
 
-  const res = await fetch(`${API}/games/`, {
+  const res = await apiFetch(`${API}/games/`, {
     method: 'POST',
     headers: authHeaders(),
     body: form,
@@ -28,7 +30,7 @@ export async function addGame(title, posterFile, posterUrl, steamLink) {
 }
 
 export async function togglePlayed(id) {
-  const res = await fetch(`${API}/games/${id}/played`, {
+  const res = await apiFetch(`${API}/games/${id}/played`, {
     method: 'PATCH',
     headers: authHeaders(),
   })
@@ -37,7 +39,7 @@ export async function togglePlayed(id) {
 }
 
 export async function deleteGame(id) {
-  const res = await fetch(`${API}/games/${id}`, {
+  const res = await apiFetch(`${API}/games/${id}`, {
     method: 'DELETE',
     headers: authHeaders(),
   })

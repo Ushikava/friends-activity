@@ -1,4 +1,6 @@
+import { motion } from 'framer-motion'
 import { useLang } from '../../i18n/LangContext'
+import { sectionVariants } from '../../utils/animations'
 import './ActivityGrid.css'
 
 const WEEKS = 52
@@ -87,7 +89,7 @@ export default function ActivityGrid({ activity }) {
   const monthLabels = getMonthLabels(weeks, months)
 
   return (
-    <div className="activity">
+    <motion.div className="activity" variants={sectionVariants} initial="hidden" animate="show">
       <h2 className="home-section__title" style={{ marginBottom: 12 }}>{t('activity.title')}</h2>
 
       <div className="activity__wrap">
@@ -140,6 +142,6 @@ export default function ActivityGrid({ activity }) {
           <span>{t('activity.more')}</span>
         </div>
       </div>
-    </div>
+    </motion.div>
   )
 }

@@ -1,9 +1,11 @@
 import { useState, useEffect, useRef } from 'react'
+import { motion } from 'framer-motion'
 import NavBar from '../../components/NavBar/NavBar'
 import Pagination from '../../components/Pagination/Pagination'
 import { fetchPhotos, uploadPhoto, deletePhoto, photoSrc } from '../../api/photos'
 import { getRole } from '../../api/auth'
 import { useLang } from '../../i18n/LangContext'
+import { containerVariants, cardVariants } from '../../utils/animations'
 import '../page.css'
 import '../../components/MediaGrid/mediaGrid.css'
 import './Gallery.css'
@@ -197,11 +199,17 @@ export default function Gallery() {
           ? <p className="media-empty">{t('common.empty')}</p>
           : (
             <>
-              <div className="gallery-grid">
+              <motion.div
+                className="gallery-grid"
+                variants={containerVariants}
+                initial="hidden"
+                animate="show"
+              >
                 {photos.map(photo => (
-                  <div
+                  <motion.div
                     key={photo.id}
                     className="gallery-item"
+                    variants={cardVariants}
                     onClick={() => setSelected(photo)}
                   >
                     <img
@@ -212,9 +220,9 @@ export default function Gallery() {
                     {photo.description && (
                       <p className="gallery-item__desc">{photo.description}</p>
                     )}
-                  </div>
+                  </motion.div>
                 ))}
-              </div>
+              </motion.div>
               <Pagination page={page} total={total} limit={PAGE_SIZE} onChange={setPage} />
             </>
           )

@@ -1,7 +1,9 @@
 import { useState } from 'react'
+import { motion } from 'framer-motion'
 import MediaCard from './MediaCard'
 import AddModal from './AddModal'
 import { useLang } from '../../i18n/LangContext'
+import { containerVariants, cardVariants } from '../../utils/animations'
 import './mediaGrid.css'
 
 export default function MediaGrid({
@@ -41,20 +43,26 @@ export default function MediaGrid({
         : items.length === 0
         ? <p className="media-empty">{t('common.empty')}</p>
         : (
-          <div className="media-grid">
+          <motion.div
+            className="media-grid"
+            variants={containerVariants}
+            initial="hidden"
+            animate="show"
+          >
             {items.map(item => (
-              <MediaCard
-                key={item.id}
-                item={item}
-                checkedField={checkedField}
-                checkLabel={checkLabel}
-                linkField={linkField}
-                onToggle={onToggle}
-                onDelete={onDelete}
-                canEdit={canEdit}
-              />
+              <motion.div key={item.id} variants={cardVariants}>
+                <MediaCard
+                  item={item}
+                  checkedField={checkedField}
+                  checkLabel={checkLabel}
+                  linkField={linkField}
+                  onToggle={onToggle}
+                  onDelete={onDelete}
+                  canEdit={canEdit}
+                />
+              </motion.div>
             ))}
-          </div>
+          </motion.div>
         )
       }
 

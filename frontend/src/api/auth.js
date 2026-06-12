@@ -1,5 +1,50 @@
 const API = import.meta.env.VITE_API_URL
 
+// Один Promise на всех — чтобы параллельные 401 не запускали refresh дважды
+let _refreshPromise = null
+
+async function tryRefresh() {
+  if (_refreshPromise) return _refreshPromise
+  _refreshPromise = (async () => {
+    const rt = localStorage.getItem('refresh_token')
+    if (!rt) return false
+    try {
+      const res = await fetch(`${API}/refresh`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ refresh_token: rt }),
+      })
+      if (!res.ok) return false
+      saveSession(await res.json())
+      return true
+    } catch {
+      return false
+    }
+  })()
+  try {
+    return await _refreshPromise
+  } finally {
+    _refreshPromise = null
+  }
+}
+
+export async function apiFetch(url, options = {}) {
+  const res = await fetch(url, options)
+  if (res.status !== 401) return res
+
+  const refreshed = await tryRefresh()
+  if (!refreshed) {
+    clearSession()
+    window.location.href = '/login'
+    return res
+  }
+
+  return fetch(url, {
+    ...options,
+    headers: { ...options.headers, Authorization: `Bearer ${getToken()}` },
+  })
+}
+
 export async function fetchUsers() {
   const res = await fetch(`${API}/users`)
   if (!res.ok) throw new Error('Не удалось загрузить пользователей')
@@ -46,7 +91,7 @@ export function getRole() {
 }
 
 export async function changeUsername(newUsername, password) {
-  const res = await fetch(`${API}/me/username`, {
+  const res = await apiFetch(`${API}/me/username`, {
     method: 'PATCH',
     headers: {
       'Content-Type': 'application/json',
@@ -62,7 +107,7 @@ export async function changeUsername(newUsername, password) {
 }
 
 export async function changePassword(currentPassword, newPassword) {
-  const res = await fetch(`${API}/me/password`, {
+  const res = await apiFetch(`${API}/me/password`, {
     method: 'PATCH',
     headers: {
       'Content-Type': 'application/json',
