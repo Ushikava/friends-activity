@@ -38,6 +38,8 @@ function AssistantAvatar() {
 export default function Chat() {
   const { t } = useLang()
 
+  const [sidebarOpen, setSidebarOpen] = useState(false)
+
   const [rooms, setRooms] = useState([])
   const [activeRoom, setActiveRoom] = useState(null)
   const [isPendingRoom, setIsPendingRoom] = useState(false)
@@ -80,6 +82,7 @@ export default function Chat() {
 
   async function selectRoom(room) {
     if (streaming) return
+    setSidebarOpen(false)
     setIsPendingRoom(false)
     setActiveRoom(room)
     setMessages([])
@@ -97,6 +100,7 @@ export default function Chat() {
 
   function handleCreateRoom() {
     if (streaming) return
+    setSidebarOpen(false)
     setIsPendingRoom(true)
     setActiveRoom(null)
     setMessages([])
@@ -218,6 +222,12 @@ export default function Chat() {
         {/* ── Page title (full width, like other pages) ── */}
         <div className="chat-page-header">
           <h1 className="media-header__title">{t('chat.title')}</h1>
+          <button className="chat-sidebar-toggle" onClick={() => setSidebarOpen(o => !o)}>
+            {sidebarOpen
+              ? <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+              : <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+            }
+          </button>
         </div>
 
         {chatErr && <p className="page-error">{chatErr}</p>}
@@ -226,7 +236,7 @@ export default function Chat() {
         <div className="chat-panels">
 
           {/* ── Sidebar ── */}
-          <aside className="chat-sidebar">
+          <aside className={`chat-sidebar${sidebarOpen ? ' chat-sidebar--open' : ''}`}>
             <button className="chat-new-btn" onClick={handleCreateRoom}>
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
                 <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>

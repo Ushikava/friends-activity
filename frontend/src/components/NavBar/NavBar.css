@@ -65,17 +65,6 @@
   transition: background 0.2s;
 }
 
-.navbar__icon-img {
-  display: block;
-  width: 30px;
-  height: 30px;
-}
-
-.navbar__item--active .navbar__icon-img,
-.navbar__item:hover .navbar__icon-img {
-  filter: brightness(0) invert(63%) sepia(100%) hue-rotate(309deg) brightness(86%) saturate(200%);
-}
-
 .navbar__item:hover .navbar__icon {
   background: var(--accent-bg);
 }
@@ -88,9 +77,11 @@
 @media (max-width: 640px) {
   .navbar-wrapper {
     position: fixed;
+    top: auto;
     bottom: 0;
     left: 0;
     right: 0;
+    padding-top: 0;
     z-index: 100;
   }
 
@@ -116,10 +107,5 @@
   .navbar__icon {
     width: 52px;
     height: 52px;
-  }
-
-  .navbar__icon-img {
-    width: 28px;
-    height: 28px;
   }
 }

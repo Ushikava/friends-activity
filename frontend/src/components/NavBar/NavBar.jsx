@@ -1,15 +1,10 @@
 import { NavLink } from 'react-router-dom'
+import { House, Image, GameControllerIcon, MountainsIcon, FilmStripIcon, UserIcon, ChatCircleIcon, SignInIcon } from '@phosphor-icons/react'
 import { getRole } from '../../api/auth'
 import { useLang } from '../../i18n/LangContext'
-import homeIcon    from '../../assets/NavBar/Home_na.svg'
-import galleryIcon from '../../assets/NavBar/Gallery_na.svg'
-import gamesIcon   from '../../assets/NavBar/Games_na.svg'
-import placesIcon  from '../../assets/NavBar/Places_na.svg'
-import moviesIcon  from '../../assets/NavBar/Movies_na.svg'
-import profileIcon from '../../assets/NavBar/Profile_na.svg'
 import './NavBar.css'
 
-function NavIcon({ to, label, end, icon }) {
+function NavIcon({ to, label, end, icon: Icon }) {
   return (
     <NavLink
       to={to}
@@ -18,20 +13,8 @@ function NavIcon({ to, label, end, icon }) {
       title={label}
     >
       <span className="navbar__icon">
-        <img src={icon} className="navbar__icon-img" alt={label} />
+        <Icon size={28} weight="fill" />
       </span>
-    </NavLink>
-  )
-}
-
-function NavIconSvg({ to, label, children }) {
-  return (
-    <NavLink
-      to={to}
-      className={({ isActive }) => `navbar__item ${isActive ? 'navbar__item--active' : ''}`}
-      title={label}
-    >
-      <span className="navbar__icon">{children}</span>
     </NavLink>
   )
 }
@@ -44,35 +27,23 @@ export default function NavBar() {
     <div className="navbar-wrapper">
     <nav className="navbar">
       <div className="navbar__left">
-        <NavIcon to="/" end label={t('nav.home')} icon={homeIcon} />
+        <NavIcon to="/" end label={t('nav.home')} icon={House} />
       </div>
 
       <div className="navbar__center">
-        <NavIcon to="/gallery" label={t('nav.gallery')} icon={galleryIcon} />
-        <NavIcon to="/games"   label={t('nav.games')}   icon={gamesIcon} />
-        <NavIcon to="/places"  label={t('nav.places')}  icon={placesIcon} />
-        <NavIcon to="/movies"  label={t('nav.movies')}  icon={moviesIcon} />
+        <NavIcon to="/gallery" label={t('nav.gallery')} icon={Image} />
+        <NavIcon to="/games"   label={t('nav.games')}   icon={GameControllerIcon} />
+        <NavIcon to="/places"  label={t('nav.places')}  icon={MountainsIcon} />
+        <NavIcon to="/movies"  label={t('nav.movies')}  icon={FilmStripIcon} />
         {!isObserver && (
-          <NavIconSvg to="/chat" label={t('chat.title')}>
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
-            </svg>
-          </NavIconSvg>
+          <NavIcon to="/chat" label={t('chat.title')} icon={ChatCircleIcon} />
         )}
       </div>
 
       <div className="navbar__right">
         {!isObserver
-          ? <NavIcon to="/profile" label={t('nav.profile')} icon={profileIcon} />
-          : (
-            <NavIconSvg to="/login" label={t('nav.login')}>
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/>
-                <polyline points="10 17 15 12 10 7"/>
-                <line x1="15" y1="12" x2="3" y2="12"/>
-              </svg>
-            </NavIconSvg>
-          )
+          ? <NavIcon to="/profile" label={t('nav.profile')} icon={UserIcon} />
+          : <NavIcon to="/login"   label={t('nav.login')}   icon={SignInIcon} />
         }
       </div>
     </nav>
