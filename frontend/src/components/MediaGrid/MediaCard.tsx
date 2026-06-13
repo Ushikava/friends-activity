@@ -1,21 +1,35 @@
 import { useState } from 'react'
 import { useLang } from '../../i18n/LangContext'
 import ConfirmModal from '../ConfirmModal/ConfirmModal'
+import type { Movie, Game } from '../../types'
 
 const UPLOADS = import.meta.env.VITE_UPLOADS_URL
 
-function posterSrc(poster) {
+type MediaItem = Movie | Game
+
+function posterSrc(poster: string | null | undefined): string | null {
   if (!poster) return null
   if (poster.startsWith('http')) return poster
   return `${UPLOADS}/${poster}`
 }
 
-export default function MediaCard({ item, checkedField, checkLabel, linkField, onToggle, onDelete, canEdit }) {
+interface Props {
+  item: MediaItem
+  checkedField: string
+  checkLabel: string
+  linkField?: string | null
+  onToggle: (id: number) => void
+  onDelete: (id: number) => void
+  canEdit: boolean
+}
+
+export default function MediaCard({ item, checkedField, checkLabel, linkField, onToggle, onDelete, canEdit }: Props) {
   const { t } = useLang()
   const [confirmOpen, setConfirmOpen] = useState(false)
   const src = posterSrc(item.poster)
-  const isChecked = item[checkedField]
-  const link = linkField ? item[linkField] : null
+  const record = item as unknown as Record<string, unknown>
+  const isChecked = Boolean(record[checkedField])
+  const link = linkField ? (record[linkField] as string | null) : null
   const Wrap = link ? 'a' : 'div'
   const wrapProps = link
     ? { href: link, target: '_blank', rel: 'noopener noreferrer' }
@@ -45,7 +59,7 @@ export default function MediaCard({ item, checkedField, checkLabel, linkField, o
             <button
               className="media-card__delete"
               onClick={e => { e.preventDefault(); e.stopPropagation(); setConfirmOpen(true) }}
-              title={t('common.delete')}
+              title={t('common.delete') as string}
             >
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <polyline points="3 6 5 6 21 6" />

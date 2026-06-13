@@ -1,4 +1,7 @@
-export const ru = {
+export type TranslationValue = string | string[] | ((n: number) => string)
+export type Dict = Record<string, TranslationValue>
+
+export const ru: Dict = {
   // nav
   'nav.home':    'Главная',
   'nav.gallery': 'Галерея',
@@ -61,7 +64,7 @@ export const ru = {
   'activity.title': 'Активность',
   'activity.less':  'меньше',
   'activity.more':  'больше',
-  'activity.plural': (n) => {
+  'activity.plural': (n: number): string => {
     if (n === 1) return '1 событие'
     if (n >= 2 && n <= 4) return `${n} события`
     return `${n} событий`
@@ -115,7 +118,7 @@ export const ru = {
   'profile.addUser.saved':      'Пользователь создан',
 }
 
-export const en = {
+export const en: Dict = {
   // nav
   'nav.home':    'Home',
   'nav.gallery': 'Gallery',
@@ -178,7 +181,7 @@ export const en = {
   'activity.title': 'Activity',
   'activity.less':  'less',
   'activity.more':  'more',
-  'activity.plural': (n) => `${n} ${n === 1 ? 'event' : 'events'}`,
+  'activity.plural': (n: number): string => `${n} ${n === 1 ? 'event' : 'events'}`,
   'activity.months': ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'],
   'activity.days':   ['Mon','','Wed','','Fri','',''],
 

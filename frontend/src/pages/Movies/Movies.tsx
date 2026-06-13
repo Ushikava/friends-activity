@@ -5,20 +5,21 @@ import Pagination from '../../components/Pagination/Pagination'
 import { fetchMovies, addMovie, toggleWatched, deleteMovie } from '../../api/movies'
 import { getRole } from '../../api/auth'
 import { useLang } from '../../i18n/LangContext'
+import type { Movie, Game } from '../../types'
 import '../page.css'
 
 const PAGE_SIZE = 20
 
 export default function Movies() {
   const { t } = useLang()
-  const [movies, setMovies] = useState([])
+  const [movies, setMovies] = useState<Movie[]>([])
   const [total, setTotal] = useState(0)
   const [page, setPage] = useState(1)
   const [loading, setLoading] = useState(true)
   const [errMsg, setErrMsg] = useState('')
   const canEdit = getRole() !== 'observer'
 
-  function showErr(msg) {
+  function showErr(msg: string) {
     setErrMsg(msg)
     setTimeout(() => setErrMsg(''), 4000)
   }
@@ -31,13 +32,13 @@ export default function Movies() {
       .finally(() => setLoading(false))
   }, [page])
 
-  function handleToggle(id) {
+  function handleToggle(id: number) {
     toggleWatched(id)
       .then(u => setMovies(p => p.map(m => m.id === id ? u : m)))
       .catch(() => showErr(t('common.errAction')))
   }
 
-  function handleDelete(id) {
+  function handleDelete(id: number) {
     const isLastOnPage = movies.length === 1 && page > 1
     deleteMovie(id)
       .then(() => {
@@ -48,9 +49,9 @@ export default function Movies() {
       .catch(() => showErr(t('common.errDeleteFail')))
   }
 
-  function handleItemAdded(movie) {
+  function handleItemAdded(movie: Movie | Game) {
     if (page === 1) {
-      setMovies(p => [movie, ...p.slice(0, PAGE_SIZE - 1)])
+      setMovies(p => [movie as Movie, ...p.slice(0, PAGE_SIZE - 1)])
       setTotal(n => n + 1)
     } else {
       setPage(1)

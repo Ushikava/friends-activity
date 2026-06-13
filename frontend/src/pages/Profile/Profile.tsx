@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import type { ReactNode } from 'react'
 import { Navigate } from 'react-router-dom'
 import NavBar from '../../components/NavBar/NavBar'
 import { getUsername, getRole, changeUsername, changePassword, createUser } from '../../api/auth'
@@ -7,7 +8,17 @@ import '../page.css'
 import './Profile.css'
 import '../../components/MediaGrid/mediaGrid.css'
 
-function SettingCard({ title, children }) {
+interface StatusInfo {
+  ok: boolean
+  text: string
+}
+
+interface SettingCardProps {
+  title: string
+  children: ReactNode
+}
+
+function SettingCard({ title, children }: SettingCardProps) {
   return (
     <div className="profile-card">
       <h2 className="profile-card__title">{title}</h2>
@@ -16,7 +27,7 @@ function SettingCard({ title, children }) {
   )
 }
 
-function StatusMessage({ status }) {
+function StatusMessage({ status }: { status: StatusInfo | null }) {
   if (!status) return null
   return (
     <p className={`profile-status ${status.ok ? 'profile-status--ok' : 'profile-status--err'}`}>
@@ -31,21 +42,21 @@ export default function Profile() {
 
   const [newUsername, setNewUsername] = useState('')
   const [usernamePassword, setUsernamePassword] = useState('')
-  const [usernameStatus, setUsernameStatus] = useState(null)
+  const [usernameStatus, setUsernameStatus] = useState<StatusInfo | null>(null)
   const [usernameLoading, setUsernameLoading] = useState(false)
 
   const [newUserUsername, setNewUserUsername] = useState('')
   const [newUserPassword, setNewUserPassword] = useState('')
-  const [newUserStatus, setNewUserStatus] = useState(null)
+  const [newUserStatus, setNewUserStatus] = useState<StatusInfo | null>(null)
   const [newUserLoading, setNewUserLoading] = useState(false)
 
   const [currentPassword, setCurrentPassword] = useState('')
   const [newPassword, setNewPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
-  const [passwordStatus, setPasswordStatus] = useState(null)
+  const [passwordStatus, setPasswordStatus] = useState<StatusInfo | null>(null)
   const [passwordLoading, setPasswordLoading] = useState(false)
 
-  async function handleNewUserSubmit(e) {
+  async function handleNewUserSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
     setNewUserStatus(null)
     setNewUserLoading(true)
@@ -55,13 +66,13 @@ export default function Profile() {
       setNewUserPassword('')
       setNewUserStatus({ ok: true, text: t('profile.addUser.saved') })
     } catch (err) {
-      setNewUserStatus({ ok: false, text: err.message })
+      setNewUserStatus({ ok: false, text: (err as Error).message })
     } finally {
       setNewUserLoading(false)
     }
   }
 
-  async function handleUsernameSubmit(e) {
+  async function handleUsernameSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
     setUsernameStatus(null)
     setUsernameLoading(true)
@@ -73,13 +84,13 @@ export default function Profile() {
       setUsernamePassword('')
       setUsernameStatus({ ok: true, text: t('profile.changeName.saved') })
     } catch (err) {
-      setUsernameStatus({ ok: false, text: err.message })
+      setUsernameStatus({ ok: false, text: (err as Error).message })
     } finally {
       setUsernameLoading(false)
     }
   }
 
-  async function handlePasswordSubmit(e) {
+  async function handlePasswordSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
     setPasswordStatus(null)
     if (newPassword !== confirmPassword) {
@@ -94,7 +105,7 @@ export default function Profile() {
       setConfirmPassword('')
       setPasswordStatus({ ok: true, text: t('profile.changePass.saved') })
     } catch (err) {
-      setPasswordStatus({ ok: false, text: err.message })
+      setPasswordStatus({ ok: false, text: (err as Error).message })
     } finally {
       setPasswordLoading(false)
     }

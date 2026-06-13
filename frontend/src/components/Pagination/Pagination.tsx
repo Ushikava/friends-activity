@@ -1,6 +1,13 @@
 import './Pagination.css'
 
-export default function Pagination({ page, total, limit, onChange }) {
+interface Props {
+  page: number
+  total: number
+  limit: number
+  onChange: (page: number) => void
+}
+
+export default function Pagination({ page, total, limit, onChange }: Props) {
   const totalPages = Math.ceil(total / limit)
   if (totalPages <= 1) return null
 

@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import ReactMarkdown from 'react-markdown'
+import type { Components } from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import NavBar from '../../components/NavBar/NavBar'
 import ConfirmModal from '../../components/ConfirmModal/ConfirmModal'
@@ -8,21 +9,29 @@ import {
   fetchHistory, clearHistory, sendMessage,
 } from '../../api/chat'
 import { useLang } from '../../i18n/LangContext'
+import type { ChatRoom, ChatMessage } from '../../types'
 import '../page.css'
 import '../../components/MediaGrid/mediaGrid.css'
 import './Chat.css'
 
-const MD_COMPONENTS = {
-  a: ({ href, children }) => (
-    <a href={href} target="_blank" rel="noopener noreferrer" className="chat-md-link">
-      {children}
-    </a>
-  ),
-  code: ({ inline, children }) =>
-    inline
-      ? <code className="chat-md-code">{children}</code>
-      : <pre className="chat-md-pre"><code>{children}</code></pre>,
-  p: ({ children }) => <p className="chat-md-p">{children}</p>,
+const MD_COMPONENTS: Components = {
+  a({ href, children }) {
+    return (
+      <a href={href} target="_blank" rel="noopener noreferrer" className="chat-md-link">
+        {children}
+      </a>
+    )
+  },
+  pre({ children }) {
+    return <pre className="chat-md-pre">{children}</pre>
+  },
+  code({ children, className }) {
+    if (className) return <code className={className}>{children}</code>
+    return <code className="chat-md-code">{children}</code>
+  },
+  p({ children }) {
+    return <p className="chat-md-p">{children}</p>
+  },
 }
 
 function AssistantAvatar() {
@@ -40,25 +49,25 @@ export default function Chat() {
 
   const [sidebarOpen, setSidebarOpen] = useState(false)
 
-  const [rooms, setRooms] = useState([])
-  const [activeRoom, setActiveRoom] = useState(null)
+  const [rooms, setRooms] = useState<ChatRoom[]>([])
+  const [activeRoom, setActiveRoom] = useState<ChatRoom | null>(null)
   const [isPendingRoom, setIsPendingRoom] = useState(false)
-  const [editingRoomId, setEditingRoomId] = useState(null)
+  const [editingRoomId, setEditingRoomId] = useState<number | null>(null)
   const [editingName, setEditingName] = useState('')
-  const [confirmDeleteRoom, setConfirmDeleteRoom] = useState(null)
+  const [confirmDeleteRoom, setConfirmDeleteRoom] = useState<ChatRoom | null>(null)
 
-  const [messages, setMessages] = useState([])
+  const [messages, setMessages] = useState<ChatMessage[]>([])
   const [input, setInput] = useState('')
   const [loadingMsgs, setLoadingMsgs] = useState(false)
   const [streaming, setStreaming] = useState(false)
   const [confirmClear, setConfirmClear] = useState(false)
   const [chatErr, setChatErr] = useState('')
 
-  const bottomRef = useRef(null)
-  const inputRef = useRef(null)
-  const editInputRef = useRef(null)
+  const bottomRef = useRef<HTMLDivElement>(null)
+  const inputRef = useRef<HTMLTextAreaElement>(null)
+  const editInputRef = useRef<HTMLInputElement>(null)
 
-  function showChatErr(msg) {
+  function showChatErr(msg: string) {
     setChatErr(msg)
     setTimeout(() => setChatErr(''), 4000)
   }
@@ -80,7 +89,7 @@ export default function Chat() {
     if (editingRoomId !== null) editInputRef.current?.focus()
   }, [editingRoomId])
 
-  async function selectRoom(room) {
+  async function selectRoom(room: ChatRoom) {
     if (streaming) return
     setSidebarOpen(false)
     setIsPendingRoom(false)
@@ -107,13 +116,13 @@ export default function Chat() {
     inputRef.current?.focus()
   }
 
-  function startRename(room, e) {
+  function startRename(room: ChatRoom, e: React.MouseEvent) {
     e.stopPropagation()
     setEditingRoomId(room.id)
     setEditingName(room.name)
   }
 
-  async function commitRename(roomId) {
+  async function commitRename(roomId: number) {
     const name = editingName.trim()
     setEditingRoomId(null)
     if (!name) return
@@ -129,6 +138,7 @@ export default function Chat() {
   async function handleDeleteRoom() {
     const room = confirmDeleteRoom
     setConfirmDeleteRoom(null)
+    if (!room) return
     try {
       await deleteRoom(room.id)
       const remaining = rooms.filter(r => r.id !== room.id)
@@ -149,7 +159,7 @@ export default function Chat() {
     el.style.height = Math.min(el.scrollHeight, 160) + 'px'
   }
 
-  function handleChange(e) {
+  function handleChange(e: React.ChangeEvent<HTMLTextAreaElement>) {
     setInput(e.target.value)
     autoResize()
   }
@@ -168,7 +178,7 @@ export default function Chat() {
         showChatErr(t('chat.errCreate'))
         return
       }
-      setRooms(prev => [...prev, room])
+      setRooms(prev => [...prev, room!])
       setActiveRoom(room)
       setIsPendingRoom(false)
     }
@@ -183,7 +193,7 @@ export default function Chat() {
     setMessages(prev => [...prev, { id: assistantId, role: 'assistant', content: '' }])
 
     await sendMessage(
-      room.id,
+      room!.id,
       text,
       chunk => setMessages(prev => prev.map(m =>
         m.id === assistantId ? { ...m, content: m.content + chunk } : m
@@ -200,7 +210,7 @@ export default function Chat() {
     inputRef.current?.focus()
   }
 
-  function handleKey(e) {
+  function handleKey(e: React.KeyboardEvent<HTMLTextAreaElement>) {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault()
       handleSend()
@@ -219,7 +229,6 @@ export default function Chat() {
       <NavBar />
       <main className="page__main chat-page">
 
-        {/* ── Page title (full width, like other pages) ── */}
         <div className="chat-page-header">
           <h1 className="media-header__title">{t('chat.title')}</h1>
           <button className="chat-sidebar-toggle" onClick={() => setSidebarOpen(o => !o)}>
@@ -232,10 +241,8 @@ export default function Chat() {
 
         {chatErr && <p className="page-error">{chatErr}</p>}
 
-        {/* ── Two-panel layout ── */}
         <div className="chat-panels">
 
-          {/* ── Sidebar ── */}
           <aside className={`chat-sidebar${sidebarOpen ? ' chat-sidebar--open' : ''}`}>
             <button className="chat-new-btn" onClick={handleCreateRoom}>
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
@@ -301,7 +308,6 @@ export default function Chat() {
             </div>
           </aside>
 
-          {/* ── Chat main ── */}
           <div className="chat-main">
             {!activeRoom && !isPendingRoom ? (
               <div className="chat-empty chat-empty--centered">

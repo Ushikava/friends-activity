@@ -5,20 +5,21 @@ import Pagination from '../../components/Pagination/Pagination'
 import { fetchGames, addGame, togglePlayed, deleteGame } from '../../api/games'
 import { getRole } from '../../api/auth'
 import { useLang } from '../../i18n/LangContext'
+import type { Game, Movie } from '../../types'
 import '../page.css'
 
 const PAGE_SIZE = 20
 
 export default function Games() {
   const { t } = useLang()
-  const [games, setGames] = useState([])
+  const [games, setGames] = useState<Game[]>([])
   const [total, setTotal] = useState(0)
   const [page, setPage] = useState(1)
   const [loading, setLoading] = useState(true)
   const [errMsg, setErrMsg] = useState('')
   const canEdit = getRole() !== 'observer'
 
-  function showErr(msg) {
+  function showErr(msg: string) {
     setErrMsg(msg)
     setTimeout(() => setErrMsg(''), 4000)
   }
@@ -35,13 +36,13 @@ export default function Games() {
       .finally(() => setLoading(false))
   }, [page])
 
-  function handleToggle(id) {
+  function handleToggle(id: number) {
     togglePlayed(id)
       .then(u => setGames(p => p.map(g => g.id === id ? u : g)))
       .catch(() => showErr(t('common.errAction')))
   }
 
-  function handleDelete(id) {
+  function handleDelete(id: number) {
     const isLastOnPage = games.length === 1 && page > 1
     deleteGame(id)
       .then(() => {
@@ -52,9 +53,9 @@ export default function Games() {
       .catch(() => showErr(t('common.errDeleteFail')))
   }
 
-  function handleItemAdded(game) {
+  function handleItemAdded(game: Movie | Game) {
     if (page === 1) {
-      setGames(p => [game, ...p.slice(0, PAGE_SIZE - 1)])
+      setGames(p => [game as Game, ...p.slice(0, PAGE_SIZE - 1)])
       setTotal(n => n + 1)
     } else {
       setPage(1)
@@ -77,7 +78,7 @@ export default function Games() {
           canEdit={canEdit}
           onToggle={handleToggle}
           onDelete={handleDelete}
-          onAdd={(title, file, url, extras) => addGame(title, file, url, extras?.steam_link)}
+          onAdd={(title, file, url, extras) => addGame(title, file, url, extras.steam_link || null)}
           onItemAdded={handleItemAdded}
           extraFields={extraFields}
         />

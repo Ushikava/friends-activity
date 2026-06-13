@@ -3,38 +3,44 @@ import { motion } from 'framer-motion'
 import NavBar from '../../components/NavBar/NavBar'
 import Pagination from '../../components/Pagination/Pagination'
 import ConfirmModal from '../../components/ConfirmModal/ConfirmModal'
-import { fetchPlaces, uploadPlace, deletePlace, placeSrc } from '../../api/places'
+import { fetchPhotos, uploadPhoto, deletePhoto, photoSrc } from '../../api/photos'
 import { getRole } from '../../api/auth'
 import { useLang } from '../../i18n/LangContext'
 import { containerVariants, cardVariants } from '../../utils/animations'
+import type { Photo } from '../../types'
 import '../page.css'
 import '../../components/MediaGrid/mediaGrid.css'
-import '../Gallery/Gallery.css'
+import './Gallery.css'
 
 const PAGE_SIZE = 20
 
-function UploadModal({ onClose, onUploaded }) {
+interface UploadModalProps {
+  onClose: () => void
+  onUploaded: (photo: Photo) => void
+}
+
+function UploadModal({ onClose, onUploaded }: UploadModalProps) {
   const { t } = useLang()
   const [closing, setClosing] = useState(false)
-  const [preview, setPreview] = useState(null)
-  const [imageSource, setImageSource] = useState(null)
+  const [preview, setPreview] = useState<string | null>(null)
+  const [imageSource, setImageSource] = useState<File | null>(null)
   const [description, setDescription] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
-  const fileInputRef = useRef(null)
-  const uploadZoneRef = useRef(null)
+  const fileInputRef = useRef<HTMLInputElement>(null)
+  const uploadZoneRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => { uploadZoneRef.current?.focus() }, [])
 
   function close() { setClosing(true) }
 
-  function handleFile(file) {
+  function handleFile(file: File | null) {
     if (!file) return
     setImageSource(file)
     setPreview(URL.createObjectURL(file))
   }
 
-  function handlePaste(e) {
+  function handlePaste(e: React.ClipboardEvent<HTMLDivElement>) {
     const items = e.clipboardData?.items
     if (!items) return
     for (const item of items) {
@@ -45,15 +51,15 @@ function UploadModal({ onClose, onUploaded }) {
     }
   }
 
-  async function handleSubmit(e) {
+  async function handleSubmit(e: React.MouseEvent<HTMLButtonElement>) {
     e.preventDefault()
     if (!imageSource) { setError(t('common.errNoFile')); return }
 
     setLoading(true)
     setError('')
     try {
-      const place = await uploadPlace(imageSource, description.trim() || null)
-      onUploaded(place)
+      const photo = await uploadPhoto(imageSource, description.trim() || undefined)
+      onUploaded(photo)
       onClose()
     } catch {
       setError(t('common.errUpload'))
@@ -88,7 +94,7 @@ function UploadModal({ onClose, onUploaded }) {
             type="file"
             accept="image/*"
             style={{ display: 'none' }}
-            onChange={e => handleFile(e.target.files[0])}
+            onChange={e => handleFile(e.target.files?.[0] ?? null)}
           />
         </div>
 
@@ -109,21 +115,28 @@ function UploadModal({ onClose, onUploaded }) {
   )
 }
 
-function Lightbox({ place, onClose, onDelete, canEdit }) {
+interface LightboxProps {
+  photo: Photo
+  onClose: () => void
+  onDelete: (id: number) => void
+  canEdit: boolean
+}
+
+function Lightbox({ photo, onClose, onDelete, canEdit }: LightboxProps) {
   const { t, lang } = useLang()
-  const src = placeSrc(place.filename)
+  const src = photoSrc(photo.filename)
   const [closing, setClosing] = useState(false)
   const [confirmOpen, setConfirmOpen] = useState(false)
 
   function close() { setClosing(true) }
 
   useEffect(() => {
-    function onKey(e) { if (e.key === 'Escape') close() }
+    function onKey(e: KeyboardEvent) { if (e.key === 'Escape') close() }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
   }, [])
 
-  const dateStr = new Date(place.uploaded_at).toLocaleDateString(
+  const dateStr = new Date(photo.created_at).toLocaleDateString(
     lang === 'ru' ? 'ru-RU' : 'en-US',
     { day: 'numeric', month: 'long', year: 'numeric' }
   )
@@ -136,9 +149,9 @@ function Lightbox({ place, onClose, onDelete, canEdit }) {
     >
       <div className="lightbox__inner" onClick={close}>
         <button className="lightbox__close" onClick={close}>×</button>
-        <img src={src} alt={place.description || ''} className="lightbox__img" />
+        <img src={src ?? undefined} alt={photo.description || ''} className="lightbox__img" />
         <div className="lightbox__footer">
-          <p className="lightbox__desc">{place.description || ''}</p>
+          <p className="lightbox__desc">{photo.description || ''}</p>
           <span className="lightbox__date">{dateStr}</span>
         </div>
         {canEdit && (
@@ -149,7 +162,7 @@ function Lightbox({ place, onClose, onDelete, canEdit }) {
         )}
         {confirmOpen && (
           <ConfirmModal
-            onConfirm={() => { setConfirmOpen(false); onDelete(place.id); onClose() }}
+            onConfirm={() => { setConfirmOpen(false); onDelete(photo.id); onClose() }}
             onCancel={() => setConfirmOpen(false)}
           />
         )}
@@ -158,44 +171,38 @@ function Lightbox({ place, onClose, onDelete, canEdit }) {
   )
 }
 
-export default function Places() {
+export default function Gallery() {
   const { t } = useLang()
-  const [places, setPlaces] = useState([])
+  const [photos, setPhotos] = useState<Photo[]>([])
   const [total, setTotal] = useState(0)
   const [page, setPage] = useState(1)
   const [loading, setLoading] = useState(true)
   const [showModal, setShowModal] = useState(false)
-  const [selected, setSelected] = useState(null)
-  const [errMsg, setErrMsg] = useState('')
+  const [selected, setSelected] = useState<Photo | null>(null)
   const canEdit = getRole() !== 'observer'
-
-  function showErr(msg) {
-    setErrMsg(msg)
-    setTimeout(() => setErrMsg(''), 4000)
-  }
 
   useEffect(() => {
     setLoading(true)
-    fetchPlaces(page, PAGE_SIZE)
-      .then(data => { setPlaces(data.items); setTotal(data.total) })
+    fetchPhotos(page, PAGE_SIZE)
+      .then(data => { setPhotos(data.items); setTotal(data.total) })
       .catch(console.error)
       .finally(() => setLoading(false))
   }, [page])
 
-  function handleDelete(id) {
-    const isLastOnPage = places.length === 1 && page > 1
-    deletePlace(id)
+  function handleDelete(id: number) {
+    const isLastOnPage = photos.length === 1 && page > 1
+    deletePhoto(id)
       .then(() => {
-        setPlaces(p => p.filter(pl => pl.id !== id))
+        setPhotos(p => p.filter(ph => ph.id !== id))
         setTotal(n => n - 1)
         if (isLastOnPage) setPage(p => p - 1)
       })
-      .catch(() => showErr(t('common.errDeleteFail')))
+      .catch(console.error)
   }
 
-  function handleUploaded(place) {
+  function handleUploaded(photo: Photo) {
     if (page === 1) {
-      setPlaces(p => [place, ...p.slice(0, PAGE_SIZE - 1)])
+      setPhotos(p => [photo, ...p.slice(0, PAGE_SIZE - 1)])
       setTotal(n => n + 1)
     } else {
       setPage(1)
@@ -206,9 +213,8 @@ export default function Places() {
     <div className="page">
       <NavBar />
       <main className="page__main">
-        {errMsg && <p className="page-error">{errMsg}</p>}
         <div className="media-header">
-          <h1 className="media-header__title">{t('places.title')}</h1>
+          <h1 className="media-header__title">{t('gallery.title')}</h1>
           {canEdit && (
             <button className="media-header__add" onClick={() => setShowModal(true)}>+</button>
           )}
@@ -216,7 +222,7 @@ export default function Places() {
 
         {loading
           ? <div className="loading-spinner" />
-          : places.length === 0 && total === 0
+          : photos.length === 0 && total === 0
           ? <p className="media-empty">{t('common.empty')}</p>
           : (
             <>
@@ -226,20 +232,20 @@ export default function Places() {
                 initial="hidden"
                 animate="show"
               >
-                {places.map(place => (
+                {photos.map(photo => (
                   <motion.div
-                    key={place.id}
+                    key={photo.id}
                     className="gallery-item"
                     variants={cardVariants}
-                    onClick={() => setSelected(place)}
+                    onClick={() => setSelected(photo)}
                   >
                     <img
-                      src={placeSrc(place.filename)}
-                      alt={place.description || ''}
+                      src={photoSrc(photo.filename) ?? undefined}
+                      alt={photo.description || ''}
                       className="gallery-item__img"
                     />
-                    {place.description && (
-                      <p className="gallery-item__desc">{place.description}</p>
+                    {photo.description && (
+                      <p className="gallery-item__desc">{photo.description}</p>
                     )}
                   </motion.div>
                 ))}
@@ -258,7 +264,7 @@ export default function Places() {
 
         {selected && (
           <Lightbox
-            place={selected}
+            photo={selected}
             onClose={() => setSelected(null)}
             onDelete={handleDelete}
             canEdit={canEdit}

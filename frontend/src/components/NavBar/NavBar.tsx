@@ -1,10 +1,18 @@
 import { NavLink } from 'react-router-dom'
+import type { Icon as PhosphorIcon } from '@phosphor-icons/react'
 import { House, Image, GameControllerIcon, MountainsIcon, FilmStripIcon, UserIcon, ChatCircleIcon, SignInIcon } from '@phosphor-icons/react'
 import { getRole } from '../../api/auth'
 import { useLang } from '../../i18n/LangContext'
 import './NavBar.css'
 
-function NavIcon({ to, label, end, icon: Icon }) {
+interface NavIconProps {
+  to: string
+  label: string
+  end?: boolean
+  icon: PhosphorIcon
+}
+
+function NavIcon({ to, label, end, icon: Icon }: NavIconProps) {
   return (
     <NavLink
       to={to}

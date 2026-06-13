@@ -12,6 +12,7 @@ import { fetchActivity, fetchStats } from '../../api/activity'
 import { useLang } from '../../i18n/LangContext'
 import { containerVariants, statVariants, sectionVariants } from '../../utils/animations'
 import ActivityGrid from '../../components/ActivityGrid/ActivityGrid'
+import type { Photo, Place, Movie, Game, Stats, ActivityData } from '../../types'
 import '../page.css'
 import '../../components/MediaGrid/mediaGrid.css'
 import './Home.css'
@@ -24,7 +25,12 @@ const CIRCLE_SW = 5
 const CIRCLE_SIZE = (CIRCLE_R + CIRCLE_SW) * 2
 const CIRCLE_C = 2 * Math.PI * CIRCLE_R
 
-function NumberStat({ value, label }) {
+interface NumberStatProps {
+  value: number
+  label: string
+}
+
+function NumberStat({ value, label }: NumberStatProps) {
   return (
     <motion.div className="home-stat" variants={statVariants}>
       <span className="home-stat__big">{value}</span>
@@ -33,7 +39,13 @@ function NumberStat({ value, label }) {
   )
 }
 
-function CircleStat({ done, total, label }) {
+interface CircleStatProps {
+  done: number
+  total: number
+  label: string
+}
+
+function CircleStat({ done, total, label }: CircleStatProps) {
   const progress = total > 0 ? done / total : 0
   const offset = CIRCLE_C * (1 - progress)
   const cx = CIRCLE_R + CIRCLE_SW
@@ -63,7 +75,7 @@ function CircleStat({ done, total, label }) {
   )
 }
 
-function getTodayDate(lang) {
+function getTodayDate(lang: string): string {
   return new Date().toLocaleDateString(lang === 'ru' ? 'ru-RU' : 'en-US', {
     weekday: 'long',
     day: 'numeric',
@@ -74,12 +86,12 @@ function getTodayDate(lang) {
 
 export default function Home() {
   const { t, lang } = useLang()
-  const [photos, setPhotos] = useState([])
-  const [places, setPlaces] = useState([])
-  const [movies, setMovies] = useState([])
-  const [games, setGames] = useState([])
-  const [stats, setStats] = useState(null)
-  const [activity, setActivity] = useState({})
+  const [photos, setPhotos] = useState<Photo[]>([])
+  const [places, setPlaces] = useState<Place[]>([])
+  const [movies, setMovies] = useState<Movie[]>([])
+  const [games, setGames] = useState<Game[]>([])
+  const [stats, setStats] = useState<Stats | null>(null)
+  const [activity, setActivity] = useState<ActivityData>({})
   const [loading, setLoading] = useState(true)
   const navigate = useNavigate()
   const canEdit = getRole() !== 'observer'
@@ -95,13 +107,13 @@ export default function Home() {
     ]).finally(() => setLoading(false))
   }, [])
 
-  function handleToggleMovie(id) {
+  function handleToggleMovie(id: number) {
     toggleWatched(id)
       .then(u => setMovies(p => p.map(m => m.id === id ? u : m)))
       .catch(console.error)
   }
 
-  function handleToggleGame(id) {
+  function handleToggleGame(id: number) {
     togglePlayed(id)
       .then(u => setGames(p => p.map(g => g.id === id ? u : g)))
       .catch(console.error)
@@ -179,7 +191,7 @@ export default function Home() {
                 <div className="home-photos">
                   {photos.map(photo => (
                     <div key={photo.id} className="home-photo" onClick={() => navigate('/gallery')}>
-                      <img src={photoSrc(photo.filename)} alt={photo.description || ''} />
+                      <img src={photoSrc(photo.filename) ?? undefined} alt={photo.description || ''} />
                     </div>
                   ))}
                 </div>
@@ -199,7 +211,7 @@ export default function Home() {
                 <div className="home-photos">
                   {places.map(place => (
                     <div key={place.id} className="home-photo" onClick={() => navigate('/places')}>
-                      <img src={placeSrc(place.filename)} alt={place.description || ''} />
+                      <img src={placeSrc(place.filename) ?? undefined} alt={place.description || ''} />
                     </div>
                   ))}
                 </div>

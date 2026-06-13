@@ -1,6 +1,7 @@
 import { motion } from 'framer-motion'
 import { useLang } from '../../i18n/LangContext'
 import { sectionVariants } from '../../utils/animations'
+import type { ActivityData } from '../../types'
 import './ActivityGrid.css'
 
 const WEEKS = 52
@@ -9,14 +10,26 @@ const GAP = 3
 const STEP = CELL + GAP
 const DAY_LABEL_WIDTH = 26
 
-function dateKey(d) {
+interface DayCell {
+  date: Date
+  count: number
+}
+
+type WeekRow = (DayCell | null)[]
+
+interface MonthLabel {
+  col: number
+  text: string
+}
+
+function dateKey(d: Date): string {
   const y = d.getFullYear()
   const m = String(d.getMonth() + 1).padStart(2, '0')
   const day = String(d.getDate()).padStart(2, '0')
   return `${y}-${m}-${day}`
 }
 
-function startOfWeek(d) {
+function startOfWeek(d: Date): Date {
   const date = new Date(d)
   const day = date.getDay()
   date.setDate(date.getDate() + (day === 0 ? -6 : 1 - day))
@@ -24,16 +37,16 @@ function startOfWeek(d) {
   return date
 }
 
-function buildGrid(activity) {
+function buildGrid(activity: ActivityData): WeekRow[] {
   const today = new Date()
   today.setHours(0, 0, 0, 0)
 
   const start = startOfWeek(new Date(today.getTime() - (WEEKS - 1) * 7 * 86400000))
-  const weeks = []
+  const weeks: WeekRow[] = []
   const cur = new Date(start)
 
   while (cur <= today) {
-    const week = []
+    const week: WeekRow = []
     for (let d = 0; d < 7; d++) {
       const cell = new Date(cur)
       week.push(cell <= today
@@ -47,12 +60,12 @@ function buildGrid(activity) {
   return weeks
 }
 
-function getMonthLabels(weeks, months) {
-  return weeks.reduce((acc, week, i) => {
-    const day = week.find(Boolean)
+function getMonthLabels(weeks: WeekRow[], months: string[]): MonthLabel[] {
+  return weeks.reduce<MonthLabel[]>((acc, week, i) => {
+    const day = week.find(Boolean) as DayCell | undefined
     if (!day) return acc
     const m = day.date.getMonth()
-    const prev = weeks[i - 1]?.find(Boolean)
+    const prev = weeks[i - 1]?.find(Boolean) as DayCell | undefined
     if (!prev || prev.date.getMonth() !== m) {
       const text = m === 0
         ? `${months[m]} ${day.date.getFullYear()}`
@@ -63,7 +76,7 @@ function getMonthLabels(weeks, months) {
   }, [])
 }
 
-function getColor(count) {
+function getColor(count: number): string {
   if (count === 0) return 'var(--activity-0)'
   if (count === 1) return 'var(--activity-1)'
   if (count <= 3) return 'var(--activity-2)'
@@ -71,7 +84,7 @@ function getColor(count) {
   return 'var(--activity-4)'
 }
 
-function formatDate(d, lang) {
+function formatDate(d: Date, lang: string): string {
   return d.toLocaleDateString(lang === 'ru' ? 'ru-RU' : 'en-US', {
     day: 'numeric',
     month: 'long',
@@ -79,21 +92,24 @@ function formatDate(d, lang) {
   })
 }
 
-export default function ActivityGrid({ activity }) {
-  const { t, lang } = useLang()
-  const months = t('activity.months')
-  const days = t('activity.days')
-  const plural = t('activity.plural')
+interface Props {
+  activity: ActivityData
+}
+
+export default function ActivityGrid({ activity }: Props) {
+  const { t, tRaw, lang } = useLang()
+  const months = tRaw('activity.months') as string[]
+  const days = tRaw('activity.days') as string[]
+  const plural = tRaw('activity.plural') as (n: number) => string
 
   const weeks = buildGrid(activity)
   const monthLabels = getMonthLabels(weeks, months)
 
   return (
     <motion.div className="activity" variants={sectionVariants} initial="hidden" animate="show">
-      <h2 className="home-section__title" style={{ marginBottom: 12 }}>{t('activity.title')}</h2>
+      <h2 className="home-section__title" style={{ marginBottom: 12 }}>{t('activity.title') as string}</h2>
 
       <div className="activity__wrap">
-        {/* Month labels */}
         <div className="activity__months" style={{ paddingLeft: DAY_LABEL_WIDTH + GAP * 2 }}>
           {monthLabels.map(({ col, text }) => (
             <span key={col} className="activity__month" style={{ left: col * STEP }}>
@@ -102,7 +118,6 @@ export default function ActivityGrid({ activity }) {
           ))}
         </div>
 
-        {/* Grid */}
         <div className="activity__grid">
           <div className="activity__days">
             {days.map((label, i) => (
@@ -133,13 +148,12 @@ export default function ActivityGrid({ activity }) {
           </div>
         </div>
 
-        {/* Legend */}
         <div className="activity__legend">
-          <span>{t('activity.less')}</span>
+          <span>{t('activity.less') as string}</span>
           {[0, 1, 2, 4, 6].map((count, i) => (
             <div key={i} className="activity__cell" style={{ background: getColor(count) }} />
           ))}
-          <span>{t('activity.more')}</span>
+          <span>{t('activity.more') as string}</span>
         </div>
       </div>
     </motion.div>

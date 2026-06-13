@@ -1,11 +1,13 @@
-export const containerVariants = {
+import type { Variants } from 'framer-motion'
+
+export const containerVariants: Variants = {
   hidden: {},
   show: {
     transition: { staggerChildren: 0.07, delayChildren: 0.04 },
   },
 }
 
-export const cardVariants = {
+export const cardVariants: Variants = {
   hidden: { opacity: 0, y: 22 },
   show: {
     opacity: 1,
@@ -14,7 +16,7 @@ export const cardVariants = {
   },
 }
 
-export const statVariants = {
+export const statVariants: Variants = {
   hidden: { opacity: 0, scale: 0.82 },
   show: {
     opacity: 1,
@@ -23,7 +25,7 @@ export const statVariants = {
   },
 }
 
-export const sectionVariants = {
+export const sectionVariants: Variants = {
   hidden: { opacity: 0, y: 28 },
   show: {
     opacity: 1,

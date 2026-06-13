@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { login, saveSession, fetchUsers } from '../../api/auth'
 import { useLang } from '../../i18n/LangContext'
+import type { UserInfo } from '../../types'
 import './Login.css'
 
 import layout1 from '../../assets/Login/layout_1.svg'
@@ -27,13 +28,20 @@ function IconEyeOff() {
   )
 }
 
-function CustomSelect({ options, value, onChange, observerLabel }) {
+interface CustomSelectProps {
+  options: UserInfo[]
+  value: string
+  onChange: (v: string) => void
+  observerLabel: string
+}
+
+function CustomSelect({ options, value, onChange, observerLabel }: CustomSelectProps) {
   const [open, setOpen] = useState(false)
-  const ref = useRef(null)
+  const ref = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
-    function handleClick(e) {
-      if (ref.current && !ref.current.contains(e.target)) setOpen(false)
+    function handleClick(e: MouseEvent) {
+      if (ref.current && !ref.current.contains(e.target as Node | null)) setOpen(false)
     }
     document.addEventListener('mousedown', handleClick)
     return () => document.removeEventListener('mousedown', handleClick)
@@ -74,7 +82,7 @@ function CustomSelect({ options, value, onChange, observerLabel }) {
 
 export default function Login() {
   const { t } = useLang()
-  const [users, setUsers] = useState([])
+  const [users, setUsers] = useState<UserInfo[]>([])
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
@@ -99,7 +107,7 @@ export default function Login() {
     if (isObserver) setPassword('')
   }, [isObserver])
 
-  async function handleSubmit(e) {
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
     setError('')
     setLoading(true)
@@ -108,7 +116,7 @@ export default function Login() {
       saveSession(data)
       navigate('/')
     } catch (err) {
-      setError(err.message)
+      setError((err as Error).message)
     } finally {
       setLoading(false)
     }

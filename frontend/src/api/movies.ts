@@ -1,19 +1,24 @@
 import { apiFetch } from './auth'
+import type { Movie, PaginatedResponse } from '../types'
 
 const API = import.meta.env.VITE_API_URL
 
-function authHeaders() {
+function authHeaders(): Record<string, string> {
   return { Authorization: `Bearer ${localStorage.getItem('access_token')}` }
 }
 
-export async function fetchMovies(page = 1, limit = 20) {
+export async function fetchMovies(page = 1, limit = 20): Promise<PaginatedResponse<Movie>> {
   const skip = (page - 1) * limit
   const res = await apiFetch(`${API}/movies/?skip=${skip}&limit=${limit}`, { headers: authHeaders() })
   if (!res.ok) throw new Error('Ошибка загрузки')
-  return res.json()
+  return res.json() as Promise<PaginatedResponse<Movie>>
 }
 
-export async function addMovie(title, posterFile, posterUrl) {
+export async function addMovie(
+  title: string,
+  posterFile: File | null,
+  posterUrl: string | null,
+): Promise<Movie> {
   const form = new FormData()
   form.append('title', title)
   if (posterFile) form.append('file', posterFile)
@@ -25,19 +30,19 @@ export async function addMovie(title, posterFile, posterUrl) {
     body: form,
   })
   if (!res.ok) throw new Error('Ошибка добавления')
-  return res.json()
+  return res.json() as Promise<Movie>
 }
 
-export async function toggleWatched(id) {
+export async function toggleWatched(id: number): Promise<Movie> {
   const res = await apiFetch(`${API}/movies/${id}/watched`, {
     method: 'PATCH',
     headers: authHeaders(),
   })
   if (!res.ok) throw new Error('Ошибка')
-  return res.json()
+  return res.json() as Promise<Movie>
 }
 
-export async function deleteMovie(id) {
+export async function deleteMovie(id: number): Promise<void> {
   const res = await apiFetch(`${API}/movies/${id}`, {
     method: 'DELETE',
     headers: authHeaders(),
