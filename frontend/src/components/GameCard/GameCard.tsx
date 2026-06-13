@@ -279,24 +279,45 @@ export default function GameCard({ game, canEdit, onDelete, onPlayUpdated }: Pro
   const myStatus = detail?.statuses.find(s => s.username === currentUsername)
   const iMePlayed = myStatus?.is_played ?? false
 
+  function handleTilt(e: React.MouseEvent<HTMLDivElement>) {
+    const el = e.currentTarget
+    const rect = el.getBoundingClientRect()
+    const x = (e.clientX - rect.left) / rect.width
+    const y = (e.clientY - rect.top) / rect.height
+    const rotateY = (x - 0.5) * 22
+    const rotateX = (0.5 - y) * 22
+    el.style.transition = 'transform 0.07s ease-out'
+    el.style.transform = `perspective(500px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale(1.07)`
+  }
+
+  function handleTiltReset(e: React.MouseEvent<HTMLDivElement>) {
+    const el = e.currentTarget
+    el.style.transition = 'transform 0.45s ease-out'
+    el.style.transform = ''
+  }
+
   return (
     <div className={`game-card${game.is_played_by_me ? ' game-card--played' : ''}`}>
       <div
-        className="game-card__img-wrap"
+        className="game-card__tilt"
         onClick={openDetail}
         role="button"
         tabIndex={0}
         onKeyDown={e => e.key === 'Enter' && openDetail()}
+        onMouseMove={handleTilt}
+        onMouseLeave={handleTiltReset}
       >
-        {src
-          ? <img src={src} alt={game.title} className="game-card__img" />
-          : <div className="game-card__no-poster">{game.title[0]}</div>
-        }
-        {game.user_count > 0 && (
-          <div className={`movie-card__badge${isAllPlayed ? ' movie-card__badge--done' : ''}`}>
-            {game.play_count}/{game.user_count}
-          </div>
-        )}
+        <div className="game-card__img-wrap">
+          {src
+            ? <img src={src} alt={game.title} className="game-card__img" />
+            : <div className="game-card__no-poster">{game.title[0]}</div>
+          }
+          {game.user_count > 0 && (
+            <div className={`movie-card__badge${isAllPlayed ? ' movie-card__badge--done' : ''}`}>
+              {game.play_count}/{game.user_count}
+            </div>
+          )}
+        </div>
       </div>
 
       <p className="game-card__title">{game.title}</p>

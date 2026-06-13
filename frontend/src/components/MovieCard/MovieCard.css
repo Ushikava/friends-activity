@@ -5,15 +5,17 @@
   gap: 8px;
 }
 
-.movie-card__img-wrap {
-  position: relative;
-  border-radius: 10px;
-  overflow: hidden;
-  aspect-ratio: 2 / 3;
-  background: #ddd;
-  display: block;
+.movie-card__tilt {
   cursor: pointer;
   will-change: transform;
+  transform-origin: center center;
+}
+
+.movie-card__img-wrap {
+  position: relative;
+  aspect-ratio: 2 / 3;
+  background: #ddd;
+  clip-path: inset(0 round 10px);
 }
 
 .movie-card__img {
@@ -21,16 +23,15 @@
   height: 100%;
   object-fit: cover;
   display: block;
-  transition: filter 0.3s, transform 0.3s;
+  transition: filter 0.3s;
 }
 
 .movie-card--all-watched .movie-card__img {
   filter: grayscale(90%);
 }
 
-.movie-card__img-wrap:hover .movie-card__img {
+.movie-card__tilt:hover .movie-card__img {
   filter: none;
-  transform: scale(1.03);
 }
 
 .movie-card__no-poster {

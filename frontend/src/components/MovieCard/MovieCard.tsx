@@ -293,24 +293,45 @@ export default function MovieCard({ movie, canEdit, onDelete, onWatchUpdated }: 
   const myStatus = detail?.statuses.find(s => s.username === currentUsername)
   const iMeWatched = myStatus?.is_watched ?? false
 
+  function handleTilt(e: React.MouseEvent<HTMLDivElement>) {
+    const el = e.currentTarget
+    const rect = el.getBoundingClientRect()
+    const x = (e.clientX - rect.left) / rect.width
+    const y = (e.clientY - rect.top) / rect.height
+    const rotateY = (x - 0.5) * 22
+    const rotateX = (0.5 - y) * 22
+    el.style.transition = 'transform 0.07s ease-out'
+    el.style.transform = `perspective(500px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale(1.07)`
+  }
+
+  function handleTiltReset(e: React.MouseEvent<HTMLDivElement>) {
+    const el = e.currentTarget
+    el.style.transition = 'transform 0.45s ease-out'
+    el.style.transform = ''
+  }
+
   return (
     <div className={`movie-card${isAllWatched ? ' movie-card--all-watched' : ''}`}>
       <div
-        className="movie-card__img-wrap"
+        className="movie-card__tilt"
         onClick={openDetail}
         role="button"
         tabIndex={0}
         onKeyDown={e => e.key === 'Enter' && openDetail()}
+        onMouseMove={handleTilt}
+        onMouseLeave={handleTiltReset}
       >
-        {src
-          ? <img src={src} alt={movie.title} className="movie-card__img" />
-          : <div className="movie-card__no-poster">{movie.title[0]}</div>
-        }
-        {movie.user_count > 0 && (
-          <div className={`movie-card__badge${isAllWatched ? ' movie-card__badge--done' : ''}`}>
-            {movie.watch_count}/{movie.user_count}
-          </div>
-        )}
+        <div className="movie-card__img-wrap">
+          {src
+            ? <img src={src} alt={movie.title} className="movie-card__img" />
+            : <div className="movie-card__no-poster">{movie.title[0]}</div>
+          }
+          {movie.user_count > 0 && (
+            <div className={`movie-card__badge${isAllWatched ? ' movie-card__badge--done' : ''}`}>
+              {movie.watch_count}/{movie.user_count}
+            </div>
+          )}
+        </div>
       </div>
 
       <p className="movie-card__title">{movie.title}</p>
