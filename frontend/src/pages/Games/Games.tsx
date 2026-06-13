@@ -1,12 +1,16 @@
 import { useState, useEffect } from 'react'
+import { motion } from 'framer-motion'
 import NavBar from '../../components/NavBar/NavBar'
-import MediaGrid from '../../components/MediaGrid/MediaGrid'
+import GameCard from '../../components/GameCard/GameCard'
+import AddModal from '../../components/MediaGrid/AddModal'
 import Pagination from '../../components/Pagination/Pagination'
-import { fetchGames, addGame, togglePlayed, deleteGame } from '../../api/games'
+import { fetchGames, addGame, deleteGame } from '../../api/games'
 import { getRole } from '../../api/auth'
 import { useLang } from '../../i18n/LangContext'
-import type { Game, Movie } from '../../types'
+import { containerVariants, cardVariants } from '../../utils/animations'
+import type { Game } from '../../types'
 import '../page.css'
+import '../../components/MediaGrid/mediaGrid.css'
 
 const PAGE_SIZE = 20
 
@@ -16,6 +20,7 @@ export default function Games() {
   const [total, setTotal] = useState(0)
   const [page, setPage] = useState(1)
   const [loading, setLoading] = useState(true)
+  const [showModal, setShowModal] = useState(false)
   const [errMsg, setErrMsg] = useState('')
   const canEdit = getRole() !== 'observer'
 
@@ -23,10 +28,6 @@ export default function Games() {
     setErrMsg(msg)
     setTimeout(() => setErrMsg(''), 4000)
   }
-
-  const extraFields = [
-    { name: 'steam_link', placeholder: t('games.steamLink') },
-  ]
 
   useEffect(() => {
     setLoading(true)
@@ -36,10 +37,8 @@ export default function Games() {
       .finally(() => setLoading(false))
   }, [page])
 
-  function handleToggle(id: number) {
-    togglePlayed(id)
-      .then(u => setGames(p => p.map(g => g.id === id ? u : g)))
-      .catch(() => showErr(t('common.errAction')))
+  function handlePlayUpdated(updated: Game) {
+    setGames(p => p.map(g => g.id === updated.id ? updated : g))
   }
 
   function handleDelete(id: number) {
@@ -53,9 +52,10 @@ export default function Games() {
       .catch(() => showErr(t('common.errDeleteFail')))
   }
 
-  function handleItemAdded(game: Movie | Game) {
+  async function handleAdd(title: string, file: File | null, _url: null, extras: Record<string, string>) {
+    const game = await addGame(title, file, null, extras.steam_link || null)
     if (page === 1) {
-      setGames(p => [game as Game, ...p.slice(0, PAGE_SIZE - 1)])
+      setGames(p => [game, ...p.slice(0, PAGE_SIZE - 1)])
       setTotal(n => n + 1)
     } else {
       setPage(1)
@@ -67,22 +67,49 @@ export default function Games() {
       <NavBar />
       <main className="page__main">
         {errMsg && <p className="page-error">{errMsg}</p>}
-        <MediaGrid
-          pageTitle={t('games.title')}
-          modalTitle={t('games.add')}
-          items={games}
-          loading={loading}
-          checkedField="is_played"
-          checkLabel={t('games.played')}
-          linkField="steam_link"
-          canEdit={canEdit}
-          onToggle={handleToggle}
-          onDelete={handleDelete}
-          onAdd={(title, file, url, extras) => addGame(title, file, url, extras.steam_link || null)}
-          onItemAdded={handleItemAdded}
-          extraFields={extraFields}
-        />
+
+        <div className="media-header">
+          <h1 className="media-header__title">{t('games.title')}</h1>
+          {canEdit && (
+            <button className="media-header__add" onClick={() => setShowModal(true)}>+</button>
+          )}
+        </div>
+
+        {loading
+          ? <div className="loading-spinner" />
+          : games.length === 0
+          ? <p className="media-empty">{t('common.empty')}</p>
+          : (
+            <motion.div
+              className="media-grid"
+              variants={containerVariants}
+              initial="hidden"
+              animate="show"
+            >
+              {games.map(g => (
+                <motion.div key={g.id} variants={cardVariants}>
+                  <GameCard
+                    game={g}
+                    canEdit={canEdit}
+                    onDelete={handleDelete}
+                    onPlayUpdated={handlePlayUpdated}
+                  />
+                </motion.div>
+              ))}
+            </motion.div>
+          )
+        }
+
         <Pagination page={page} total={total} limit={PAGE_SIZE} onChange={setPage} />
+
+        {showModal && (
+          <AddModal
+            title={t('games.add')}
+            onClose={() => setShowModal(false)}
+            onSubmit={handleAdd}
+            extraFields={[{ name: 'steam_link', placeholder: t('games.steamLink') }]}
+          />
+        )}
       </main>
     </div>
   )

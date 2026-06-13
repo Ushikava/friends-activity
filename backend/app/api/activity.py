@@ -6,7 +6,7 @@ from sqlalchemy.orm import Session
 
 from core.auth import get_user_from_token
 from db.session import get_db
-from db.models import Photo, Place, Movie, Game, MovieWatch
+from db.models import Photo, Place, Movie, Game, MovieWatch, GamePlay
 
 router = APIRouter(tags=["activity"])
 
@@ -44,6 +44,7 @@ def get_stats(
         },
         "games": {
             "total": db.query(func.count(Game.id)).scalar(),
-            "played": db.query(func.count(Game.id)).filter(Game.is_played.is_(True)).scalar(),
+            "played": db.query(func.count(GamePlay.id))
+                      .filter(GamePlay.user_id == user_id, GamePlay.is_played.is_(True)).scalar(),
         },
     }

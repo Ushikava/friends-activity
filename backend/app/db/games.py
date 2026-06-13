@@ -1,37 +1,133 @@
+from datetime import datetime, timezone
+
 from sqlalchemy import func
 from sqlalchemy.orm import Session
 
-from db.models import Game
+from db.models import Game, GamePlay, UserData
 
 
-def get_all_games(db: Session, skip: int = 0, limit: int = 20) -> list[Game]:
-    return db.query(Game).order_by(Game.created_at.desc()).offset(skip).limit(limit).all()
+def get_all_games(db: Session, skip: int = 0, limit: int = 20, user_id: int | None = None) -> list[dict]:
+    user_count: int = db.query(func.count(UserData.id)).filter(UserData.role != 'observer').scalar() or 0
+    games = db.query(Game).order_by(Game.created_at.desc()).offset(skip).limit(limit).all()
+    if not games:
+        return []
+    game_ids = [g.id for g in games]
+    play_counts: dict[int, int] = dict(
+        db.query(GamePlay.game_id, func.count(GamePlay.id))
+        .filter(GamePlay.game_id.in_(game_ids), GamePlay.is_played.is_(True))
+        .group_by(GamePlay.game_id)
+        .all()
+    )
+    my_played: set[int] = set()
+    if user_id is not None:
+        my_played = {
+            w.game_id
+            for w in db.query(GamePlay.game_id)
+            .filter(GamePlay.game_id.in_(game_ids), GamePlay.user_id == user_id, GamePlay.is_played.is_(True))
+            .all()
+        }
+    return [
+        {
+            'id': g.id,
+            'title': g.title,
+            'poster': g.poster,
+            'steam_link': g.steam_link,
+            'play_count': play_counts.get(g.id, 0),
+            'user_count': user_count,
+            'is_played_by_me': g.id in my_played,
+            'added_by': g.added_by,
+            'created_at': g.created_at,
+        }
+        for g in games
+    ]
 
 
 def count_games(db: Session) -> int:
     return db.query(func.count(Game.id)).scalar()
 
 
-def create_game(db: Session, title: str, poster: str | None, user_id: int, steam_link: str | None) -> Game:
+def create_game(db: Session, title: str, poster: str | None, user_id: int, steam_link: str | None) -> dict:
     game = Game(title=title, poster=poster, added_by=user_id, steam_link=steam_link)
     db.add(game)
+    db.flush()
+    users = db.query(UserData).filter(UserData.role != 'observer').all()
+    for u in users:
+        db.add(GamePlay(game_id=game.id, user_id=u.id, is_played=False))
     db.commit()
     db.refresh(game)
-    return game
+    return {
+        'id': game.id,
+        'title': game.title,
+        'poster': game.poster,
+        'steam_link': game.steam_link,
+        'play_count': 0,
+        'user_count': len(users),
+        'is_played_by_me': False,
+        'added_by': game.added_by,
+        'created_at': game.created_at,
+    }
 
 
 def get_game_by_id(db: Session, game_id: int) -> Game | None:
     return db.query(Game).filter(Game.id == game_id).first()
 
 
-def toggle_played(db: Session, game_id: int) -> Game | None:
+def get_game_detail(db: Session, game_id: int) -> dict | None:
     game = get_game_by_id(db, game_id)
     if not game:
         return None
-    game.is_played = not game.is_played
+    users = db.query(UserData).filter(UserData.role != 'observer').order_by(UserData.id).all()
+    watches = {
+        w.user_id: w
+        for w in db.query(GamePlay).filter(GamePlay.game_id == game_id).all()
+    }
+    return {
+        'id': game.id,
+        'title': game.title,
+        'poster': game.poster,
+        'steam_link': game.steam_link,
+        'created_at': game.created_at,
+        'statuses': [
+            {
+                'user_id': u.id,
+                'username': u.username,
+                'is_played': watches[u.id].is_played if u.id in watches else False,
+                'rating': watches[u.id].rating if u.id in watches else None,
+                'review': watches[u.id].review if u.id in watches else None,
+            }
+            for u in users
+        ],
+    }
+
+
+def toggle_user_played(
+    db: Session, game_id: int, user_id: int,
+    rating: int | None = None, review: str | None = None,
+) -> dict | None:
+    if not get_game_by_id(db, game_id):
+        return None
+    watch = db.query(GamePlay).filter(
+        GamePlay.game_id == game_id,
+        GamePlay.user_id == user_id,
+    ).first()
+    if watch:
+        new_played = not watch.is_played
+        watch.is_played = new_played
+        watch.updated_at = datetime.now(timezone.utc)
+        if new_played:
+            if rating is not None:
+                watch.rating = rating
+            if review is not None:
+                watch.review = review.strip() or None
+    else:
+        db.add(GamePlay(
+            game_id=game_id, user_id=user_id, is_played=True,
+            rating=rating,
+            review=review.strip() if review else None,
+            updated_at=datetime.now(timezone.utc),
+        ))
     db.commit()
-    db.refresh(game)
-    return game
+    return get_game_detail(db, game_id)
 
 
 def delete_game(db: Session, game_id: int) -> None:

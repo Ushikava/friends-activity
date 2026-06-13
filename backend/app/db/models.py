@@ -75,10 +75,22 @@ class Game(Base):
     id = Column(Integer, primary_key=True)
     title = Column(String, nullable=False)
     poster = Column(Text, nullable=True)
-    is_played = Column(Boolean, default=False, nullable=False)
     steam_link = Column(Text, nullable=True)
     added_by = Column(Integer, ForeignKey("users_data.id"), nullable=False)
     created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
+
+
+class GamePlay(Base):
+    __tablename__ = "game_plays"
+
+    id = Column(Integer, primary_key=True)
+    game_id = Column(Integer, ForeignKey("games.id", ondelete="CASCADE"), nullable=False)
+    user_id = Column(Integer, ForeignKey("users_data.id", ondelete="CASCADE"), nullable=False)
+    is_played = Column(Boolean, default=False, nullable=False)
+    rating = Column(Integer, nullable=True)
+    review = Column(Text, nullable=True)
+    updated_at = Column(DateTime, nullable=True)
+    __table_args__ = (UniqueConstraint("game_id", "user_id", name="uq_game_user_play"),)
 
 
 class ChatRoom(Base):

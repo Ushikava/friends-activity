@@ -66,9 +66,28 @@ export interface Game {
   id: number
   title: string
   poster: string | null
+  steam_link: string | null
+  play_count: number
+  user_count: number
+  is_played_by_me: boolean
+  created_at: string
+}
+
+export interface GameUserStatus {
+  user_id: number
+  username: string
   is_played: boolean
+  rating: number | null
+  review: string | null
+}
+
+export interface GameDetail {
+  id: number
+  title: string
+  poster: string | null
   steam_link: string | null
   created_at: string
+  statuses: GameUserStatus[]
 }
 
 // ── Stats & Activity ──────────────────────────────────────────────────────────

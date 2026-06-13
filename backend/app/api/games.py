@@ -8,7 +8,7 @@ from core.auth import get_user_from_token
 from db.session import SessionLocal
 from db import games as game_db
 from db import user as user_db
-from schemas.games import GameOut, GamePage
+from schemas.games import GameOut, GamePage, GameDetail, GamePlayUpdate
 from utils.image import compress_image
 from core.exceptions import ForbiddenError, NotFoundError, BadRequestError
 
@@ -30,9 +30,10 @@ def get_db():
 def list_games(
     skip: int = Query(0, ge=0),
     limit: int = Query(20, ge=1, le=200),
+    user_id: int = Depends(get_user_from_token),
     db: Session = Depends(get_db),
 ):
-    return {"items": game_db.get_all_games(db, skip=skip, limit=limit), "total": game_db.count_games(db)}
+    return {"items": game_db.get_all_games(db, skip=skip, limit=limit, user_id=user_id), "total": game_db.count_games(db)}
 
 
 @router.post("/", response_model=GameOut)
@@ -69,19 +70,32 @@ def add_game(
     return game_db.create_game(db, title=title, poster=poster, user_id=user_id, steam_link=steam_link)
 
 
-@router.patch("/{game_id}/played", response_model=GameOut)
+@router.get("/{game_id}/detail", response_model=GameDetail)
+def get_game_detail(
+    game_id: int,
+    user_id: int = Depends(get_user_from_token),
+    db: Session = Depends(get_db),
+):
+    detail = game_db.get_game_detail(db, game_id)
+    if not detail:
+        raise NotFoundError("Игра")
+    return detail
+
+
+@router.patch("/{game_id}/played", response_model=GameDetail)
 def toggle_played(
     game_id: int,
+    body: GamePlayUpdate = GamePlayUpdate(),
     user_id: int = Depends(get_user_from_token),
     db: Session = Depends(get_db),
 ):
     user = user_db.get_user_by_id(db, user_id)
     if not user or user.role == "observer":
         raise ForbiddenError()
-    game = game_db.toggle_played(db, game_id)
-    if not game:
+    detail = game_db.toggle_user_played(db, game_id, user_id, rating=body.rating, review=body.review)
+    if not detail:
         raise NotFoundError("Игра")
-    return game
+    return detail
 
 
 @router.delete("/{game_id}")

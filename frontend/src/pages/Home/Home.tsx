@@ -2,14 +2,13 @@ import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import NavBar from '../../components/NavBar/NavBar'
-import MediaCard from '../../components/MediaGrid/MediaCard'
 import MovieCard from '../../components/MovieCard/MovieCard'
+import GameCard from '../../components/GameCard/GameCard'
 import Lightbox from '../../components/Lightbox/Lightbox'
 import { fetchPhotos, photoSrc } from '../../api/photos'
 import { fetchPlaces, placeSrc } from '../../api/places'
 import { fetchMovies } from '../../api/movies'
-import { fetchGames, togglePlayed } from '../../api/games'
-import { getRole } from '../../api/auth'
+import { fetchGames } from '../../api/games'
 import { fetchActivity, fetchStats } from '../../api/activity'
 import { useLang } from '../../i18n/LangContext'
 import { containerVariants, statVariants, sectionVariants } from '../../utils/animations'
@@ -97,7 +96,6 @@ export default function Home() {
   const [loading, setLoading] = useState(true)
   const [lightbox, setLightbox] = useState<{ src: string; description?: string; createdAt: string } | null>(null)
   const navigate = useNavigate()
-  const canEdit = getRole() !== 'observer'
 
   useEffect(() => {
     Promise.allSettled([
@@ -114,10 +112,8 @@ export default function Home() {
     setMovies(p => p.map(m => m.id === updated.id ? updated : m))
   }
 
-  function handleToggleGame(id: number) {
-    togglePlayed(id)
-      .then(u => setGames(p => p.map(g => g.id === id ? u : g)))
-      .catch(console.error)
+  function handleGamePlayUpdated(updated: Game) {
+    setGames(p => p.map(g => g.id === updated.id ? updated : g))
   }
 
   const isEmpty = !stats || (stats.photos === 0 && stats.places === 0 && stats.movies.total === 0 && stats.games.total === 0)
@@ -272,14 +268,11 @@ export default function Home() {
                 </div>
                 <div className="media-grid">
                   {games.map(g => (
-                    <MediaCard
+                    <GameCard
                       key={g.id}
-                      item={g}
-                      checkedField="is_played"
-                      checkLabel={t('games.played')}
-                      linkField="steam_link"
-                      canEdit={canEdit}
-                      onToggle={handleToggleGame}
+                      game={g}
+                      canEdit={false}
+                      onPlayUpdated={handleGamePlayUpdated}
                       onDelete={() => {}}
                     />
                   ))}

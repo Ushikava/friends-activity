@@ -1,5 +1,5 @@
 import { apiFetch } from './auth'
-import type { Game, PaginatedResponse } from '../types'
+import type { Game, GameDetail, PaginatedResponse } from '../types'
 
 const API = import.meta.env.VITE_API_URL
 
@@ -35,13 +35,23 @@ export async function addGame(
   return res.json() as Promise<Game>
 }
 
-export async function togglePlayed(id: number): Promise<Game> {
+export async function fetchGameDetail(id: number): Promise<GameDetail> {
+  const res = await apiFetch(`${API}/games/${id}/detail`, { headers: authHeaders() })
+  if (!res.ok) throw new Error('Ошибка загрузки')
+  return res.json() as Promise<GameDetail>
+}
+
+export async function toggleUserPlayed(
+  id: number,
+  body?: { rating: number | null; review: string | null },
+): Promise<GameDetail> {
   const res = await apiFetch(`${API}/games/${id}/played`, {
     method: 'PATCH',
-    headers: authHeaders(),
+    headers: { ...authHeaders(), 'Content-Type': 'application/json' },
+    body: JSON.stringify(body ?? {}),
   })
   if (!res.ok) throw new Error('Ошибка')
-  return res.json() as Promise<Game>
+  return res.json() as Promise<GameDetail>
 }
 
 export async function deleteGame(id: number): Promise<void> {

@@ -1,0 +1,361 @@
+@import '../MovieCard/MovieCard.css';
+
+/* ── Card ── */
+.game-card {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.game-card__img-wrap {
+  position: relative;
+  border-radius: 10px;
+  overflow: hidden;
+  aspect-ratio: 2 / 3;
+  background: #ddd;
+  display: block;
+  cursor: pointer;
+  will-change: transform;
+}
+
+.game-card__img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  transition: filter 0.3s, transform 0.3s;
+}
+
+.game-card--played .game-card__img {
+  filter: grayscale(90%);
+}
+
+.game-card__img-wrap:hover .game-card__img {
+  filter: none;
+  transform: scale(1.03);
+}
+
+.game-card__no-poster {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 3rem;
+  color: #aaa;
+  background: #e8e8e8;
+  user-select: none;
+}
+
+.game-card__title {
+  font-size: 0.85rem;
+  font-weight: 400;
+  text-align: center;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ══════════════════════════════════════════
+   Detail modal
+══════════════════════════════════════════ */
+
+.gd-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.78);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+  animation: modal-in 0.2s ease;
+  padding: 20px;
+}
+
+.gd-backdrop--closing {
+  animation: modal-out 0.2s ease forwards;
+}
+
+.gd-modal {
+  position: relative;
+  display: flex;
+  align-items: stretch;
+  gap: 28px;
+  width: min(860px, 96vw);
+  max-height: 82vh;
+  animation: modal-content-in 0.2s ease;
+}
+
+.gd-backdrop--closing .gd-modal {
+  animation: modal-content-out 0.2s ease forwards;
+}
+
+/* ── Close button ── */
+.gd-modal__close {
+  position: absolute;
+  top: -40px;
+  right: -8px;
+  background: none;
+  border: none;
+  color: #fff;
+  font-size: 2rem;
+  cursor: pointer;
+  line-height: 1;
+  opacity: 0.8;
+  transition: opacity 0.15s;
+  z-index: 2;
+}
+
+.gd-modal__close:hover {
+  opacity: 1;
+}
+
+/* ── Left panel ── */
+.gd-modal__left {
+  flex: 0 0 340px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.gd-modal__header {
+  flex-shrink: 0;
+}
+
+.gd-modal__header-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.gd-modal__header-row .gd-modal__title {
+  flex: 1;
+}
+
+.gd-modal__title {
+  font-size: 2.2rem;
+  font-weight: 700;
+  color: #fff;
+  margin: 0;
+  line-height: 1.2;
+}
+
+.gd-modal__header-btns {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.gd-modal__link-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 5px;
+  border-radius: 6px;
+  color: rgba(255, 255, 255, 0.5);
+  text-decoration: none;
+  transition: color 0.15s, background 0.15s;
+}
+
+.gd-modal__link-btn:hover {
+  color: #fff;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.gd-modal__delete-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 5px;
+  background: none;
+  border: none;
+  border-radius: 6px;
+  color: rgba(255, 255, 255, 0.4);
+  cursor: pointer;
+  transition: color 0.15s, background 0.15s;
+}
+
+.gd-modal__delete-btn:hover {
+  color: #ff6b6b;
+  background: rgba(255, 107, 107, 0.1);
+}
+
+/* ── Played toggle ── */
+.gd-modal__played-btn {
+  align-self: flex-start;
+  padding: 10px 20px;
+  border-radius: 12px;
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.07);
+  color: rgba(255, 255, 255, 0.55);
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s, border-color 0.2s, color 0.2s;
+}
+
+.gd-modal__played-btn:hover:not(:disabled) {
+  border-color: var(--accent);
+  color: var(--accent);
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.gd-modal__played-btn--done {
+  border-color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 15%, transparent);
+  color: var(--accent);
+}
+
+.gd-modal__played-btn--done:hover:not(:disabled) {
+  border-color: #d94040;
+  background: rgba(217, 64, 64, 0.12);
+  color: #d94040;
+}
+
+.gd-modal__played-btn:disabled {
+  cursor: default;
+  opacity: 0.7;
+}
+
+/* ── Right: poster ── */
+.gd-modal__right {
+  flex: 1;
+  border-radius: 16px;
+  overflow: hidden;
+  background: #111;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 260px;
+}
+
+.gd-modal__poster {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.gd-modal__no-poster {
+  font-size: 6rem;
+  color: #444;
+  user-select: none;
+}
+
+/* ══════════════════════════════════════════
+   Delete confirm
+══════════════════════════════════════════ */
+
+.gd-confirm-backdrop {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 10;
+  animation: modal-in 0.15s ease;
+}
+
+.gd-confirm {
+  background: #fff;
+  border-radius: 16px;
+  padding: 26px 22px 20px;
+  width: min(360px, 90%);
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.35);
+  animation: modal-content-in 0.15s ease;
+}
+
+.gd-confirm__title {
+  font-size: 1.1rem;
+  font-weight: 700;
+  margin: 0;
+  color: #1a1a1a;
+}
+
+.gd-confirm__game {
+  font-size: 0.85rem;
+  color: #888;
+  margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.gd-confirm__warning {
+  font-size: 0.88rem;
+  color: #555;
+  margin: 0;
+  line-height: 1.5;
+}
+
+.gd-confirm__warning b {
+  color: #d94040;
+}
+
+.gd-confirm__actions {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+  margin-top: 4px;
+}
+
+.gd-confirm__cancel {
+  padding: 9px 16px;
+  border: 1.5px solid #ddd;
+  border-radius: 8px;
+  background: transparent;
+  cursor: pointer;
+  font-size: 0.88rem;
+  color: #666;
+  transition: border-color 0.15s;
+}
+
+.gd-confirm__cancel:hover {
+  border-color: #bbb;
+}
+
+.gd-confirm__delete {
+  padding: 9px 18px;
+  border: none;
+  border-radius: 8px;
+  background: #d94040;
+  color: #fff;
+  font-size: 0.88rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.15s;
+}
+
+.gd-confirm__delete:hover {
+  opacity: 0.85;
+}
+
+/* ── Mobile ── */
+@media (max-width: 600px) {
+  .gd-modal {
+    flex-direction: column-reverse;
+    max-height: 90vh;
+    gap: 16px;
+  }
+
+  .gd-modal__left {
+    flex: 0 0 auto;
+  }
+
+  .gd-modal__right {
+    flex: 0 0 180px;
+    min-height: 180px;
+    border-radius: 12px;
+  }
+
+  .gd-modal__close {
+    top: 8px;
+    right: 8px;
+  }
+}
