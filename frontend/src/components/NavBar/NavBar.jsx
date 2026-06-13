@@ -41,6 +41,7 @@ export default function NavBar() {
   const { t } = useLang()
 
   return (
+    <div className="navbar-wrapper">
     <nav className="navbar">
       <div className="navbar__left">
         <NavIcon to="/" end label={t('nav.home')} icon={homeIcon} />
@@ -75,5 +76,6 @@ export default function NavBar() {
         }
       </div>
     </nav>
+    </div>
   )
 }
