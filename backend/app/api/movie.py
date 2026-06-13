@@ -8,7 +8,7 @@ from core.auth import get_user_from_token
 from db.session import SessionLocal
 from db import movie as movie_db
 from db import user as user_db
-from schemas.movie import MovieOut, MoviePage
+from schemas.movie import MovieOut, MoviePage, MovieDetail, MovieWatchUpdate
 from utils.image import compress_image
 from core.exceptions import ForbiddenError, NotFoundError, BadRequestError
 
@@ -30,9 +30,10 @@ def get_db():
 def list_movies(
     skip: int = Query(0, ge=0),
     limit: int = Query(20, ge=1, le=200),
+    user_id: int = Depends(get_user_from_token),
     db: Session = Depends(get_db),
 ):
-    return {"items": movie_db.get_all_movies(db, skip=skip, limit=limit), "total": movie_db.count_movies(db)}
+    return {"items": movie_db.get_all_movies(db, skip=skip, limit=limit, user_id=user_id), "total": movie_db.count_movies(db)}
 
 
 @router.post("/", response_model=MovieOut)
@@ -68,19 +69,34 @@ def add_movie(
     return movie_db.create_movie(db, title=title, poster=poster, user_id=user_id)
 
 
-@router.patch("/{movie_id}/watched", response_model=MovieOut)
+@router.get("/{movie_id}/detail", response_model=MovieDetail)
+def get_movie_detail(
+    movie_id: int,
+    user_id: int = Depends(get_user_from_token),
+    db: Session = Depends(get_db),
+):
+    detail = movie_db.get_movie_detail(db, movie_id)
+    if not detail:
+        raise NotFoundError("Фильм")
+    return detail
+
+
+@router.patch("/{movie_id}/watched", response_model=MovieDetail)
 def toggle_watched(
     movie_id: int,
+    body: MovieWatchUpdate = MovieWatchUpdate(),
     user_id: int = Depends(get_user_from_token),
     db: Session = Depends(get_db),
 ):
     user = user_db.get_user_by_id(db, user_id)
     if not user or user.role == "observer":
         raise ForbiddenError()
-    movie = movie_db.toggle_watched(db, movie_id)
-    if not movie:
+    detail = movie_db.toggle_user_watched(
+        db, movie_id, user_id, rating=body.rating, review=body.review
+    )
+    if not detail:
         raise NotFoundError("Фильм")
-    return movie
+    return detail
 
 
 @router.delete("/{movie_id}")

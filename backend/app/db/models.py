@@ -1,6 +1,6 @@
 from datetime import datetime, timezone
 
-from sqlalchemy import Column, String, Text, DateTime, Integer, Boolean, ForeignKey
+from sqlalchemy import Column, String, Text, DateTime, Integer, Boolean, ForeignKey, UniqueConstraint
 
 from db.base import Base
 
@@ -51,9 +51,22 @@ class Movie(Base):
     id = Column(Integer, primary_key=True)
     title = Column(String, nullable=False)
     poster = Column(Text, nullable=True)
-    is_watched = Column(Boolean, default=False, nullable=False)
     added_by = Column(Integer, ForeignKey("users_data.id"), nullable=False)
     created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
+
+
+class MovieWatch(Base):
+    __tablename__ = "movie_watches"
+
+    id = Column(Integer, primary_key=True)
+    movie_id = Column(Integer, ForeignKey("movies.id", ondelete="CASCADE"), nullable=False)
+    user_id = Column(Integer, ForeignKey("users_data.id", ondelete="CASCADE"), nullable=False)
+    is_watched = Column(Boolean, default=False, nullable=False)
+    rating = Column(Integer, nullable=True)
+    review = Column(Text, nullable=True)
+    updated_at = Column(DateTime, nullable=True)
+
+    __table_args__ = (UniqueConstraint("movie_id", "user_id", name="uq_movie_user_watch"),)
 
 
 class Game(Base):

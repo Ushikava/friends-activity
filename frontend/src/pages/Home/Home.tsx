@@ -3,9 +3,11 @@ import { useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import NavBar from '../../components/NavBar/NavBar'
 import MediaCard from '../../components/MediaGrid/MediaCard'
+import MovieCard from '../../components/MovieCard/MovieCard'
+import Lightbox from '../../components/Lightbox/Lightbox'
 import { fetchPhotos, photoSrc } from '../../api/photos'
 import { fetchPlaces, placeSrc } from '../../api/places'
-import { fetchMovies, toggleWatched } from '../../api/movies'
+import { fetchMovies } from '../../api/movies'
 import { fetchGames, togglePlayed } from '../../api/games'
 import { getRole } from '../../api/auth'
 import { fetchActivity, fetchStats } from '../../api/activity'
@@ -93,6 +95,7 @@ export default function Home() {
   const [stats, setStats] = useState<Stats | null>(null)
   const [activity, setActivity] = useState<ActivityData>({})
   const [loading, setLoading] = useState(true)
+  const [lightbox, setLightbox] = useState<{ src: string; description?: string; createdAt: string } | null>(null)
   const navigate = useNavigate()
   const canEdit = getRole() !== 'observer'
 
@@ -107,10 +110,8 @@ export default function Home() {
     ]).finally(() => setLoading(false))
   }, [])
 
-  function handleToggleMovie(id: number) {
-    toggleWatched(id)
-      .then(u => setMovies(p => p.map(m => m.id === id ? u : m)))
-      .catch(console.error)
+  function handleMovieWatchUpdated(updated: Movie) {
+    setMovies(p => p.map(m => m.id === updated.id ? updated : m))
   }
 
   function handleToggleGame(id: number) {
@@ -190,7 +191,11 @@ export default function Home() {
                 </div>
                 <div className="home-photos">
                   {photos.map(photo => (
-                    <div key={photo.id} className="home-photo" onClick={() => navigate('/gallery')}>
+                    <div
+                      key={photo.id}
+                      className="home-photo"
+                      onClick={() => setLightbox({ src: photoSrc(photo.filename) ?? '', description: photo.description ?? undefined, createdAt: photo.uploaded_at })}
+                    >
                       <img src={photoSrc(photo.filename) ?? undefined} alt={photo.description || ''} />
                     </div>
                   ))}
@@ -210,7 +215,11 @@ export default function Home() {
                 </div>
                 <div className="home-photos">
                   {places.map(place => (
-                    <div key={place.id} className="home-photo" onClick={() => navigate('/places')}>
+                    <div
+                      key={place.id}
+                      className="home-photo"
+                      onClick={() => setLightbox({ src: placeSrc(place.filename) ?? '', description: place.description ?? undefined, createdAt: place.uploaded_at })}
+                    >
                       <img src={placeSrc(place.filename) ?? undefined} alt={place.description || ''} />
                     </div>
                   ))}
@@ -239,14 +248,12 @@ export default function Home() {
                 </div>
                 <div className="media-grid">
                   {movies.map(m => (
-                    <MediaCard
+                    <MovieCard
                       key={m.id}
-                      item={m}
-                      checkedField="is_watched"
-                      checkLabel={t('movies.watched')}
-                      canEdit={canEdit}
-                      onToggle={handleToggleMovie}
+                      movie={m}
+                      canEdit={false}
                       onDelete={() => {}}
+                      onWatchUpdated={handleMovieWatchUpdated}
                     />
                   ))}
                 </div>
@@ -283,6 +290,15 @@ export default function Home() {
         )}
 
       </main>
+
+      {lightbox && (
+        <Lightbox
+          src={lightbox.src}
+          description={lightbox.description}
+          createdAt={lightbox.createdAt}
+          onClose={() => setLightbox(null)}
+        />
+      )}
     </div>
   )
 }

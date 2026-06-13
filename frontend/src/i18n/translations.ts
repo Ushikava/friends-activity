@@ -50,9 +50,19 @@ export const ru: Dict = {
   'places.title':     'ИРЛ фото',
 
   // movies
-  'movies.title':   'Фильмы / Сериалы',
-  'movies.add':     'Добавить фильм',
-  'movies.watched': 'Просмотрено',
+  'movies.title':     'Фильмы / Сериалы',
+  'movies.add':       'Добавить фильм',
+  'movies.watched':   'Просмотрено',
+  'movies.details':         'Подробнее',
+  'movies.watchedBy':       'Кто смотрел',
+  'movies.markWatched':     'Я посмотрел(а)',
+  'movies.rateTitle':       'Оценить фильм',
+  'movies.ratingLabel':     'Ваша оценка',
+  'movies.reviewLabel':     'Отзыв',
+  'movies.reviewPlaceholder':'Ваш отзыв (необязательно)...',
+  'movies.markConfirm':     'Отметить просмотренным',
+  'movies.deleteTitle':     'Удалить фильм?',
+  'movies.deleteWarning':   'Это действие удалит фильм для <b>всех</b> пользователей. Отменить нельзя.',
 
   // games
   'games.title':    'Игры',
@@ -167,9 +177,19 @@ export const en: Dict = {
   'places.title':     'IRL Photos',
 
   // movies
-  'movies.title':   'Movies / Series',
-  'movies.add':     'Add movie',
-  'movies.watched': 'Watched',
+  'movies.title':     'Movies / Series',
+  'movies.add':       'Add movie',
+  'movies.watched':   'Watched',
+  'movies.details':         'Details',
+  'movies.watchedBy':       'Who watched',
+  'movies.markWatched':     'I watched it',
+  'movies.rateTitle':       'Rate the movie',
+  'movies.ratingLabel':     'Your rating',
+  'movies.reviewLabel':     'Review',
+  'movies.reviewPlaceholder':'Your review (optional)...',
+  'movies.markConfirm':     'Mark as watched',
+  'movies.deleteTitle':     'Delete movie?',
+  'movies.deleteWarning':   'This will delete the movie for <b>all</b> users. This cannot be undone.',
 
   // games
   'games.title':    'Games',

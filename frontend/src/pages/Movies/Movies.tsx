@@ -1,12 +1,16 @@
 import { useState, useEffect } from 'react'
+import { motion } from 'framer-motion'
 import NavBar from '../../components/NavBar/NavBar'
-import MediaGrid from '../../components/MediaGrid/MediaGrid'
+import MovieCard from '../../components/MovieCard/MovieCard'
+import AddModal from '../../components/MediaGrid/AddModal'
 import Pagination from '../../components/Pagination/Pagination'
-import { fetchMovies, addMovie, toggleWatched, deleteMovie } from '../../api/movies'
+import { fetchMovies, addMovie, deleteMovie } from '../../api/movies'
 import { getRole } from '../../api/auth'
 import { useLang } from '../../i18n/LangContext'
-import type { Movie, Game } from '../../types'
+import { containerVariants, cardVariants } from '../../utils/animations'
+import type { Movie } from '../../types'
 import '../page.css'
+import '../../components/MediaGrid/mediaGrid.css'
 
 const PAGE_SIZE = 20
 
@@ -16,6 +20,7 @@ export default function Movies() {
   const [total, setTotal] = useState(0)
   const [page, setPage] = useState(1)
   const [loading, setLoading] = useState(true)
+  const [showModal, setShowModal] = useState(false)
   const [errMsg, setErrMsg] = useState('')
   const canEdit = getRole() !== 'observer'
 
@@ -32,12 +37,6 @@ export default function Movies() {
       .finally(() => setLoading(false))
   }, [page])
 
-  function handleToggle(id: number) {
-    toggleWatched(id)
-      .then(u => setMovies(p => p.map(m => m.id === id ? u : m)))
-      .catch(() => showErr(t('common.errAction')))
-  }
-
   function handleDelete(id: number) {
     const isLastOnPage = movies.length === 1 && page > 1
     deleteMovie(id)
@@ -49,9 +48,14 @@ export default function Movies() {
       .catch(() => showErr(t('common.errDeleteFail')))
   }
 
-  function handleItemAdded(movie: Movie | Game) {
+  function handleWatchUpdated(updated: Movie) {
+    setMovies(p => p.map(m => m.id === updated.id ? updated : m))
+  }
+
+  async function handleAdd(title: string, file: File | null, _url: null) {
+    const movie = await addMovie(title, file, null)
     if (page === 1) {
-      setMovies(p => [movie as Movie, ...p.slice(0, PAGE_SIZE - 1)])
+      setMovies(p => [movie, ...p.slice(0, PAGE_SIZE - 1)])
       setTotal(n => n + 1)
     } else {
       setPage(1)
@@ -63,20 +67,48 @@ export default function Movies() {
       <NavBar />
       <main className="page__main">
         {errMsg && <p className="page-error">{errMsg}</p>}
-        <MediaGrid
-          pageTitle={t('movies.title')}
-          modalTitle={t('movies.add')}
-          items={movies}
-          loading={loading}
-          checkedField="is_watched"
-          checkLabel={t('movies.watched')}
-          canEdit={canEdit}
-          onToggle={handleToggle}
-          onDelete={handleDelete}
-          onAdd={(title, file, url) => addMovie(title, file, url)}
-          onItemAdded={handleItemAdded}
-        />
+
+        <div className="media-header">
+          <h1 className="media-header__title">{t('movies.title')}</h1>
+          {canEdit && (
+            <button className="media-header__add" onClick={() => setShowModal(true)}>+</button>
+          )}
+        </div>
+
+        {loading
+          ? <div className="loading-spinner" />
+          : movies.length === 0
+          ? <p className="media-empty">{t('common.empty')}</p>
+          : (
+            <motion.div
+              className="media-grid"
+              variants={containerVariants}
+              initial="hidden"
+              animate="show"
+            >
+              {movies.map(m => (
+                <motion.div key={m.id} variants={cardVariants}>
+                  <MovieCard
+                    movie={m}
+                    canEdit={canEdit}
+                    onDelete={handleDelete}
+                    onWatchUpdated={handleWatchUpdated}
+                  />
+                </motion.div>
+              ))}
+            </motion.div>
+          )
+        }
+
         <Pagination page={page} total={total} limit={PAGE_SIZE} onChange={setPage} />
+
+        {showModal && (
+          <AddModal
+            title={t('movies.add')}
+            onClose={() => setShowModal(false)}
+            onSubmit={handleAdd}
+          />
+        )}
       </main>
     </div>
   )

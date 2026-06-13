@@ -1,0 +1,613 @@
+/* ── Card (grid item) ── */
+.movie-card {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.movie-card__img-wrap {
+  position: relative;
+  border-radius: 10px;
+  overflow: hidden;
+  aspect-ratio: 2 / 3;
+  background: #ddd;
+  display: block;
+  cursor: pointer;
+  will-change: transform;
+}
+
+.movie-card__img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  transition: filter 0.3s, transform 0.3s;
+}
+
+.movie-card--all-watched .movie-card__img {
+  filter: grayscale(90%);
+}
+
+.movie-card__img-wrap:hover .movie-card__img {
+  filter: none;
+  transform: scale(1.03);
+}
+
+.movie-card__no-poster {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 3rem;
+  color: #aaa;
+  background: #e8e8e8;
+  user-select: none;
+}
+
+/* ── Watch count badge ── */
+.movie-card__badge {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  padding: 2px 7px;
+  border-radius: 20px;
+  background: rgba(0, 0, 0, 0.55);
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 0.72rem;
+  font-weight: 600;
+  backdrop-filter: blur(4px);
+  pointer-events: none;
+  line-height: 1.5;
+}
+
+.movie-card__badge--done {
+  background: var(--accent);
+  color: #fff;
+}
+
+
+.movie-card__title {
+  font-size: 0.85rem;
+  font-weight: 400;
+  text-align: center;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ══════════════════════════════════════════
+   Detail modal — backdrop
+══════════════════════════════════════════ */
+
+.movie-detail-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.78);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+  animation: modal-in 0.2s ease;
+  padding: 20px;
+}
+
+.movie-detail-backdrop--closing {
+  animation: modal-out 0.2s ease forwards;
+}
+
+/* ══════════════════════════════════════════
+   Detail modal — layout
+   LEFT: floating user cards on dark bg
+   RIGHT: poster in own dark box
+══════════════════════════════════════════ */
+
+.movie-detail {
+  position: relative;
+  display: flex;
+  align-items: stretch;
+  gap: 28px;
+  width: min(1060px, 96vw);
+  max-height: 82vh;
+  /* no background — elements float on the dark backdrop */
+  animation: modal-content-in 0.2s ease;
+}
+
+.movie-detail-backdrop--closing .movie-detail {
+  animation: modal-content-out 0.2s ease forwards;
+}
+
+/* ── Left: title + floating user cards ── */
+.movie-detail__left {
+  flex: 0 0 420px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  overflow: hidden;
+}
+
+.movie-detail__header {
+  flex-shrink: 0;
+}
+
+.movie-detail__header-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.movie-detail__header-row .movie-detail__title {
+  flex: 1;
+}
+
+.movie-detail__delete-btn {
+  flex-shrink: 0;
+  margin-top: 6px;
+  background: none;
+  border: none;
+  color: rgba(255, 255, 255, 0.4);
+  cursor: pointer;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.15s;
+}
+
+.movie-detail__delete-btn:hover {
+  color: #ff6b6b;
+}
+
+.movie-detail__title {
+  font-size: 2.2rem;
+  font-weight: 700;
+  color: #fff;
+  margin: 0 0 8px;
+  line-height: 1.2;
+}
+
+.movie-detail__subtitle {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.45);
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+}
+
+.movie-detail__count {
+  font-weight: 700;
+  color: var(--accent);
+}
+
+/* Scrollable cards list — no scrollbar */
+.movie-detail__scroll {
+  flex: 1;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  scrollbar-width: none;
+  padding-right: 2px; /* room for card shadow */
+}
+
+.movie-detail__scroll::-webkit-scrollbar {
+  display: none;
+}
+
+.movie-detail__empty {
+  color: rgba(255, 255, 255, 0.4);
+  font-size: 0.88rem;
+}
+
+/* ── Right: poster box ── */
+.movie-detail__right {
+  flex: 1;
+  border-radius: 16px;
+  overflow: hidden;
+  background: #111;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 320px;
+}
+
+.movie-detail__poster {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.movie-detail__no-poster {
+  font-size: 6rem;
+  color: #444;
+  user-select: none;
+}
+
+/* ── Close button ── */
+.movie-detail__close {
+  position: absolute;
+  top: -40px;
+  right: -8px;
+  background: none;
+  border: none;
+  color: #fff;
+  font-size: 2rem;
+  cursor: pointer;
+  line-height: 1;
+  opacity: 0.8;
+  transition: opacity 0.15s;
+  z-index: 2;
+}
+
+.movie-detail__close:hover {
+  opacity: 1;
+}
+
+/* ══════════════════════════════════════════
+   "I watched it" button
+══════════════════════════════════════════ */
+
+.mdc-add-btn {
+  flex-shrink: 0;
+  align-self: flex-start;
+  padding: 7px 14px;
+  border: 1.5px dashed rgba(255, 255, 255, 0.35);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.06);
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 0.84rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+}
+
+.mdc-add-btn:hover:not(:disabled) {
+  background: var(--accent);
+  color: #fff;
+  border-color: var(--accent);
+}
+
+.mdc-add-btn:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+/* ══════════════════════════════════════════
+   User watch card — white island
+══════════════════════════════════════════ */
+
+.mdc-user-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  background: #fff;
+  border-radius: 12px;
+  flex-shrink: 0;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.25);
+}
+
+/* green check bubble */
+.mdc-user-card__check {
+  flex-shrink: 0;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--accent) 28%, #ccc);
+  color: #fff;
+  font-size: 0.75rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  cursor: default;
+  transition: background 0.15s, transform 0.15s;
+}
+
+.mdc-user-card__check--mine {
+  background: var(--accent);
+  cursor: pointer;
+}
+
+.mdc-user-card__check--mine:hover {
+  background: #d94040;
+  transform: scale(1.1);
+}
+
+.mdc-user-card__body {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.mdc-user-card__top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.mdc-user-card__name {
+  font-size: 0.88rem;
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: #1a1a1a;
+}
+
+.mdc-user-card__rating {
+  flex-shrink: 0;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 12%, transparent);
+  padding: 2px 7px;
+  border-radius: 20px;
+}
+
+.mdc-user-card__review {
+  font-size: 0.78rem;
+  color: #888;
+  margin: 0;
+  line-height: 1.4;
+}
+
+/* ══════════════════════════════════════════
+   Review modal (appears on top of detail)
+══════════════════════════════════════════ */
+
+.review-backdrop {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 10;
+  animation: modal-in 0.15s ease;
+}
+
+.review-modal {
+  background: #fff;
+  border-radius: 16px;
+  padding: 26px 22px 20px;
+  width: min(360px, 90%);
+  max-height: 88vh;
+  overflow-y: auto;
+  scrollbar-width: none;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.35);
+  animation: modal-content-in 0.15s ease;
+}
+
+.review-modal::-webkit-scrollbar {
+  display: none;
+}
+
+.review-modal__title {
+  font-size: 1.1rem;
+  font-weight: 700;
+  margin: 0;
+  color: #1a1a1a;
+}
+
+.review-modal__movie {
+  font-size: 0.85rem;
+  color: #888;
+  margin: -10px 0 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.review-modal__section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.review-modal__label {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: #999;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.review-modal__textarea {
+  width: 100%;
+  min-height: 72px;
+  border: 1.5px solid #e0e0e0;
+  border-radius: 8px;
+  padding: 9px 11px;
+  font-size: 0.9rem;
+  resize: none;
+  overflow: hidden;
+  outline: none;
+  font-family: inherit;
+  color: #333;
+  transition: border-color 0.15s;
+  box-sizing: border-box;
+}
+
+.review-modal__textarea:focus {
+  border-color: var(--accent);
+}
+
+.review-modal__actions {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+}
+
+.review-modal__cancel {
+  padding: 9px 16px;
+  border: 1.5px solid #ddd;
+  border-radius: 8px;
+  background: transparent;
+  cursor: pointer;
+  font-size: 0.88rem;
+  color: #666;
+  transition: border-color 0.15s;
+}
+
+.review-modal__cancel:hover {
+  border-color: #bbb;
+}
+
+.review-modal__submit {
+  padding: 9px 18px;
+  border: none;
+  border-radius: 8px;
+  background: var(--accent);
+  color: #fff;
+  font-size: 0.88rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.15s;
+}
+
+.review-modal__submit:disabled {
+  opacity: 0.55;
+  cursor: default;
+}
+
+/* ══════════════════════════════════════════
+   Star rating
+══════════════════════════════════════════ */
+
+.star-rating {
+  display: flex;
+  align-items: center;
+  gap: 1px;
+}
+
+.star-rating__star {
+  background: none;
+  border: none;
+  font-size: 1.65rem;
+  cursor: pointer;
+  color: #ddd;
+  padding: 0 1px;
+  line-height: 1;
+  transition: color 0.1s, transform 0.1s;
+}
+
+.star-rating__star--hover {
+  color: rgba(255, 193, 7, 0.45);
+  transform: scale(1.12);
+}
+
+.star-rating__star--active {
+  color: #FFC107;
+}
+
+.star-rating__star:hover {
+  transform: scale(1.15);
+}
+
+.star-rating__value {
+  margin-left: 8px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--accent);
+}
+
+/* ══════════════════════════════════════════
+   Delete confirm dialog
+══════════════════════════════════════════ */
+
+.delete-confirm {
+  background: #fff;
+  border-radius: 16px;
+  padding: 26px 22px 20px;
+  width: min(360px, 90%);
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.35);
+  animation: modal-content-in 0.15s ease;
+}
+
+.delete-confirm__title {
+  font-size: 1.1rem;
+  font-weight: 700;
+  margin: 0;
+  color: #1a1a1a;
+}
+
+.delete-confirm__movie {
+  font-size: 0.85rem;
+  color: #888;
+  margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.delete-confirm__warning {
+  font-size: 0.88rem;
+  color: #555;
+  margin: 0;
+  line-height: 1.5;
+}
+
+.delete-confirm__warning b {
+  color: #d94040;
+}
+
+.delete-confirm__actions {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+  margin-top: 4px;
+}
+
+.delete-confirm__btn {
+  padding: 9px 18px;
+  border: none;
+  border-radius: 8px;
+  background: #d94040;
+  color: #fff;
+  font-size: 0.88rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.15s;
+}
+
+.delete-confirm__btn:hover {
+  opacity: 0.85;
+}
+
+/* ── Mobile ── */
+@media (max-width: 600px) {
+  .movie-detail {
+    flex-direction: column-reverse;
+    max-height: 90vh;
+    gap: 16px;
+  }
+
+  .movie-detail__left {
+    flex: 0 0 auto;
+    max-height: 55vh;
+  }
+
+  .movie-detail__right {
+    flex: 0 0 200px;
+    min-height: 180px;
+    border-radius: 12px;
+  }
+
+  .movie-detail__close {
+    transform: translate(0, 0);
+    top: 8px;
+    right: 8px;
+  }
+}

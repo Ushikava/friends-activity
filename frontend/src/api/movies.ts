@@ -1,5 +1,5 @@
 import { apiFetch } from './auth'
-import type { Movie, PaginatedResponse } from '../types'
+import type { Movie, MovieDetail, PaginatedResponse } from '../types'
 
 const API = import.meta.env.VITE_API_URL
 
@@ -33,13 +33,23 @@ export async function addMovie(
   return res.json() as Promise<Movie>
 }
 
-export async function toggleWatched(id: number): Promise<Movie> {
+export async function fetchMovieDetail(id: number): Promise<MovieDetail> {
+  const res = await apiFetch(`${API}/movies/${id}/detail`, { headers: authHeaders() })
+  if (!res.ok) throw new Error('Ошибка загрузки')
+  return res.json() as Promise<MovieDetail>
+}
+
+export async function toggleUserWatched(
+  id: number,
+  body?: { rating: number | null; review: string | null },
+): Promise<MovieDetail> {
   const res = await apiFetch(`${API}/movies/${id}/watched`, {
     method: 'PATCH',
-    headers: authHeaders(),
+    headers: { ...authHeaders(), 'Content-Type': 'application/json' },
+    body: JSON.stringify(body ?? {}),
   })
   if (!res.ok) throw new Error('Ошибка')
-  return res.json() as Promise<Movie>
+  return res.json() as Promise<MovieDetail>
 }
 
 export async function deleteMovie(id: number): Promise<void> {
