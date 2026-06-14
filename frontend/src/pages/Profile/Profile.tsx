@@ -188,9 +188,9 @@ export default function Profile() {
           <div className="profile-content">
             {active === 'username' && <>
               <h2 className="profile-content__title">{t('profile.changeName.title') as string}</h2>
-              <form onSubmit={handleUsernameSubmit} className="profile-form">
-                <input type="text" placeholder={t('profile.changeName.new') as string} value={newUsername} onChange={e => setNewUsername(e.target.value)} required />
-                <input type="password" placeholder={t('profile.changeName.password') as string} value={usernamePassword} onChange={e => setUsernamePassword(e.target.value)} required />
+              <form onSubmit={handleUsernameSubmit} className="profile-form" autoComplete="off">
+                <input type="text" autoComplete="off" placeholder={t('profile.changeName.new') as string} value={newUsername} onChange={e => setNewUsername(e.target.value)} required />
+                <input type="password" autoComplete="new-password" placeholder={t('profile.changeName.password') as string} value={usernamePassword} onChange={e => setUsernamePassword(e.target.value)} required />
                 <button type="submit" disabled={usernameLoading || !newUsername || !usernamePassword}>
                   {usernameLoading ? t('common.saving') as string : t('common.save') as string}
                 </button>
@@ -199,10 +199,10 @@ export default function Profile() {
 
             {active === 'password' && <>
               <h2 className="profile-content__title">{t('profile.changePass.title') as string}</h2>
-              <form onSubmit={handlePasswordSubmit} className="profile-form">
-                <input type="password" placeholder={t('profile.changePass.current') as string} value={currentPassword} onChange={e => setCurrentPassword(e.target.value)} required />
-                <input type="password" placeholder={t('profile.changePass.new') as string} value={newPassword} onChange={e => setNewPassword(e.target.value)} required />
-                <input type="password" placeholder={t('profile.changePass.confirm') as string} value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} required />
+              <form onSubmit={handlePasswordSubmit} className="profile-form" autoComplete="off">
+                <input type="password" autoComplete="new-password" placeholder={t('profile.changePass.current') as string} value={currentPassword} onChange={e => setCurrentPassword(e.target.value)} required />
+                <input type="password" autoComplete="new-password" placeholder={t('profile.changePass.new') as string} value={newPassword} onChange={e => setNewPassword(e.target.value)} required />
+                <input type="password" autoComplete="new-password" placeholder={t('profile.changePass.confirm') as string} value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} required />
                 <button type="submit" disabled={passwordLoading || !currentPassword || !newPassword || !confirmPassword}>
                   {passwordLoading ? t('common.saving') as string : t('common.save') as string}
                 </button>
@@ -211,9 +211,9 @@ export default function Profile() {
 
             {active === 'addUser' && <>
               <h2 className="profile-content__title">{t('profile.addUser.title') as string}</h2>
-              <form onSubmit={handleNewUserSubmit} className="profile-form">
-                <input type="text" placeholder={t('profile.addUser.username') as string} value={newUserUsername} onChange={e => setNewUserUsername(e.target.value)} required />
-                <input type="password" placeholder={t('profile.addUser.password') as string} value={newUserPassword} onChange={e => setNewUserPassword(e.target.value)} required />
+              <form onSubmit={handleNewUserSubmit} className="profile-form" autoComplete="off">
+                <input type="text" autoComplete="off" placeholder={t('profile.addUser.username') as string} value={newUserUsername} onChange={e => setNewUserUsername(e.target.value)} required />
+                <input type="password" autoComplete="new-password" placeholder={t('profile.addUser.password') as string} value={newUserPassword} onChange={e => setNewUserPassword(e.target.value)} required />
                 <button type="submit" disabled={newUserLoading || !newUserUsername || !newUserPassword}>
                   {newUserLoading ? t('common.saving') as string : t('profile.addUser.submit') as string}
                 </button>
@@ -222,9 +222,9 @@ export default function Profile() {
 
             {active === 'deleteUser' && <>
               <h2 className="profile-content__title">{t('profile.deleteUser.title') as string}</h2>
-              <form onSubmit={handleDeleteUser} className="profile-form">
-                <input type="text" placeholder={t('profile.deleteUser.username') as string} value={deleteTargetUsername} onChange={e => setDeleteTargetUsername(e.target.value)} required />
-                <input type="password" placeholder={t('profile.deleteUser.password') as string} value={deleteTargetPassword} onChange={e => setDeleteTargetPassword(e.target.value)} required />
+              <form onSubmit={handleDeleteUser} className="profile-form" autoComplete="off">
+                <input type="text" autoComplete="off" placeholder={t('profile.deleteUser.username') as string} value={deleteTargetUsername} onChange={e => setDeleteTargetUsername(e.target.value)} required />
+                <input type="password" autoComplete="new-password" placeholder={t('profile.deleteUser.password') as string} value={deleteTargetPassword} onChange={e => setDeleteTargetPassword(e.target.value)} required />
                 <button type="submit" className="profile-form__btn--danger" disabled={deleteUserLoading || !deleteTargetUsername || !deleteTargetPassword}>
                   {deleteUserLoading ? t('common.saving') as string : t('profile.deleteUser.submit') as string}
                 </button>
@@ -233,8 +233,8 @@ export default function Profile() {
 
             {active === 'deleteSelf' && <>
               <h2 className="profile-content__title">{t('profile.deleteSelf.title') as string}</h2>
-              <form onSubmit={handleDeleteSelf} className="profile-form">
-                <input type="password" placeholder={t('profile.deleteSelf.password') as string} value={deleteSelfPassword} onChange={e => setDeleteSelfPassword(e.target.value)} required />
+              <form onSubmit={handleDeleteSelf} className="profile-form" autoComplete="off">
+                <input type="password" autoComplete="new-password" placeholder={t('profile.deleteSelf.password') as string} value={deleteSelfPassword} onChange={e => setDeleteSelfPassword(e.target.value)} required />
                 <button type="submit" className="profile-form__btn--danger" disabled={deleteSelfLoading || !deleteSelfPassword}>
                   {deleteSelfLoading ? t('common.saving') as string : t('profile.deleteSelf.submit') as string}
                 </button>
