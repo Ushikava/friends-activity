@@ -326,7 +326,7 @@ export default function MovieCard({ movie, canEdit, onDelete, onWatchUpdated }: 
   const src = posterSrc(movie.poster)
   const isObserver = getRole() === 'observer'
   const currentUsername = getUsername()
-  const isAllWatched = movie.is_watched_by_me
+  const isAllWatched = movie.user_count > 0 && movie.watch_count === movie.user_count
 
   function openDetail() {
     setDetailOpen(true)
@@ -426,7 +426,7 @@ export default function MovieCard({ movie, canEdit, onDelete, onWatchUpdated }: 
   }
 
   return (
-    <div className={`movie-card${isAllWatched ? ' movie-card--all-watched' : ''}`}>
+    <div className={`movie-card${isAllWatched ? ' movie-card--all-watched' : ''}${movie.is_watched_by_me ? ' movie-card--watched-by-me' : ''}`}>
       <div
         className="movie-card__tilt"
         onClick={openDetail}

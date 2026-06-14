@@ -26,7 +26,8 @@
   transition: filter 0.3s;
 }
 
-.movie-card--all-watched .movie-card__img {
+.movie-card--all-watched .movie-card__img,
+.movie-card--watched-by-me .movie-card__img {
   filter: grayscale(90%);
 }
 
