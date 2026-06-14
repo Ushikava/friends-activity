@@ -6,6 +6,10 @@
   --activity-4: #d66a7c;
 }
 
+[data-theme="dark"] {
+  --activity-0: #2e2e2e;
+}
+
 .activity {
   margin-bottom: 44px;
 }

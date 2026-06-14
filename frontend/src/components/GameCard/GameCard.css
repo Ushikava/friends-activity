@@ -16,7 +16,7 @@
 .game-card__img-wrap {
   position: relative;
   aspect-ratio: 2 / 3;
-  background: #ddd;
+  background: var(--skeleton);
   clip-path: inset(0 round 10px);
 }
 
@@ -43,8 +43,8 @@
   align-items: center;
   justify-content: center;
   font-size: 3rem;
-  color: #aaa;
-  background: #e8e8e8;
+  color: var(--muted-extra);
+  background: var(--skeleton);
   user-select: none;
 }
 
@@ -267,7 +267,7 @@
 }
 
 .gd-confirm {
-  background: #fff;
+  background: var(--card-bg);
   border-radius: 16px;
   padding: 26px 22px 20px;
   width: min(360px, 90%);
@@ -282,12 +282,12 @@
   font-size: 1.1rem;
   font-weight: 700;
   margin: 0;
-  color: #1a1a1a;
+  color: var(--text-h);
 }
 
 .gd-confirm__game {
   font-size: 0.85rem;
-  color: #888;
+  color: var(--muted);
   margin: 0;
   white-space: nowrap;
   overflow: hidden;
@@ -296,7 +296,7 @@
 
 .gd-confirm__warning {
   font-size: 0.88rem;
-  color: #555;
+  color: var(--text);
   margin: 0;
   line-height: 1.5;
 }
@@ -314,17 +314,17 @@
 
 .gd-confirm__cancel {
   padding: 9px 16px;
-  border: 1.5px solid #ddd;
+  border: 1.5px solid var(--input-border);
   border-radius: 8px;
   background: transparent;
   cursor: pointer;
   font-size: 0.88rem;
-  color: #666;
+  color: var(--muted);
   transition: border-color 0.15s;
 }
 
 .gd-confirm__cancel:hover {
-  border-color: #bbb;
+  border-color: var(--muted-extra);
 }
 
 .gd-confirm__delete {

@@ -10,7 +10,7 @@
 }
 
 .confirm-modal {
-  background: #fff;
+  background: var(--card-bg);
   border-radius: 16px;
   padding: 24px 20px 20px;
   width: 280px;
@@ -29,7 +29,7 @@
 }
 
 .confirm-modal__body {
-  color: #888;
+  color: var(--muted);
   font-size: 0.88rem;
   margin: 0;
 }
@@ -56,8 +56,8 @@
 }
 
 .confirm-modal__btn--cancel {
-  background: #ebebeb;
-  color: #555;
+  background: var(--skeleton);
+  color: var(--muted);
 }
 
 .confirm-modal__btn--delete {

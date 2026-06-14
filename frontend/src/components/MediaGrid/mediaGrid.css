@@ -17,8 +17,8 @@
   height: 40px;
   border-radius: 50%;
   border: 1px solid var(--border);
-  background: #dadada;
-  color: #000;
+  background: var(--surface);
+  color: var(--text);
   font-size: 1.6rem;
   line-height: 1;
   cursor: pointer;
@@ -35,7 +35,7 @@
 }
 
 .media-empty {
-  color: #999;
+  color: var(--muted);
   font-size: 1rem;
 }
 
@@ -58,7 +58,7 @@
   border-radius: 10px;
   overflow: hidden;
   aspect-ratio: 2 / 3;
-  background: #ddd;
+  background: var(--skeleton);
   display: block;
   text-decoration: none;
   will-change: transform;
@@ -87,8 +87,8 @@
   align-items: center;
   justify-content: center;
   font-size: 3rem;
-  color: #aaa;
-  background: #e8e8e8;
+  color: var(--muted-extra);
+  background: var(--skeleton);
   user-select: none;
 }
 
@@ -229,7 +229,7 @@
 /* ── Modal ── */
 .modal {
   position: relative;
-  background: #fff;
+  background: var(--card-bg);
   border-radius: 16px;
   padding: 28px 24px 24px;
   width: 340px;
@@ -253,12 +253,12 @@
   border: none;
   font-size: 1.5rem;
   cursor: pointer;
-  color: #888;
+  color: var(--muted);
   line-height: 1;
 }
 
 .modal__close:hover {
-  color: #333;
+  color: var(--text);
 }
 
 .modal__title {
@@ -270,16 +270,17 @@
 .modal__input {
   width: 100%;
   padding: 10px 12px;
-  border: 1.5px solid #e0e0e0;
+  border: 1.5px solid var(--input-border);
   border-radius: 8px;
   font-size: 0.95rem;
   outline: none;
   transition: border-color 0.15s;
-  color: #333;
+  color: var(--text);
+  background: var(--input-bg);
 }
 
 .modal__input::placeholder {
-  color: #bbb;
+  color: var(--placeholder);
 }
 
 .modal__input:focus {
@@ -288,14 +289,14 @@
 
 /* ── Upload zone ── */
 .modal__upload-zone {
-  border: 1.5px dashed #ccc;
+  border: 1.5px dashed var(--input-border);
   border-radius: 8px;
   min-height: 110px;
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 0.88rem;
-  color: #aaa;
+  color: var(--muted-extra);
   cursor: pointer;
   outline: none;
   overflow: hidden;
@@ -307,7 +308,7 @@
 .modal__upload-zone:hover,
 .modal__upload-zone:focus {
   border-color: var(--accent);
-  color: #888;
+  color: var(--muted);
 }
 
 .modal__upload-zone--filled {

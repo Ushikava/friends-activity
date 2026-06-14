@@ -20,7 +20,7 @@
   overflow: hidden;
   cursor: pointer;
   position: relative;
-  background: #e8e8e8;
+  background: var(--skeleton);
   will-change: transform;
 }
 

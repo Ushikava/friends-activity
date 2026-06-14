@@ -39,7 +39,7 @@
 }
 
 .login-form {
-  background: #dadada;
+  background: var(--surface);
   border-radius: 15%;
   width: 100%;
   max-width: 720px;

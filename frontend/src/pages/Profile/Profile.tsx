@@ -39,6 +39,13 @@ function StatusMessage({ status }: { status: StatusInfo | null }) {
 export default function Profile() {
   const { t, lang, setLanguage } = useLang()
   const [currentUsername, setCurrentUsername] = useState(getUsername() || '')
+  const [theme, setTheme] = useState(() => localStorage.getItem('theme') || 'light')
+
+  function toggleTheme(next: string) {
+    document.documentElement.dataset.theme = next
+    localStorage.setItem('theme', next)
+    setTheme(next)
+  }
 
   const [newUsername, setNewUsername] = useState('')
   const [usernamePassword, setUsernamePassword] = useState('')
@@ -210,6 +217,23 @@ export default function Profile() {
                 onClick={() => setLanguage('en')}
               >
                 {t('profile.lang.en')}
+              </button>
+            </div>
+          </SettingCard>
+
+          <SettingCard title={t('profile.theme.title')}>
+            <div className="profile-lang-toggle">
+              <button
+                className={`profile-lang-btn${theme === 'light' ? ' profile-lang-btn--active' : ''}`}
+                onClick={() => toggleTheme('light')}
+              >
+                {t('profile.theme.light')}
+              </button>
+              <button
+                className={`profile-lang-btn${theme === 'dark' ? ' profile-lang-btn--active' : ''}`}
+                onClick={() => toggleTheme('dark')}
+              >
+                {t('profile.theme.dark')}
               </button>
             </div>
           </SettingCard>

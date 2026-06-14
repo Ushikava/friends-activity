@@ -43,7 +43,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  background: #dadada;
+  background: var(--surface);
   border-radius: 16px;
   padding: 12px 20px;
   margin-bottom: 32px;
@@ -71,7 +71,7 @@
 }
 
 .home-stat {
-  background: #dadada;
+  background: var(--surface);
   border-radius: 16px;
   padding: 16px 12px;
   display: flex;
@@ -140,7 +140,7 @@
   overflow: hidden;
   cursor: pointer;
   aspect-ratio: 1;
-  background: #e8e8e8;
+  background: var(--skeleton);
 }
 
 .home-photo img {
