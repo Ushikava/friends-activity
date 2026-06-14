@@ -256,21 +256,14 @@
     border-radius: 10px;
   }
 
-  /* Content: full width, no extra padding */
+  /* Content: centered, full width */
   .profile-content {
-    align-items: stretch;
+    width: 100%;
+    align-items: center;
     padding: 4px 0 24px;
   }
 
-  .profile-content__title {
-    align-self: auto;
-    margin-bottom: 16px;
-  }
-
-  .profile-form {
-    width: 100%;
-  }
-
+  .profile-form,
   .profile-lang-toggle {
     width: 100%;
   }
