@@ -65,6 +65,11 @@
   color: #fff;
 }
 
+.confirm-modal__btn--confirm {
+  background: var(--accent);
+  color: #fff;
+}
+
 @keyframes modal-in {
   from { opacity: 0; }
   to   { opacity: 1; }

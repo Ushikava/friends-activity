@@ -41,3 +41,7 @@ class ChangePasswordRequest(BaseModel):
 class CreateUserRequest(BaseModel):
     username: str
     password: str
+
+
+class DeleteUserRequest(BaseModel):
+    password: str

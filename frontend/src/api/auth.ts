@@ -91,6 +91,35 @@ export function getRole(): string | null {
   return localStorage.getItem('role')
 }
 
+export async function logout(): Promise<void> {
+  const rt = localStorage.getItem('refresh_token')
+  if (rt) {
+    try {
+      await fetch(`${API}/logout`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ refresh_token: rt }),
+      })
+    } catch {}
+  }
+  clearSession()
+}
+
+export async function deleteUser(username: string, password: string): Promise<void> {
+  const res = await apiFetch(`${API}/users/${encodeURIComponent(username)}`, {
+    method: 'DELETE',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${getToken()}`,
+    },
+    body: JSON.stringify({ password }),
+  })
+  if (!res.ok) {
+    const err = await res.json() as { detail?: string }
+    throw new Error(err.detail || 'Ошибка удаления')
+  }
+}
+
 export async function changeUsername(newUsername: string, password: string): Promise<UserInfo> {
   const res = await apiFetch(`${API}/me/username`, {
     method: 'PATCH',

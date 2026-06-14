@@ -6,7 +6,7 @@ from passlib.context import CryptContext
 from core.auth import create_access_token, create_refresh_token, get_user_from_token, require_not_observer
 from db.session import SessionLocal
 from db import user as user_db
-from schemas.user import LoginRequest, RefreshRequest, TokenResponse, ChangeUsernameRequest, ChangePasswordRequest, CreateUserRequest, UserOut
+from schemas.user import LoginRequest, RefreshRequest, TokenResponse, ChangeUsernameRequest, ChangePasswordRequest, CreateUserRequest, DeleteUserRequest, UserOut
 from core.exceptions import UnauthorizedError, BadRequestError
 
 pwd_context = CryptContext(schemes=["bcrypt"])
@@ -97,6 +97,21 @@ def logout(body: RefreshRequest):
     db = SessionLocal()
     try:
         user_db.delete_refresh_token(db, body.refresh_token)
+        return {"status": "ok"}
+    finally:
+        db.close()
+
+
+@router.delete("/users/{username}")
+def delete_user(username: str, body: DeleteUserRequest, user_id: int = Depends(get_user_from_token)):
+    db = SessionLocal()
+    try:
+        target = user_db.get_user_by_username(db, username)
+        if not target:
+            raise BadRequestError("Пользователь не найден")
+        if not pwd_context.verify(body.password, target.hashed_password):
+            raise UnauthorizedError("Неверный пароль")
+        user_db.delete_user(db, target.id)
         return {"status": "ok"}
     finally:
         db.close()

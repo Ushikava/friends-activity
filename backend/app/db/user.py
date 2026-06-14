@@ -47,6 +47,12 @@ def update_password(db: Session, user_id: int, new_hashed_password: str) -> None
     db.commit()
 
 
+def delete_user(db: Session, user_id: int) -> None:
+    delete_all_refresh_tokens(db, user_id)
+    db.query(UserData).filter(UserData.id == user_id).delete()
+    db.commit()
+
+
 def create_user(db: Session, username: str, hashed_password: str) -> UserData:
     user = UserData(username=username, hashed_password=hashed_password, role="user")
     db.add(user)
