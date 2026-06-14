@@ -130,6 +130,18 @@ def toggle_user_played(
     return get_game_detail(db, game_id)
 
 
+def update_game(db: Session, game_id: int, title: str, poster: str | None, steam_link: str | None) -> Game | None:
+    game = get_game_by_id(db, game_id)
+    if not game:
+        return None
+    game.title = title
+    game.poster = poster
+    game.steam_link = steam_link
+    db.commit()
+    db.refresh(game)
+    return game
+
+
 def delete_game(db: Session, game_id: int) -> None:
     db.query(Game).filter(Game.id == game_id).delete()
     db.commit()

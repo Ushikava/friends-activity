@@ -42,3 +42,10 @@ class GameDetail(BaseModel):
     steam_link: str | None
     created_at: datetime
     statuses: list[GameUserStatus]
+
+
+class GameUpdateOut(BaseModel):
+    id: int
+    title: str
+    poster: str | None
+    steam_link: str | None

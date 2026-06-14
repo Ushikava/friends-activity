@@ -52,6 +52,23 @@ export async function toggleUserWatched(
   return res.json() as Promise<MovieDetail>
 }
 
+export async function updateMovie(
+  id: number,
+  title: string,
+  posterFile: File | null,
+): Promise<{ id: number; title: string; poster: string | null }> {
+  const form = new FormData()
+  form.append('title', title)
+  if (posterFile) form.append('file', posterFile)
+  const res = await apiFetch(`${API}/movies/${id}`, {
+    method: 'PATCH',
+    headers: authHeaders(),
+    body: form,
+  })
+  if (!res.ok) throw new Error('Ошибка обновления')
+  return res.json()
+}
+
 export async function deleteMovie(id: number): Promise<void> {
   const res = await apiFetch(`${API}/movies/${id}`, {
     method: 'DELETE',

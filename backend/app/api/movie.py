@@ -8,7 +8,7 @@ from core.auth import get_user_from_token
 from db.session import SessionLocal
 from db import movie as movie_db
 from db import user as user_db
-from schemas.movie import MovieOut, MoviePage, MovieDetail, MovieWatchUpdate
+from schemas.movie import MovieOut, MoviePage, MovieDetail, MovieWatchUpdate, MovieUpdateOut
 from utils.image import compress_image
 from core.exceptions import ForbiddenError, NotFoundError, BadRequestError
 
@@ -97,6 +97,46 @@ def toggle_watched(
     if not detail:
         raise NotFoundError("Фильм")
     return detail
+
+
+@router.patch("/{movie_id}", response_model=MovieUpdateOut)
+def update_movie(
+    movie_id: int,
+    title: str = Form(...),
+    file: UploadFile | None = File(None),
+    user_id: int = Depends(get_user_from_token),
+    db: Session = Depends(get_db),
+):
+    user = user_db.get_user_by_id(db, user_id)
+    if not user or user.role == "observer":
+        raise ForbiddenError()
+
+    existing = movie_db.get_movie_by_id(db, movie_id)
+    if not existing:
+        raise NotFoundError("Фильм")
+
+    new_poster = existing.poster
+
+    if file and file.filename:
+        ext = os.path.splitext(file.filename)[1].lower()
+        if ext not in ALLOWED_EXTENSIONS:
+            raise BadRequestError("Недопустимый формат файла")
+        try:
+            data, ext = compress_image(file.file.read(), max_dimension=900)
+        except ValueError as e:
+            raise BadRequestError(str(e))
+        if existing.poster and not existing.poster.startswith("http"):
+            old_path = os.path.join("uploads", existing.poster)
+            if os.path.exists(old_path):
+                os.remove(old_path)
+        os.makedirs(POSTERS_DIR, exist_ok=True)
+        filename = f"{uuid.uuid4()}{ext}"
+        with open(os.path.join(POSTERS_DIR, filename), "wb") as f:
+            f.write(data)
+        new_poster = f"posters/{filename}"
+
+    updated = movie_db.update_movie(db, movie_id, title=title, poster=new_poster)
+    return updated
 
 
 @router.delete("/{movie_id}")

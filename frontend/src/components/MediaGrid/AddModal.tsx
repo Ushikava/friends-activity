@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import type { FormEvent, ClipboardEvent } from 'react'
 import { useLang } from '../../i18n/LangContext'
 
@@ -27,6 +27,12 @@ export default function AddModal({ title, onClose, onSubmit, extraFields = [] }:
 
   function close() { setClosing(true) }
 
+  useEffect(() => {
+    function onKey(e: KeyboardEvent) { if (e.key === 'Escape') close() }
+    document.addEventListener('keydown', onKey)
+    return () => document.removeEventListener('keydown', onKey)
+  }, [])
+
   function handleFile(file: File | null) {
     if (!file) return
     setImageSource(file)
@@ -34,13 +40,10 @@ export default function AddModal({ title, onClose, onSubmit, extraFields = [] }:
   }
 
   function handlePaste(e: ClipboardEvent) {
-    const items = e.clipboardData?.items
-    if (!items) return
-    for (const item of items) {
-      if (item.type.startsWith('image/')) {
-        handleFile(item.getAsFile())
-        break
-      }
+    const imageItem = Array.from(e.clipboardData?.items ?? []).find(i => i.type.startsWith('image/'))
+    if (imageItem) {
+      e.preventDefault()
+      handleFile(imageItem.getAsFile())
     }
   }
 
@@ -66,7 +69,7 @@ export default function AddModal({ title, onClose, onSubmit, extraFields = [] }:
       onClick={e => { if (e.target === e.currentTarget) close() }}
       onAnimationEnd={e => { if (e.animationName === 'modal-out') onClose() }}
     >
-      <div className="modal">
+      <div className="modal" onPaste={handlePaste} tabIndex={-1}>
         <button className="modal__close" onClick={close}>×</button>
         <h2 className="modal__title">{title}</h2>
 
@@ -80,9 +83,7 @@ export default function AddModal({ title, onClose, onSubmit, extraFields = [] }:
 
         <div
           className={`modal__upload-zone${preview ? ' modal__upload-zone--filled' : ''}`}
-          tabIndex={0}
           onClick={() => fileInputRef.current?.click()}
-          onPaste={handlePaste}
         >
           {preview
             ? <img src={preview} className="modal__upload-preview" alt="preview" />

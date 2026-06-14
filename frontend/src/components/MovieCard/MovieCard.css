@@ -141,9 +141,16 @@
   flex: 1;
 }
 
-.movie-detail__delete-btn {
+.movie-detail__header-btns {
   flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 2px;
   margin-top: 6px;
+}
+
+.movie-detail__edit-btn,
+.movie-detail__delete-btn {
   background: none;
   border: none;
   color: rgba(255, 255, 255, 0.4);
@@ -155,8 +162,72 @@
   transition: color 0.15s;
 }
 
+.movie-detail__edit-btn:hover {
+  color: #74b3ff;
+}
+
 .movie-detail__delete-btn:hover {
   color: #ff6b6b;
+}
+
+/* ══════════════════════════════════════════
+   Edit modal
+══════════════════════════════════════════ */
+
+.edit-modal__input {
+  width: 100%;
+  border: 1.5px solid #e0e0e0;
+  border-radius: 8px;
+  padding: 9px 11px;
+  font-size: 0.9rem;
+  outline: none;
+  font-family: inherit;
+  color: #333;
+  transition: border-color 0.15s;
+  box-sizing: border-box;
+}
+
+.edit-modal__input:focus {
+  border-color: var(--accent);
+}
+
+.edit-modal__poster {
+  width: 130px;
+  aspect-ratio: 2 / 3;
+  border-radius: 8px;
+  overflow: hidden;
+  background: #f0f0f0;
+  border: 2px dashed #ccc;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: border-color 0.15s;
+  flex-shrink: 0;
+}
+
+.edit-modal__poster:hover {
+  border-color: var(--accent);
+}
+
+.edit-modal__poster--filled {
+  border-style: solid;
+  border-color: #ddd;
+}
+
+.edit-modal__poster-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.edit-modal__poster-hint {
+  font-size: 0.72rem;
+  color: #aaa;
+  text-align: center;
+  padding: 8px;
+  line-height: 1.4;
 }
 
 .movie-detail__title {

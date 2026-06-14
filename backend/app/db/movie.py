@@ -127,6 +127,17 @@ def toggle_user_watched(
     return get_movie_detail(db, movie_id)
 
 
+def update_movie(db: Session, movie_id: int, title: str, poster: str | None) -> Movie | None:
+    movie = get_movie_by_id(db, movie_id)
+    if not movie:
+        return None
+    movie.title = title
+    movie.poster = poster
+    db.commit()
+    db.refresh(movie)
+    return movie
+
+
 def delete_movie(db: Session, movie_id: int) -> None:
     db.query(Movie).filter(Movie.id == movie_id).delete()
     db.commit()

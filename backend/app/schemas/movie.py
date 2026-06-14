@@ -40,3 +40,9 @@ class MovieDetail(BaseModel):
     poster: str | None
     created_at: datetime
     statuses: list[MovieUserStatus]
+
+
+class MovieUpdateOut(BaseModel):
+    id: int
+    title: str
+    poster: str | None

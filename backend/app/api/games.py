@@ -8,7 +8,7 @@ from core.auth import get_user_from_token
 from db.session import SessionLocal
 from db import games as game_db
 from db import user as user_db
-from schemas.games import GameOut, GamePage, GameDetail, GamePlayUpdate
+from schemas.games import GameOut, GamePage, GameDetail, GamePlayUpdate, GameUpdateOut
 from utils.image import compress_image
 from core.exceptions import ForbiddenError, NotFoundError, BadRequestError
 
@@ -96,6 +96,49 @@ def toggle_played(
     if not detail:
         raise NotFoundError("Игра")
     return detail
+
+
+@router.patch("/{game_id}", response_model=GameUpdateOut)
+def update_game(
+    game_id: int,
+    title: str = Form(...),
+    steam_link: str | None = Form(None),
+    file: UploadFile | None = File(None),
+    user_id: int = Depends(get_user_from_token),
+    db: Session = Depends(get_db),
+):
+    user = user_db.get_user_by_id(db, user_id)
+    if not user or user.role == "observer":
+        raise ForbiddenError()
+
+    existing = game_db.get_game_by_id(db, game_id)
+    if not existing:
+        raise NotFoundError("Игра")
+
+    new_poster = existing.poster
+
+    if file and file.filename:
+        ext = os.path.splitext(file.filename)[1].lower()
+        if ext not in ALLOWED_EXTENSIONS:
+            raise BadRequestError("Недопустимый формат файла")
+        try:
+            data, ext = compress_image(file.file.read(), max_dimension=900)
+        except ValueError as e:
+            raise BadRequestError(str(e))
+        if existing.poster and not existing.poster.startswith("http"):
+            old_path = os.path.join("uploads", existing.poster)
+            if os.path.exists(old_path):
+                os.remove(old_path)
+        os.makedirs(POSTERS_DIR, exist_ok=True)
+        filename = f"{uuid.uuid4()}{ext}"
+        with open(os.path.join(POSTERS_DIR, filename), "wb") as f:
+            f.write(data)
+        new_poster = f"games/{filename}"
+
+    new_steam = steam_link.strip() or None if steam_link is not None else existing.steam_link
+
+    updated = game_db.update_game(db, game_id, title=title, poster=new_poster, steam_link=new_steam)
+    return updated
 
 
 @router.delete("/{game_id}")

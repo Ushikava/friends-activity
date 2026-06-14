@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react'
-import { fetchMovieDetail, toggleUserWatched } from '../../api/movies'
+import { useState, useEffect, useRef } from 'react'
+import { fetchMovieDetail, toggleUserWatched, updateMovie } from '../../api/movies'
 import { getRole, getUsername } from '../../api/auth'
 import { useLang } from '../../i18n/LangContext'
 import type { Movie, MovieDetail, MovieUserStatus } from '../../types'
@@ -167,6 +167,106 @@ function DeleteConfirm({
   )
 }
 
+// ── Edit modal ────────────────────────────────────────────────────────────────
+
+function EditMovieModal({
+  movie,
+  onSave,
+  onCancel,
+  loading,
+}: {
+  movie: Movie
+  onSave: (title: string, file: File | null) => void
+  onCancel: () => void
+  loading: boolean
+}) {
+  const { t } = useLang()
+  const [title, setTitle] = useState(movie.title)
+  const [newFile, setNewFile] = useState<File | null>(null)
+  const [previewSrc, setPreviewSrc] = useState<string | null>(posterSrc(movie.poster))
+  const fileRef = useRef<HTMLInputElement>(null)
+
+  useEffect(() => {
+    function onKey(e: KeyboardEvent) { if (e.key === 'Escape') onCancel() }
+    document.addEventListener('keydown', onKey)
+    return () => document.removeEventListener('keydown', onKey)
+  }, [onCancel])
+
+  function handleFile(file: File | null) {
+    if (!file) return
+    setNewFile(file)
+    setPreviewSrc(URL.createObjectURL(file))
+  }
+
+  function handlePaste(e: React.ClipboardEvent) {
+    const imageItem = Array.from(e.clipboardData?.items ?? []).find(i => i.type.startsWith('image/'))
+    if (imageItem) {
+      e.preventDefault()
+      handleFile(imageItem.getAsFile())
+    }
+  }
+
+  return (
+    <div
+      className="review-backdrop"
+      onClick={e => { e.stopPropagation(); if (e.target === e.currentTarget) onCancel() }}
+    >
+      <div
+        className="review-modal"
+        onClick={e => e.stopPropagation()}
+        onPaste={handlePaste}
+        tabIndex={-1}
+      >
+        <h3 className="review-modal__title">{t('movies.editTitle') as string}</h3>
+
+        <div className="review-modal__section">
+          <span className="review-modal__label">{t('common.titlePlaceholder') as string}</span>
+          <input
+            className="edit-modal__input"
+            value={title}
+            onChange={e => setTitle(e.target.value)}
+            placeholder={t('common.titlePlaceholder') as string}
+            autoFocus
+          />
+        </div>
+
+        <div className="review-modal__section">
+          <span className="review-modal__label">{t('movies.editPoster') as string}</span>
+          <div
+            className={`edit-modal__poster${previewSrc ? ' edit-modal__poster--filled' : ''}`}
+            onClick={() => fileRef.current?.click()}
+          >
+            {previewSrc
+              ? <img src={previewSrc} alt="poster" className="edit-modal__poster-img" />
+              : <span className="edit-modal__poster-hint">{t('common.uploadHint') as string}</span>
+            }
+            <input
+              ref={fileRef}
+              type="file"
+              accept="image/*"
+              style={{ display: 'none' }}
+              onChange={e => handleFile(e.target.files?.[0] ?? null)}
+            />
+          </div>
+        </div>
+
+        <div className="review-modal__actions">
+          <button className="review-modal__cancel" onClick={onCancel} disabled={loading}>
+            {t('confirm.cancel') as string}
+          </button>
+          <button
+            className="review-modal__submit"
+            onClick={() => onSave(title.trim(), newFile)}
+            disabled={loading || !title.trim()}
+          >
+            {loading ? '...' : t('common.save') as string}
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 // ── User watch card ───────────────────────────────────────────────────────────
 
 function UserWatchCard({
@@ -221,6 +321,8 @@ export default function MovieCard({ movie, canEdit, onDelete, onWatchUpdated }: 
   const [toggling, setToggling] = useState(false)
   const [reviewOpen, setReviewOpen] = useState(false)
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false)
+  const [editOpen, setEditOpen] = useState(false)
+  const [editSaving, setEditSaving] = useState(false)
   const src = posterSrc(movie.poster)
   const isObserver = getRole() === 'observer'
   const currentUsername = getUsername()
@@ -240,6 +342,7 @@ export default function MovieCard({ movie, canEdit, onDelete, onWatchUpdated }: 
     setDetailClosing(true)
     setReviewOpen(false)
     setDeleteConfirmOpen(false)
+    setEditOpen(false)
   }
 
   function handleAnimationEnd(e: React.AnimationEvent) {
@@ -250,13 +353,13 @@ export default function MovieCard({ movie, canEdit, onDelete, onWatchUpdated }: 
   }
 
   useEffect(() => {
-    if (!detailOpen || reviewOpen || deleteConfirmOpen) return
+    if (!detailOpen || reviewOpen || deleteConfirmOpen || editOpen) return
     function onKey(e: KeyboardEvent) {
       if (e.key === 'Escape') closeDetail()
     }
     document.addEventListener('keydown', onKey)
     return () => document.removeEventListener('keydown', onKey)
-  }, [detailOpen, reviewOpen, deleteConfirmOpen])
+  }, [detailOpen, reviewOpen, deleteConfirmOpen, editOpen])
 
   function applyToggleResult(d: MovieDetail) {
     setDetail(d)
@@ -282,6 +385,18 @@ export default function MovieCard({ movie, canEdit, onDelete, onWatchUpdated }: 
       .then(d => { applyToggleResult(d); setReviewOpen(false) })
       .catch(console.error)
       .finally(() => setToggling(false))
+  }
+
+  function handleSaveEdit(title: string, file: File | null) {
+    if (editSaving) return
+    setEditSaving(true)
+    updateMovie(movie.id, title, file)
+      .then(result => {
+        onWatchUpdated({ ...movie, title: result.title, poster: result.poster })
+        setEditOpen(false)
+      })
+      .catch(console.error)
+      .finally(() => setEditSaving(false))
   }
 
   function handleDeleteConfirmed() {
@@ -351,18 +466,30 @@ export default function MovieCard({ movie, canEdit, onDelete, onWatchUpdated }: 
                 <div className="movie-detail__header-row">
                   <h2 className="movie-detail__title">{movie.title}</h2>
                   {canEdit && (
-                    <button
-                      className="movie-detail__delete-btn"
-                      onClick={e => { e.stopPropagation(); setDeleteConfirmOpen(true) }}
-                      title={t('common.delete')}
-                    >
-                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                        <polyline points="3 6 5 6 21 6" />
-                        <path d="M19 6l-1 14H6L5 6" />
-                        <path d="M10 11v6M14 11v6" />
-                        <path d="M9 6V4h6v2" />
-                      </svg>
-                    </button>
+                    <div className="movie-detail__header-btns">
+                      <button
+                        className="movie-detail__edit-btn"
+                        onClick={e => { e.stopPropagation(); setEditOpen(true) }}
+                        title={t('common.edit') as string}
+                      >
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+                          <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+                        </svg>
+                      </button>
+                      <button
+                        className="movie-detail__delete-btn"
+                        onClick={e => { e.stopPropagation(); setDeleteConfirmOpen(true) }}
+                        title={t('common.delete') as string}
+                      >
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <polyline points="3 6 5 6 21 6" />
+                          <path d="M19 6l-1 14H6L5 6" />
+                          <path d="M10 11v6M14 11v6" />
+                          <path d="M9 6V4h6v2" />
+                        </svg>
+                      </button>
+                    </div>
                   )}
                 </div>
                 <span className="movie-detail__subtitle">
@@ -426,6 +553,15 @@ export default function MovieCard({ movie, canEdit, onDelete, onWatchUpdated }: 
               movieTitle={movie.title}
               onConfirm={handleDeleteConfirmed}
               onCancel={() => setDeleteConfirmOpen(false)}
+            />
+          )}
+
+          {editOpen && (
+            <EditMovieModal
+              movie={movie}
+              onSave={handleSaveEdit}
+              onCancel={() => setEditOpen(false)}
+              loading={editSaving}
             />
           )}
         </div>

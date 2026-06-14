@@ -165,6 +165,7 @@
   background: rgba(255, 255, 255, 0.1);
 }
 
+.gd-modal__edit-btn,
 .gd-modal__delete-btn {
   display: flex;
   align-items: center;
@@ -176,6 +177,11 @@
   color: rgba(255, 255, 255, 0.4);
   cursor: pointer;
   transition: color 0.15s, background 0.15s;
+}
+
+.gd-modal__edit-btn:hover {
+  color: #74b3ff;
+  background: rgba(116, 179, 255, 0.1);
 }
 
 .gd-modal__delete-btn:hover {

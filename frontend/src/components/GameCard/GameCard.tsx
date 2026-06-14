@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react'
-import { fetchGameDetail, toggleUserPlayed } from '../../api/games'
+import { useState, useEffect, useRef } from 'react'
+import { fetchGameDetail, toggleUserPlayed, updateGame } from '../../api/games'
 import { getRole, getUsername } from '../../api/auth'
 import { useLang } from '../../i18n/LangContext'
 import type { Game, GameDetail, GameUserStatus } from '../../types'
@@ -162,6 +162,117 @@ function DeleteConfirm({
   )
 }
 
+// ── Edit modal ────────────────────────────────────────────────────────────────
+
+function EditGameModal({
+  game,
+  onSave,
+  onCancel,
+  loading,
+}: {
+  game: Game
+  onSave: (title: string, file: File | null, steamLink: string) => void
+  onCancel: () => void
+  loading: boolean
+}) {
+  const { t } = useLang()
+  const [title, setTitle] = useState(game.title)
+  const [steamLink, setSteamLink] = useState(game.steam_link ?? '')
+  const [newFile, setNewFile] = useState<File | null>(null)
+  const [previewSrc, setPreviewSrc] = useState<string | null>(posterSrc(game.poster))
+  const fileRef = useRef<HTMLInputElement>(null)
+
+  useEffect(() => {
+    function onKey(e: KeyboardEvent) { if (e.key === 'Escape') onCancel() }
+    document.addEventListener('keydown', onKey)
+    return () => document.removeEventListener('keydown', onKey)
+  }, [onCancel])
+
+  function handleFile(file: File | null) {
+    if (!file) return
+    setNewFile(file)
+    setPreviewSrc(URL.createObjectURL(file))
+  }
+
+  function handlePaste(e: React.ClipboardEvent) {
+    const imageItem = Array.from(e.clipboardData?.items ?? []).find(i => i.type.startsWith('image/'))
+    if (imageItem) {
+      e.preventDefault()
+      handleFile(imageItem.getAsFile())
+    }
+  }
+
+  return (
+    <div
+      className="review-backdrop"
+      onClick={e => { e.stopPropagation(); if (e.target === e.currentTarget) onCancel() }}
+    >
+      <div
+        className="review-modal"
+        onClick={e => e.stopPropagation()}
+        onPaste={handlePaste}
+        tabIndex={-1}
+      >
+        <h3 className="review-modal__title">{t('games.editTitle') as string}</h3>
+
+        <div className="review-modal__section">
+          <span className="review-modal__label">{t('common.titlePlaceholder') as string}</span>
+          <input
+            className="edit-modal__input"
+            value={title}
+            onChange={e => setTitle(e.target.value)}
+            placeholder={t('common.titlePlaceholder') as string}
+            autoFocus
+          />
+        </div>
+
+        <div className="review-modal__section">
+          <span className="review-modal__label">{t('games.editPoster') as string}</span>
+          <div
+            className={`edit-modal__poster${previewSrc ? ' edit-modal__poster--filled' : ''}`}
+            onClick={() => fileRef.current?.click()}
+          >
+            {previewSrc
+              ? <img src={previewSrc} alt="poster" className="edit-modal__poster-img" />
+              : <span className="edit-modal__poster-hint">{t('common.uploadHint') as string}</span>
+            }
+            <input
+              ref={fileRef}
+              type="file"
+              accept="image/*"
+              style={{ display: 'none' }}
+              onChange={e => handleFile(e.target.files?.[0] ?? null)}
+            />
+          </div>
+        </div>
+
+        <div className="review-modal__section">
+          <span className="review-modal__label">{t('games.steamLink') as string}</span>
+          <input
+            className="edit-modal__input"
+            value={steamLink}
+            onChange={e => setSteamLink(e.target.value)}
+            placeholder="https://store.steampowered.com/..."
+          />
+        </div>
+
+        <div className="review-modal__actions">
+          <button className="review-modal__cancel" onClick={onCancel} disabled={loading}>
+            {t('confirm.cancel') as string}
+          </button>
+          <button
+            className="review-modal__submit"
+            onClick={() => onSave(title.trim(), newFile, steamLink)}
+            disabled={loading || !title.trim()}
+          >
+            {loading ? '...' : t('common.save') as string}
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 // ── User play card ────────────────────────────────────────────────────────────
 
 function UserPlayCard({
@@ -214,6 +325,8 @@ export default function GameCard({ game, canEdit, onDelete, onPlayUpdated }: Pro
   const [toggling, setToggling] = useState(false)
   const [reviewOpen, setReviewOpen] = useState(false)
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false)
+  const [editOpen, setEditOpen] = useState(false)
+  const [editSaving, setEditSaving] = useState(false)
   const src = posterSrc(game.poster)
   const isObserver = getRole() === 'observer'
   const currentUsername = getUsername()
@@ -233,6 +346,7 @@ export default function GameCard({ game, canEdit, onDelete, onPlayUpdated }: Pro
     setDetailClosing(true)
     setReviewOpen(false)
     setDeleteConfirmOpen(false)
+    setEditOpen(false)
   }
 
   function handleAnimationEnd(e: React.AnimationEvent) {
@@ -243,11 +357,11 @@ export default function GameCard({ game, canEdit, onDelete, onPlayUpdated }: Pro
   }
 
   useEffect(() => {
-    if (!detailOpen || reviewOpen || deleteConfirmOpen) return
+    if (!detailOpen || reviewOpen || deleteConfirmOpen || editOpen) return
     function onKey(e: KeyboardEvent) { if (e.key === 'Escape') closeDetail() }
     document.addEventListener('keydown', onKey)
     return () => document.removeEventListener('keydown', onKey)
-  }, [detailOpen, reviewOpen, deleteConfirmOpen])
+  }, [detailOpen, reviewOpen, deleteConfirmOpen, editOpen])
 
   function applyToggleResult(d: GameDetail) {
     setDetail(d)
@@ -273,6 +387,18 @@ export default function GameCard({ game, canEdit, onDelete, onPlayUpdated }: Pro
       .then(d => { applyToggleResult(d); setReviewOpen(false) })
       .catch(console.error)
       .finally(() => setToggling(false))
+  }
+
+  function handleSaveEdit(title: string, file: File | null, steamLink: string) {
+    if (editSaving) return
+    setEditSaving(true)
+    updateGame(game.id, title, file, steamLink)
+      .then(result => {
+        onPlayUpdated({ ...game, title: result.title, poster: result.poster, steam_link: result.steam_link })
+        setEditOpen(false)
+      })
+      .catch(console.error)
+      .finally(() => setEditSaving(false))
   }
 
   const playedStatuses = detail?.statuses.filter(s => s.is_played) ?? []
@@ -354,18 +480,30 @@ export default function GameCard({ game, canEdit, onDelete, onPlayUpdated }: Pro
                       </a>
                     )}
                     {canEdit && (
-                      <button
-                        className="gd-modal__delete-btn"
-                        onClick={e => { e.stopPropagation(); setDeleteConfirmOpen(true) }}
-                        title={t('common.delete')}
-                      >
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                          <polyline points="3 6 5 6 21 6" />
-                          <path d="M19 6l-1 14H6L5 6" />
-                          <path d="M10 11v6M14 11v6" />
-                          <path d="M9 6V4h6v2" />
-                        </svg>
-                      </button>
+                      <>
+                        <button
+                          className="gd-modal__edit-btn"
+                          onClick={e => { e.stopPropagation(); setEditOpen(true) }}
+                          title={t('common.edit') as string}
+                        >
+                          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+                            <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+                          </svg>
+                        </button>
+                        <button
+                          className="gd-modal__delete-btn"
+                          onClick={e => { e.stopPropagation(); setDeleteConfirmOpen(true) }}
+                          title={t('common.delete') as string}
+                        >
+                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <polyline points="3 6 5 6 21 6" />
+                            <path d="M19 6l-1 14H6L5 6" />
+                            <path d="M10 11v6M14 11v6" />
+                            <path d="M9 6V4h6v2" />
+                          </svg>
+                        </button>
+                      </>
                     )}
                   </div>
                 </div>
@@ -430,6 +568,15 @@ export default function GameCard({ game, canEdit, onDelete, onPlayUpdated }: Pro
               gameTitle={game.title}
               onConfirm={() => { setDetailOpen(false); onDelete(game.id) }}
               onCancel={() => setDeleteConfirmOpen(false)}
+            />
+          )}
+
+          {editOpen && (
+            <EditGameModal
+              game={game}
+              onSave={handleSaveEdit}
+              onCancel={() => setEditOpen(false)}
+              loading={editSaving}
             />
           )}
         </div>
