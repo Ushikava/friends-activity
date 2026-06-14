@@ -23,15 +23,18 @@ A personal website for a small group of people — photo gallery, favorite place
 ## Stack
 
 **Backend:** Python · FastAPI · SQLAlchemy · Alembic · PostgreSQL · JWT  
-**Frontend:** React 19 · Vite · React Router
+**Frontend:** React 19 · TypeScript · Vite · React Router
 
 ## Features
 
 - Photo gallery and IRL places with lightbox viewer
-- Movies & games tracker with watched/played status
+- Movies & games tracker with watched/played status per user
 - Activity heatmap
 - Mini-statistics dashboard
+- AI chat assistant
 - Simple role-based access without registration
+- User management — add, delete users, delete own account
+- Dark / light theme toggle
 - Pagination on all listing pages
 - Russian / English interface
 
