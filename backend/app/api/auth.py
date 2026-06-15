@@ -27,7 +27,7 @@ def list_users():
 
 
 @router.post("/users", response_model=UserOut)
-def create_user(body: CreateUserRequest, _: int = Depends(get_user_from_token)):
+def create_user(body: CreateUserRequest, _: int = Depends(require_not_observer)):
     db = SessionLocal()
     try:
         if user_db.get_user_by_username(db, body.username):
@@ -108,7 +108,7 @@ def logout(request: Request, response: Response):
 
 
 @router.delete("/users/{username}")
-def delete_user(username: str, body: DeleteUserRequest, user_id: int = Depends(get_user_from_token)):
+def delete_user(username: str, body: DeleteUserRequest, user_id: int = Depends(require_not_observer)):
     db = SessionLocal()
     try:
         target = user_db.get_user_by_username(db, username)

@@ -36,7 +36,10 @@ def get_user_from_token(request: Request) -> int:
     if not token:
         raise UnauthorizedError("Не авторизован")
     payload = _decode_token(token)
-    return int(payload.get("sub"))
+    sub = payload.get("sub")
+    if not sub:
+        raise UnauthorizedError("Недействительный токен")
+    return int(sub)
 
 
 def require_not_observer(request: Request) -> int:
@@ -47,7 +50,10 @@ def require_not_observer(request: Request) -> int:
     payload = _decode_token(token)
     if payload.get("role") == "observer":
         raise ForbiddenError("Доступ запрещён")
-    return int(payload.get("sub"))
+    sub = payload.get("sub")
+    if not sub:
+        raise UnauthorizedError("Недействительный токен")
+    return int(sub)
 
 
 def get_optional_user(request: Request) -> Optional[int]:
