@@ -1,18 +1,14 @@
 import datetime
 import secrets
-from typing import Dict, Optional, Tuple
+from typing import Optional, Tuple
 
 import jwt
-from fastapi import Depends
-from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+from fastapi import Request
 
 from core.settings import SECRET_KEY, ALGORITHM, ACCESS_TOKEN_EXPIRE_MINUTES
 from core.exceptions import UnauthorizedError
 
 REFRESH_TOKEN_EXPIRE_DAYS = 30
-
-oauth2_scheme = HTTPBearer()
-oauth2_scheme_optional = HTTPBearer(auto_error=False)
 
 
 def create_access_token(user_id: int, username: str, role: str = "user") -> str:
@@ -26,33 +22,40 @@ def create_refresh_token() -> Tuple[str, datetime.datetime]:
     return token, expires_at
 
 
-def _decode_token(credentials: HTTPAuthorizationCredentials) -> dict:
+def _decode_token(token: str) -> dict:
     try:
-        return jwt.decode(credentials.credentials, SECRET_KEY, algorithms=[ALGORITHM])
+        return jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
     except jwt.ExpiredSignatureError:
         raise UnauthorizedError("Токен истёк")
     except (jwt.InvalidTokenError, ValueError, TypeError):
         raise UnauthorizedError("Недействительный токен")
 
 
-def get_user_from_token(credentials: HTTPAuthorizationCredentials = Depends(oauth2_scheme)) -> int:
-    payload = _decode_token(credentials)
+def get_user_from_token(request: Request) -> int:
+    token = request.cookies.get("access_token")
+    if not token:
+        raise UnauthorizedError("Не авторизован")
+    payload = _decode_token(token)
     return int(payload.get("sub"))
 
 
-def require_not_observer(credentials: HTTPAuthorizationCredentials = Depends(oauth2_scheme)) -> int:
+def require_not_observer(request: Request) -> int:
     from core.exceptions import ForbiddenError
-    payload = _decode_token(credentials)
+    token = request.cookies.get("access_token")
+    if not token:
+        raise UnauthorizedError("Не авторизован")
+    payload = _decode_token(token)
     if payload.get("role") == "observer":
         raise ForbiddenError("Доступ запрещён")
     return int(payload.get("sub"))
 
 
-def get_optional_user(credentials: Optional[HTTPAuthorizationCredentials] = Depends(oauth2_scheme_optional)) -> Optional[int]:
-    if not credentials:
+def get_optional_user(request: Request) -> Optional[int]:
+    token = request.cookies.get("access_token")
+    if not token:
         return None
     try:
-        payload = jwt.decode(credentials.credentials, SECRET_KEY, algorithms=[ALGORITHM])
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         return int(payload.get("sub"))
     except Exception:
         return None

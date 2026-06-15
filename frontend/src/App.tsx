@@ -1,6 +1,6 @@
 import { Routes, Route, Navigate } from 'react-router-dom'
 import type { ReactNode } from 'react'
-import { getToken } from './api/auth'
+import { getUsername } from './api/auth'
 import Login from './pages/Login/Login'
 import Home from './pages/Home/Home'
 import Gallery from './pages/Gallery/Gallery'
@@ -11,7 +11,7 @@ import Profile from './pages/Profile/Profile'
 import Chat from './pages/Chat/Chat'
 
 function PrivateRoute({ children }: { children: ReactNode }) {
-  return getToken() ? children : <Navigate to="/login" replace />
+  return getUsername() ? children : <Navigate to="/login" replace />
 }
 
 export default function App() {

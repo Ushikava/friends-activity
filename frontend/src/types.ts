@@ -1,8 +1,6 @@
 // ── Auth ──────────────────────────────────────────────────────────────────────
 
 export interface SessionData {
-  access_token: string
-  refresh_token: string
   username: string
   role: string
 }

@@ -1,14 +1,10 @@
-import { apiFetch, getToken } from './auth'
+import { apiFetch } from './auth'
 import type { ChatRoom, ChatMessage } from '../types'
 
 const API = import.meta.env.VITE_API_URL
 
-function authHeaders(): Record<string, string> {
-  return { Authorization: `Bearer ${getToken()}` }
-}
-
 export async function fetchRooms(): Promise<ChatRoom[]> {
-  const res = await apiFetch(`${API}/chat/rooms`, { headers: authHeaders() })
+  const res = await apiFetch(`${API}/chat/rooms`)
   if (!res.ok) throw new Error('Ошибка загрузки комнат')
   return res.json() as Promise<ChatRoom[]>
 }
@@ -16,7 +12,7 @@ export async function fetchRooms(): Promise<ChatRoom[]> {
 export async function createRoom(name = 'Новый чат'): Promise<ChatRoom> {
   const res = await apiFetch(`${API}/chat/rooms`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json', ...authHeaders() },
+    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ name }),
   })
   if (!res.ok) throw new Error('Ошибка создания комнаты')
@@ -26,7 +22,7 @@ export async function createRoom(name = 'Новый чат'): Promise<ChatRoom> 
 export async function renameRoom(roomId: number, name: string): Promise<ChatRoom> {
   const res = await apiFetch(`${API}/chat/rooms/${roomId}`, {
     method: 'PATCH',
-    headers: { 'Content-Type': 'application/json', ...authHeaders() },
+    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ name }),
   })
   if (!res.ok) throw new Error('Ошибка переименования')
@@ -34,24 +30,18 @@ export async function renameRoom(roomId: number, name: string): Promise<ChatRoom
 }
 
 export async function deleteRoom(roomId: number): Promise<void> {
-  const res = await apiFetch(`${API}/chat/rooms/${roomId}`, {
-    method: 'DELETE',
-    headers: authHeaders(),
-  })
+  const res = await apiFetch(`${API}/chat/rooms/${roomId}`, { method: 'DELETE' })
   if (!res.ok) throw new Error('Ошибка удаления комнаты')
 }
 
 export async function fetchHistory(roomId: number): Promise<ChatMessage[]> {
-  const res = await apiFetch(`${API}/chat/rooms/${roomId}/history`, { headers: authHeaders() })
+  const res = await apiFetch(`${API}/chat/rooms/${roomId}/history`)
   if (!res.ok) throw new Error('Ошибка загрузки истории')
   return res.json() as Promise<ChatMessage[]>
 }
 
 export async function clearHistory(roomId: number): Promise<void> {
-  const res = await apiFetch(`${API}/chat/rooms/${roomId}/history`, {
-    method: 'DELETE',
-    headers: authHeaders(),
-  })
+  const res = await apiFetch(`${API}/chat/rooms/${roomId}/history`, { method: 'DELETE' })
   if (!res.ok) throw new Error('Ошибка очистки истории')
 }
 
@@ -66,8 +56,9 @@ export async function sendMessage(
   try {
     response = await fetch(`${API}/chat/rooms/${roomId}/send`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', ...authHeaders() },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ message }),
+      credentials: 'include',
     })
   } catch {
     onError()

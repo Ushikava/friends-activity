@@ -3,13 +3,9 @@ import type { Game, GameDetail, PaginatedResponse } from '../types'
 
 const API = import.meta.env.VITE_API_URL
 
-function authHeaders(): Record<string, string> {
-  return { Authorization: `Bearer ${localStorage.getItem('access_token')}` }
-}
-
 export async function fetchGames(page = 1, limit = 20): Promise<PaginatedResponse<Game>> {
   const skip = (page - 1) * limit
-  const res = await apiFetch(`${API}/games/?skip=${skip}&limit=${limit}`, { headers: authHeaders() })
+  const res = await apiFetch(`${API}/games/?skip=${skip}&limit=${limit}`)
   if (!res.ok) throw new Error('Ошибка загрузки')
   return res.json() as Promise<PaginatedResponse<Game>>
 }
@@ -26,17 +22,13 @@ export async function addGame(
   if (posterUrl && !posterFile) form.append('poster_url', posterUrl)
   if (steamLink) form.append('steam_link', steamLink)
 
-  const res = await apiFetch(`${API}/games/`, {
-    method: 'POST',
-    headers: authHeaders(),
-    body: form,
-  })
+  const res = await apiFetch(`${API}/games/`, { method: 'POST', body: form })
   if (!res.ok) throw new Error('Ошибка добавления')
   return res.json() as Promise<Game>
 }
 
 export async function fetchGameDetail(id: number): Promise<GameDetail> {
-  const res = await apiFetch(`${API}/games/${id}/detail`, { headers: authHeaders() })
+  const res = await apiFetch(`${API}/games/${id}/detail`)
   if (!res.ok) throw new Error('Ошибка загрузки')
   return res.json() as Promise<GameDetail>
 }
@@ -47,7 +39,7 @@ export async function toggleUserPlayed(
 ): Promise<GameDetail> {
   const res = await apiFetch(`${API}/games/${id}/played`, {
     method: 'PATCH',
-    headers: { ...authHeaders(), 'Content-Type': 'application/json' },
+    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(body ?? {}),
   })
   if (!res.ok) throw new Error('Ошибка')
@@ -64,19 +56,12 @@ export async function updateGame(
   form.append('title', title)
   if (posterFile) form.append('file', posterFile)
   form.append('steam_link', steamLink)
-  const res = await apiFetch(`${API}/games/${id}`, {
-    method: 'PATCH',
-    headers: authHeaders(),
-    body: form,
-  })
+  const res = await apiFetch(`${API}/games/${id}`, { method: 'PATCH', body: form })
   if (!res.ok) throw new Error('Ошибка обновления')
   return res.json()
 }
 
 export async function deleteGame(id: number): Promise<void> {
-  const res = await apiFetch(`${API}/games/${id}`, {
-    method: 'DELETE',
-    headers: authHeaders(),
-  })
+  const res = await apiFetch(`${API}/games/${id}`, { method: 'DELETE' })
   if (!res.ok) throw new Error('Ошибка удаления')
 }

@@ -3,13 +3,9 @@ import type { Movie, MovieDetail, PaginatedResponse } from '../types'
 
 const API = import.meta.env.VITE_API_URL
 
-function authHeaders(): Record<string, string> {
-  return { Authorization: `Bearer ${localStorage.getItem('access_token')}` }
-}
-
 export async function fetchMovies(page = 1, limit = 20): Promise<PaginatedResponse<Movie>> {
   const skip = (page - 1) * limit
-  const res = await apiFetch(`${API}/movies/?skip=${skip}&limit=${limit}`, { headers: authHeaders() })
+  const res = await apiFetch(`${API}/movies/?skip=${skip}&limit=${limit}`)
   if (!res.ok) throw new Error('Ошибка загрузки')
   return res.json() as Promise<PaginatedResponse<Movie>>
 }
@@ -24,17 +20,13 @@ export async function addMovie(
   if (posterFile) form.append('file', posterFile)
   if (posterUrl && !posterFile) form.append('poster_url', posterUrl)
 
-  const res = await apiFetch(`${API}/movies/`, {
-    method: 'POST',
-    headers: authHeaders(),
-    body: form,
-  })
+  const res = await apiFetch(`${API}/movies/`, { method: 'POST', body: form })
   if (!res.ok) throw new Error('Ошибка добавления')
   return res.json() as Promise<Movie>
 }
 
 export async function fetchMovieDetail(id: number): Promise<MovieDetail> {
-  const res = await apiFetch(`${API}/movies/${id}/detail`, { headers: authHeaders() })
+  const res = await apiFetch(`${API}/movies/${id}/detail`)
   if (!res.ok) throw new Error('Ошибка загрузки')
   return res.json() as Promise<MovieDetail>
 }
@@ -45,7 +37,7 @@ export async function toggleUserWatched(
 ): Promise<MovieDetail> {
   const res = await apiFetch(`${API}/movies/${id}/watched`, {
     method: 'PATCH',
-    headers: { ...authHeaders(), 'Content-Type': 'application/json' },
+    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(body ?? {}),
   })
   if (!res.ok) throw new Error('Ошибка')
@@ -60,19 +52,12 @@ export async function updateMovie(
   const form = new FormData()
   form.append('title', title)
   if (posterFile) form.append('file', posterFile)
-  const res = await apiFetch(`${API}/movies/${id}`, {
-    method: 'PATCH',
-    headers: authHeaders(),
-    body: form,
-  })
+  const res = await apiFetch(`${API}/movies/${id}`, { method: 'PATCH', body: form })
   if (!res.ok) throw new Error('Ошибка обновления')
   return res.json()
 }
 
 export async function deleteMovie(id: number): Promise<void> {
-  const res = await apiFetch(`${API}/movies/${id}`, {
-    method: 'DELETE',
-    headers: authHeaders(),
-  })
+  const res = await apiFetch(`${API}/movies/${id}`, { method: 'DELETE' })
   if (!res.ok) throw new Error('Ошибка удаления')
 }

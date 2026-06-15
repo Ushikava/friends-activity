@@ -18,6 +18,11 @@ class TokenResponse(BaseModel):
     role: str
 
 
+class AuthResponse(BaseModel):
+    username: str
+    role: str
+
+
 class UserOut(BaseModel):
     id: int
     username: str
