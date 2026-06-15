@@ -109,6 +109,8 @@ def delete_user(username: str, body: DeleteUserRequest, user_id: int = Depends(g
         target = user_db.get_user_by_username(db, username)
         if not target:
             raise BadRequestError("Пользователь не найден")
+        if target.role == "observer":
+            raise BadRequestError("Нельзя удалить аккаунт наблюдателя")
         if not pwd_context.verify(body.password, target.hashed_password):
             raise UnauthorizedError("Неверный пароль")
         user_db.delete_user(db, target.id)
