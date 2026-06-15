@@ -9,11 +9,12 @@ import { fetchPhotos, photoSrc } from '../../api/photos'
 import { fetchPlaces, placeSrc } from '../../api/places'
 import { fetchMovies } from '../../api/movies'
 import { fetchGames } from '../../api/games'
-import { fetchActivity, fetchStats } from '../../api/activity'
+import { fetchActivity, fetchStats, fetchFeed } from '../../api/activity'
 import { useLang } from '../../i18n/LangContext'
 import { containerVariants, statVariants, sectionVariants } from '../../utils/animations'
 import ActivityGrid from '../../components/ActivityGrid/ActivityGrid'
-import type { Photo, Place, Movie, Game, Stats, ActivityData } from '../../types'
+import ActivityFeed from '../../components/ActivityFeed/ActivityFeed'
+import type { Photo, Place, Movie, Game, Stats, ActivityData, FeedEvent } from '../../types'
 import '../page.css'
 import '../../components/MediaGrid/mediaGrid.css'
 import './Home.css'
@@ -93,6 +94,7 @@ export default function Home() {
   const [games, setGames] = useState<Game[]>([])
   const [stats, setStats] = useState<Stats | null>(null)
   const [activity, setActivity] = useState<ActivityData>({})
+  const [feed, setFeed] = useState<FeedEvent[]>([])
   const [loading, setLoading] = useState(true)
   const [lightbox, setLightbox] = useState<{ src: string; description?: string; createdAt: string } | null>(null)
   const navigate = useNavigate()
@@ -105,6 +107,7 @@ export default function Home() {
       fetchMovies(1, MEDIA_LIMIT).then(d => setMovies(d.items)),
       fetchGames(1, MEDIA_LIMIT).then(d => setGames(d.items)),
       fetchActivity().then(setActivity),
+      fetchFeed().then(setFeed).catch(() => {}),
     ]).finally(() => setLoading(false))
   }, [])
 
@@ -279,6 +282,19 @@ export default function Home() {
                 </div>
               </section>
             )}
+          </motion.div>
+        )}
+
+        {!loading && (
+          <motion.div
+            className="home-row"
+            initial={{ opacity: 0, y: 24 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.48, ease: [0.25, 0.46, 0.45, 0.94], delay: 0.45 }}
+          >
+            <div className="home-col home-col--full">
+              <ActivityFeed events={feed} />
+            </div>
           </motion.div>
         )}
 

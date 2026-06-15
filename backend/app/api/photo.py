@@ -8,6 +8,7 @@ from core.auth import get_user_from_token, get_optional_user
 from db.session import SessionLocal
 from db import photo as photo_db
 from db import user as user_db
+from db.activity_log import log_activity
 from schemas.photo import PhotoOut, PhotoPage
 from utils.image import compress_image
 from core.exceptions import ForbiddenError, NotFoundError, BadRequestError
@@ -62,7 +63,9 @@ def upload_photo(
     with open(filepath, "wb") as f:
         f.write(data)
 
-    return photo_db.create_photo(db, filename=filename, description=description, user_id=user_id)
+    photo = photo_db.create_photo(db, filename=filename, description=description, user_id=user_id)
+    log_activity(db, user_id=user_id, username=user.username, action="photo_upload", entity_title=description)
+    return photo
 
 
 @router.delete("/{photo_id}")
@@ -85,5 +88,6 @@ def delete_photo(
     if os.path.exists(filepath):
         os.remove(filepath)
 
+    log_activity(db, user_id=user_id, username=user.username, action="photo_delete", entity_title=photo.description)
     photo_db.delete_photo(db, photo_id)
     return {"status": "ok"}

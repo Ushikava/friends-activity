@@ -8,6 +8,7 @@ from core.auth import get_user_from_token
 from db.session import SessionLocal
 from db import place as place_db
 from db import user as user_db
+from db.activity_log import log_activity
 from schemas.place import PlaceOut, PlacePage
 from utils.image import compress_image
 from core.exceptions import ForbiddenError, NotFoundError, BadRequestError
@@ -60,7 +61,9 @@ def upload_place(
     with open(os.path.join(UPLOADS_DIR, filename), "wb") as f:
         f.write(data)
 
-    return place_db.create_place(db, filename=filename, description=description, user_id=user_id)
+    place = place_db.create_place(db, filename=filename, description=description, user_id=user_id)
+    log_activity(db, user_id=user_id, username=user.username, action="place_upload", entity_title=description)
+    return place
 
 
 @router.delete("/{place_id}")
@@ -83,5 +86,6 @@ def delete_place(
     if os.path.exists(filepath):
         os.remove(filepath)
 
+    log_activity(db, user_id=user_id, username=user.username, action="place_delete", entity_title=place.description)
     place_db.delete_place(db, place_id)
     return {"status": "ok"}

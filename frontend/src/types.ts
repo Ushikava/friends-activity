@@ -99,6 +99,14 @@ export interface Stats {
 
 export type ActivityData = Record<string, number>
 
+export interface FeedEvent {
+  id: number
+  username: string | null
+  action: string
+  entity_title: string | null
+  created_at: string
+}
+
 // ── Chat ──────────────────────────────────────────────────────────────────────
 
 export interface ChatRoom {

@@ -8,6 +8,7 @@ from core.auth import get_user_from_token
 from db.session import SessionLocal
 from db import movie as movie_db
 from db import user as user_db
+from db.activity_log import log_activity
 from schemas.movie import MovieOut, MoviePage, MovieDetail, MovieWatchUpdate, MovieUpdateOut
 from utils.image import compress_image
 from core.exceptions import ForbiddenError, NotFoundError, BadRequestError
@@ -66,7 +67,9 @@ def add_movie(
     elif poster_url:
         poster = poster_url
 
-    return movie_db.create_movie(db, title=title, poster=poster, user_id=user_id)
+    movie = movie_db.create_movie(db, title=title, poster=poster, user_id=user_id)
+    log_activity(db, user_id=user_id, username=user.username, action="movie_add", entity_title=title)
+    return movie
 
 
 @router.get("/{movie_id}/detail", response_model=MovieDetail)
@@ -96,6 +99,11 @@ def toggle_watched(
     )
     if not detail:
         raise NotFoundError("Фильм")
+    user_status = next((s for s in detail['statuses'] if s['user_id'] == user_id), None)
+    if user_status and user_status['is_watched']:
+        has_review = bool(user_status.get('review')) or user_status.get('rating') is not None
+        action = "movie_reviewed" if has_review else "movie_watched"
+        log_activity(db, user_id=user_id, username=user.username, action=action, entity_title=detail['title'])
     return detail
 
 
@@ -158,5 +166,6 @@ def delete_movie(
         if os.path.exists(path):
             os.remove(path)
 
+    log_activity(db, user_id=user_id, username=user.username, action="movie_delete", entity_title=movie.title)
     movie_db.delete_movie(db, movie_id)
     return {"status": "ok"}

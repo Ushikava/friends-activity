@@ -156,6 +156,22 @@ export const ru: Dict = {
   'profile.deleteSelf.title':   'Удалить мой аккаунт',
   'profile.deleteSelf.password':'Текущий пароль',
   'profile.deleteSelf.submit':  'Удалить аккаунт',
+
+  // feed
+  'home.feed':          'Лента активности',
+  'feed.photo_upload':  'загрузил(а) скриншот',
+  'feed.photo_delete':  'удалил(а) скриншот',
+  'feed.place_upload':  'загрузил(а) фото',
+  'feed.place_delete':  'удалил(а) фото',
+  'feed.movie_add':     'добавил(а) фильм',
+  'feed.movie_delete':  'удалил(а) фильм',
+  'feed.movie_watched':  'посмотрел(а)',
+  'feed.movie_reviewed': 'посмотрел(а) и оставил(а) отзыв на',
+  'feed.game_add':       'добавил(а) игру',
+  'feed.game_delete':   'удалил(а) игру',
+  'feed.game_played':   'прошёл(а)',
+  'feed.game_reviewed': 'прошёл(а) и оставил(а) отзыв на',
+  'feed.user_created':  'присоединился(ась)',
 }
 
 export const en: Dict = {
@@ -309,4 +325,20 @@ export const en: Dict = {
   'profile.deleteSelf.title':   'Delete my account',
   'profile.deleteSelf.password':'Current password',
   'profile.deleteSelf.submit':  'Delete account',
+
+  // feed
+  'home.feed':          'Activity Feed',
+  'feed.photo_upload':  'uploaded a screenshot',
+  'feed.photo_delete':  'deleted a screenshot',
+  'feed.place_upload':  'uploaded a photo',
+  'feed.place_delete':  'deleted a photo',
+  'feed.movie_add':     'added a movie',
+  'feed.movie_delete':  'removed a movie',
+  'feed.movie_watched':  'watched',
+  'feed.movie_reviewed': 'watched and reviewed',
+  'feed.game_add':       'added a game',
+  'feed.game_delete':   'removed a game',
+  'feed.game_played':   'completed',
+  'feed.game_reviewed': 'completed and reviewed',
+  'feed.user_created':  'joined',
 }

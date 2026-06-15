@@ -7,6 +7,7 @@ from core.auth import create_access_token, create_refresh_token, get_user_from_t
 from core.settings import ACCESS_TOKEN_EXPIRE_MINUTES
 from db.session import SessionLocal
 from db import user as user_db
+from db.activity_log import log_activity
 from schemas.user import LoginRequest, AuthResponse, ChangeUsernameRequest, ChangePasswordRequest, CreateUserRequest, DeleteUserRequest, UserOut
 from core.exceptions import UnauthorizedError, BadRequestError
 
@@ -33,7 +34,9 @@ def create_user(body: CreateUserRequest, _: int = Depends(require_not_observer))
         if user_db.get_user_by_username(db, body.username):
             raise BadRequestError("Пользователь с таким именем уже существует")
         hashed = pwd_context.hash(body.password)
-        return user_db.create_user(db, body.username, hashed)
+        new_user = user_db.create_user(db, body.username, hashed)
+        log_activity(db, user_id=new_user.id, username=new_user.username, action="user_created")
+        return new_user
     finally:
         db.close()
 

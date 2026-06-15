@@ -10,6 +10,10 @@
   min-width: 0;
 }
 
+.home-col--full {
+  grid-column: 1 / -1;
+}
+
 .home-section__header {
   display: flex;
   align-items: center;

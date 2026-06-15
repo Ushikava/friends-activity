@@ -8,6 +8,7 @@ from core.auth import get_user_from_token
 from db.session import SessionLocal
 from db import games as game_db
 from db import user as user_db
+from db.activity_log import log_activity
 from schemas.games import GameOut, GamePage, GameDetail, GamePlayUpdate, GameUpdateOut
 from utils.image import compress_image
 from core.exceptions import ForbiddenError, NotFoundError, BadRequestError
@@ -67,7 +68,9 @@ def add_game(
     elif poster_url:
         poster = poster_url
 
-    return game_db.create_game(db, title=title, poster=poster, user_id=user_id, steam_link=steam_link)
+    game = game_db.create_game(db, title=title, poster=poster, user_id=user_id, steam_link=steam_link)
+    log_activity(db, user_id=user_id, username=user.username, action="game_add", entity_title=title)
+    return game
 
 
 @router.get("/{game_id}/detail", response_model=GameDetail)
@@ -95,6 +98,11 @@ def toggle_played(
     detail = game_db.toggle_user_played(db, game_id, user_id, rating=body.rating, review=body.review)
     if not detail:
         raise NotFoundError("Игра")
+    user_status = next((s for s in detail['statuses'] if s['user_id'] == user_id), None)
+    if user_status and user_status['is_played']:
+        has_review = bool(user_status.get('review')) or user_status.get('rating') is not None
+        action = "game_reviewed" if has_review else "game_played"
+        log_activity(db, user_id=user_id, username=user.username, action=action, entity_title=detail['title'])
     return detail
 
 
@@ -160,5 +168,6 @@ def delete_game(
         if os.path.exists(path):
             os.remove(path)
 
+    log_activity(db, user_id=user_id, username=user.username, action="game_delete", entity_title=game.title)
     game_db.delete_game(db, game_id)
     return {"status": "ok"}

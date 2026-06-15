@@ -1,4 +1,5 @@
-import type { Stats, ActivityData } from '../types'
+import { apiFetch } from './auth'
+import type { Stats, ActivityData, FeedEvent } from '../types'
 
 const API = import.meta.env.VITE_API_URL
 
@@ -12,4 +13,10 @@ export async function fetchStats(): Promise<Stats> {
   const res = await fetch(`${API}/stats`, { credentials: 'include' })
   if (!res.ok) throw new Error('Ошибка загрузки статистики')
   return res.json() as Promise<Stats>
+}
+
+export async function fetchFeed(): Promise<FeedEvent[]> {
+  const res = await apiFetch(`${API}/feed`)
+  if (!res.ok) throw new Error('Ошибка загрузки ленты')
+  return res.json() as Promise<FeedEvent[]>
 }

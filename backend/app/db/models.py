@@ -111,3 +111,14 @@ class ChatMessage(Base):
     role = Column(String, nullable=False)   # "user" | "assistant"
     content = Column(Text, nullable=False)
     created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
+
+
+class ActivityLog(Base):
+    __tablename__ = "activity_log"
+
+    id = Column(Integer, primary_key=True)
+    user_id = Column(Integer, ForeignKey("users_data.id", ondelete="SET NULL"), nullable=True)
+    username = Column(String, nullable=True)
+    action = Column(String, nullable=False)
+    entity_title = Column(String, nullable=True)
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
