@@ -20,6 +20,15 @@ export async function uploadPhoto(file: File, description?: string): Promise<Pho
   return res.json() as Promise<Photo>
 }
 
+export async function updatePhotoDescription(id: number, description: string | null): Promise<void> {
+  const res = await apiFetch(`${API}/photos/${id}/description`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ description }),
+  })
+  if (!res.ok) throw new Error('Ошибка обновления описания')
+}
+
 export async function deletePhoto(id: number): Promise<void> {
   const res = await apiFetch(`${API}/photos/${id}`, { method: 'DELETE' })
   if (!res.ok) throw new Error('Ошибка удаления')

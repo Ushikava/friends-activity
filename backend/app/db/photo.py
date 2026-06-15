@@ -24,6 +24,16 @@ def get_photo_by_id(db: Session, photo_id: int) -> Photo | None:
     return db.query(Photo).filter(Photo.id == photo_id).first()
 
 
+def update_description(db: Session, photo_id: int, description: str | None) -> Photo | None:
+    photo = get_photo_by_id(db, photo_id)
+    if not photo:
+        return None
+    photo.description = description
+    db.commit()
+    db.refresh(photo)
+    return photo
+
+
 def delete_photo(db: Session, photo_id: int) -> None:
     db.query(Photo).filter(Photo.id == photo_id).delete()
     db.commit()

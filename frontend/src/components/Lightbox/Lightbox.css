@@ -79,16 +79,72 @@
   width: 100%;
   display: flex;
   justify-content: space-between;
-  align-items: baseline;
+  align-items: center;
   gap: 16px;
+}
+
+.lightbox__desc-wrap {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  min-width: 0;
+  max-width: 100%;
+}
+
+.lightbox__desc-wrap--editable:hover .lightbox__edit-btn {
+  opacity: 1;
 }
 
 .lightbox__desc {
   color: rgba(255, 255, 255, 0.85);
   font-size: 0.9rem;
-  text-align: left;
   margin: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.lightbox__edit-btn {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  background: rgba(255, 255, 255, 0.1);
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  color: rgba(255, 255, 255, 0.65);
+  opacity: 0;
+  transition: opacity 0.15s, background 0.15s, color 0.15s;
+  padding: 0;
+}
+
+.lightbox__edit-btn:hover {
+  background: rgba(255, 255, 255, 0.2);
+  color: #fff;
+}
+
+.lightbox__desc-input {
   flex: 1;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  border-radius: 5px;
+  color: #fff;
+  font-size: 0.9rem;
+  font-family: var(--sans);
+  padding: 4px 10px;
+  outline: none;
+  min-width: 0;
+}
+
+.lightbox__desc-input::placeholder {
+  color: rgba(255, 255, 255, 0.35);
+}
+
+.lightbox__desc-input:focus {
+  border-color: rgba(255, 255, 255, 0.65);
 }
 
 .lightbox__date {

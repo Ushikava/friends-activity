@@ -20,6 +20,15 @@ export async function uploadPlace(file: File, description?: string): Promise<Pla
   return res.json() as Promise<Place>
 }
 
+export async function updatePlaceDescription(id: number, description: string | null): Promise<void> {
+  const res = await apiFetch(`${API}/places/${id}/description`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ description }),
+  })
+  if (!res.ok) throw new Error('Ошибка обновления описания')
+}
+
 export async function deletePlace(id: number): Promise<void> {
   const res = await apiFetch(`${API}/places/${id}`, { method: 'DELETE' })
   if (!res.ok) throw new Error('Ошибка удаления')

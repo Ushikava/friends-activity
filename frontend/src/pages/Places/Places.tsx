@@ -3,7 +3,7 @@ import { motion } from 'framer-motion'
 import NavBar from '../../components/NavBar/NavBar'
 import Pagination from '../../components/Pagination/Pagination'
 import Lightbox from '../../components/Lightbox/Lightbox'
-import { fetchPlaces, uploadPlace, deletePlace, placeSrc } from '../../api/places'
+import { fetchPlaces, uploadPlace, deletePlace, updatePlaceDescription, placeSrc } from '../../api/places'
 import { getRole } from '../../api/auth'
 import { useLang } from '../../i18n/LangContext'
 import { containerVariants, cardVariants } from '../../utils/animations'
@@ -221,6 +221,11 @@ export default function Places() {
             createdAt={selected.uploaded_at}
             onClose={() => setSelected(null)}
             onDelete={canEdit ? () => handleDelete(selected.id) : undefined}
+            onSaveDescription={canEdit ? async (desc) => {
+              await updatePlaceDescription(selected.id, desc)
+              setPlaces(p => p.map(pl => pl.id === selected.id ? { ...pl, description: desc } : pl))
+              setSelected(s => s ? { ...s, description: desc } : s)
+            } : undefined}
           />
         )}
       </main>

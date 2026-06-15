@@ -24,6 +24,16 @@ def get_place_by_id(db: Session, place_id: int) -> Place | None:
     return db.query(Place).filter(Place.id == place_id).first()
 
 
+def update_description(db: Session, place_id: int, description: str | None) -> Place | None:
+    place = get_place_by_id(db, place_id)
+    if not place:
+        return None
+    place.description = description
+    db.commit()
+    db.refresh(place)
+    return place
+
+
 def delete_place(db: Session, place_id: int) -> None:
     db.query(Place).filter(Place.id == place_id).delete()
     db.commit()

@@ -24,10 +24,12 @@ export default function AddModal({ title, onClose, onSubmit, extraFields = [] }:
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const uploadZoneRef = useRef<HTMLDivElement>(null)
 
   function close() { setClosing(true) }
 
   useEffect(() => {
+    uploadZoneRef.current?.focus()
     function onKey(e: KeyboardEvent) { if (e.key === 'Escape') close() }
     document.addEventListener('keydown', onKey)
     return () => document.removeEventListener('keydown', onKey)
@@ -73,17 +75,12 @@ export default function AddModal({ title, onClose, onSubmit, extraFields = [] }:
         <button className="modal__close" onClick={close}>×</button>
         <h2 className="modal__title">{title}</h2>
 
-        <input
-          className="modal__input"
-          placeholder={t('common.titlePlaceholder') as string}
-          value={name}
-          onChange={e => setName(e.target.value)}
-          autoFocus
-        />
-
         <div
+          ref={uploadZoneRef}
           className={`modal__upload-zone${preview ? ' modal__upload-zone--filled' : ''}`}
+          tabIndex={0}
           onClick={() => fileInputRef.current?.click()}
+          onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') fileInputRef.current?.click() }}
         >
           {preview
             ? <img src={preview} className="modal__upload-preview" alt="preview" />
@@ -97,6 +94,13 @@ export default function AddModal({ title, onClose, onSubmit, extraFields = [] }:
             onChange={e => handleFile(e.target.files?.[0] ?? null)}
           />
         </div>
+
+        <input
+          className="modal__input"
+          placeholder={t('common.titlePlaceholder') as string}
+          value={name}
+          onChange={e => setName(e.target.value)}
+        />
 
         {extraFields.map(field => (
           <input

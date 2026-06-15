@@ -3,7 +3,7 @@ import { motion } from 'framer-motion'
 import NavBar from '../../components/NavBar/NavBar'
 import Pagination from '../../components/Pagination/Pagination'
 import Lightbox from '../../components/Lightbox/Lightbox'
-import { fetchPhotos, uploadPhoto, deletePhoto, photoSrc } from '../../api/photos'
+import { fetchPhotos, uploadPhoto, deletePhoto, updatePhotoDescription, photoSrc } from '../../api/photos'
 import { getRole } from '../../api/auth'
 import { useLang } from '../../i18n/LangContext'
 import { containerVariants, cardVariants } from '../../utils/animations'
@@ -214,6 +214,11 @@ export default function Gallery() {
             createdAt={selected.uploaded_at}
             onClose={() => setSelected(null)}
             onDelete={canEdit ? () => handleDelete(selected.id) : undefined}
+            onSaveDescription={canEdit ? async (desc) => {
+              await updatePhotoDescription(selected.id, desc)
+              setPhotos(p => p.map(ph => ph.id === selected.id ? { ...ph, description: desc } : ph))
+              setSelected(s => s ? { ...s, description: desc } : s)
+            } : undefined}
           />
         )}
       </main>

@@ -4,6 +4,8 @@ import uuid
 from fastapi import APIRouter, Depends, Query, UploadFile, File, Form
 from sqlalchemy.orm import Session
 
+from pydantic import BaseModel
+
 from core.auth import get_user_from_token
 from db.session import SessionLocal
 from db import place as place_db
@@ -12,6 +14,10 @@ from db.activity_log import log_activity
 from schemas.place import PlaceOut, PlacePage
 from utils.image import compress_image
 from core.exceptions import ForbiddenError, NotFoundError, BadRequestError
+
+
+class DescriptionUpdate(BaseModel):
+    description: str | None = None
 
 UPLOADS_DIR = "uploads/places"
 ALLOWED_EXTENSIONS = {".jpg", ".jpeg", ".png", ".webp", ".gif"}
@@ -64,6 +70,23 @@ def upload_place(
     place = place_db.create_place(db, filename=filename, description=description, user_id=user_id)
     log_activity(db, user_id=user_id, username=user.username, action="place_upload", entity_title=description)
     return place
+
+
+@router.patch("/{place_id}/description")
+def update_place_description(
+    place_id: int,
+    body: DescriptionUpdate,
+    user_id: int = Depends(get_user_from_token),
+    db: Session = Depends(get_db),
+):
+    user = user_db.get_user_by_id(db, user_id)
+    if not user or user.role == "observer":
+        raise ForbiddenError()
+    place = place_db.get_place_by_id(db, place_id)
+    if not place:
+        raise NotFoundError("Место")
+    updated = place_db.update_description(db, place_id, body.description or None)
+    return {"id": place_id, "description": updated.description if updated else None}
 
 
 @router.delete("/{place_id}")
