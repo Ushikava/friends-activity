@@ -1,3 +1,4 @@
+import json
 import os
 import uuid
 
@@ -83,12 +84,47 @@ def steam_search(
         {
             "appid": item["id"],
             "name": item["name"],
-            "cover_url": f"https://cdn.cloudflare.steamstatic.com/steam/apps/{item['id']}/library_600x900_2x.jpg",
-            "cover_fallback": f"https://cdn.cloudflare.steamstatic.com/steam/apps/{item['id']}/header.jpg",
+            "thumbnail": item.get("tiny_image", ""),
         }
         for item in items[:10]
         if item.get("id") and item.get("name")
     ]
+
+
+@router.get("/steam-image")
+def steam_image(
+    appid: int = Query(...),
+    _: int = Depends(get_user_from_token),
+):
+    payload = json.dumps({
+        "ids": [{"appid": str(appid)}],
+        "context": {"country_code": "US"},
+        "data_request": {"include_assets": True},
+    })
+    try:
+        resp = httpx.get(
+            "https://api.steampowered.com/IStoreBrowseService/GetItems/v1/",
+            params={"input_json": payload},
+            timeout=5.0,
+        )
+        resp.raise_for_status()
+    except httpx.HTTPError:
+        raise BadRequestError("Steam API недоступен")
+
+    store_items = resp.json().get("response", {}).get("store_items", [])
+    if not store_items:
+        raise BadRequestError("Игра не найдена")
+
+    assets = store_items[0].get("assets", {})
+    url_format = assets.get("asset_url_format", "")
+    filename = assets.get("library_capsule_2x") or assets.get("library_capsule", "")
+
+    if not url_format or not filename:
+        raise BadRequestError("Нет изображения")
+
+    cdn = "https://shared.akamai.steamstatic.com/store_item_assets/"
+    cover_url = cdn + url_format.replace("${FILENAME}", filename)
+    return {"cover_url": cover_url}
 
 
 @router.get("/{game_id}/detail", response_model=GameDetail)

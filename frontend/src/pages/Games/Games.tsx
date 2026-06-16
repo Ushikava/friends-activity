@@ -3,7 +3,7 @@ import { motion } from 'framer-motion'
 import NavBar from '../../components/NavBar/NavBar'
 import GameCard from '../../components/GameCard/GameCard'
 import Pagination from '../../components/Pagination/Pagination'
-import { fetchGames, addGame, deleteGame, searchSteam } from '../../api/games'
+import { fetchGames, addGame, deleteGame, searchSteam, fetchSteamImage } from '../../api/games'
 import type { SteamGame } from '../../api/games'
 import { getRole } from '../../api/auth'
 import { useLang } from '../../i18n/LangContext'
@@ -71,7 +71,8 @@ function AddGameModal({ onClose, onAdd }: AddGameModalProps) {
     setSteamErr('')
     try {
       const link = `https://store.steampowered.com/app/${selected.appid}/`
-      const game = await addGame(selected.name, null, selected.cover_url, link)
+      const { cover_url } = await fetchSteamImage(selected.appid)
+      const game = await addGame(selected.name, null, cover_url, link)
       onAdd(game)
       onClose()
     } catch {
@@ -164,12 +165,9 @@ function AddGameModal({ onClose, onAdd }: AddGameModalProps) {
                     onClick={() => setSelected(r)}
                   >
                     <img
-                      src={r.cover_url}
+                      src={r.thumbnail}
                       alt={r.name}
                       className="steam-result__img"
-                      onError={() => setResults(prev =>
-                        prev.map(item => item.appid === r.appid ? { ...item, cover_url: item.cover_fallback } : item)
-                      )}
                     />
                     <span className="steam-result__name">{r.name}</span>
                   </li>
