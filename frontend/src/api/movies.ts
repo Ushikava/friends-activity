@@ -5,8 +5,7 @@ export interface TmdbMovie {
   tmdb_id: number
   title: string
   year: string
-  thumbnail: string
-  poster_url: string
+  poster_path: string
 }
 
 const API = import.meta.env.VITE_API_URL

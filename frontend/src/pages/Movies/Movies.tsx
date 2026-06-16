@@ -5,6 +5,8 @@ import MovieCard from '../../components/MovieCard/MovieCard'
 import Pagination from '../../components/Pagination/Pagination'
 import { fetchMovies, addMovie, deleteMovie, searchTmdb } from '../../api/movies'
 import type { TmdbMovie } from '../../api/movies'
+
+const API = import.meta.env.VITE_API_URL
 import { getRole } from '../../api/auth'
 import { useLang } from '../../i18n/LangContext'
 import { containerVariants, cardVariants } from '../../utils/animations'
@@ -69,7 +71,8 @@ function AddMovieModal({ onClose, onAdd }: AddMovieModalProps) {
     setAdding(true)
     setTmdbErr('')
     try {
-      const movie = await addMovie(selected.title, null, selected.poster_url || null)
+      const posterUrl = selected.poster_path ? `https://image.tmdb.org/t/p/w500${selected.poster_path}` : null
+      const movie = await addMovie(selected.title, null, posterUrl)
       onAdd(movie)
       onClose()
     } catch {
@@ -161,8 +164,8 @@ function AddMovieModal({ onClose, onAdd }: AddMovieModalProps) {
                     className={`tmdb-result${selected?.tmdb_id === r.tmdb_id ? ' tmdb-result--selected' : ''}`}
                     onClick={() => setSelected(r)}
                   >
-                    {r.thumbnail
-                      ? <img src={r.thumbnail} alt={r.title} className="tmdb-result__img" />
+                    {r.poster_path
+                      ? <img src={`${API}/movies/tmdb-poster?path=${encodeURIComponent(r.poster_path)}&size=w92`} alt={r.title} className="tmdb-result__img" />
                       : <div className="tmdb-result__img tmdb-result__img--empty" />
                     }
                     <span className="tmdb-result__name">

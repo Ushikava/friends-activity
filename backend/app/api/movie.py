@@ -3,6 +3,7 @@ import uuid
 
 import httpx
 from fastapi import APIRouter, Depends, Query, UploadFile, File, Form
+from fastapi.responses import Response
 from sqlalchemy.orm import Session
 
 from core.auth import get_user_from_token, require_not_observer
@@ -55,7 +56,20 @@ def add_movie(
             f.write(data)
         poster = f"posters/{filename}"
     elif poster_url:
-        poster = poster_url
+        if poster_url.startswith("https://image.tmdb.org"):
+            try:
+                img_resp = httpx.get(poster_url, timeout=10.0, follow_redirects=True)
+                img_resp.raise_for_status()
+                data, ext = compress_image(img_resp.content, max_dimension=900)
+                os.makedirs(POSTERS_DIR, exist_ok=True)
+                filename = f"{uuid.uuid4()}{ext}"
+                with open(os.path.join(POSTERS_DIR, filename), "wb") as f:
+                    f.write(data)
+                poster = f"posters/{filename}"
+            except Exception:
+                poster = poster_url
+        else:
+            poster = poster_url
 
     movie = movie_db.create_movie(db, title=title, poster=poster, user_id=user_id)
     log_activity(db, user_id=user_id, username=user.username, action="movie_add", entity_title=title)
@@ -84,16 +98,35 @@ def tmdb_search(
         if item.get("media_type") not in ("movie", "tv"):
             continue
         title = item.get("title") or item.get("name", "")
-        poster_path = item.get("poster_path")
+        poster_path = item.get("poster_path") or ""
         date_str = item.get("release_date") or item.get("first_air_date", "")
         results.append({
             "tmdb_id": item["id"],
             "title": title,
             "year": date_str[:4] if date_str else "",
-            "thumbnail": f"https://image.tmdb.org/t/p/w92{poster_path}" if poster_path else "",
-            "poster_url": f"https://image.tmdb.org/t/p/w500{poster_path}" if poster_path else "",
+            "poster_path": poster_path,
         })
     return results
+
+
+@router.get("/tmdb-poster")
+def tmdb_poster(
+    path: str = Query(...),
+    size: str = Query("w92"),
+    _: int = Depends(get_user_from_token),
+):
+    if not path.startswith("/"):
+        path = "/" + path
+    try:
+        resp = httpx.get(
+            f"https://image.tmdb.org/t/p/{size}{path}",
+            timeout=5.0,
+            follow_redirects=True,
+        )
+        resp.raise_for_status()
+    except httpx.HTTPError:
+        raise NotFoundError("Изображение")
+    return Response(content=resp.content, media_type=resp.headers.get("content-type", "image/jpeg"))
 
 
 @router.get("/{movie_id}/detail", response_model=MovieDetail)
