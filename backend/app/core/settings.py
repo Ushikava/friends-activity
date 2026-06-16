@@ -20,3 +20,5 @@ ALLOWED_EXTENSIONS = set(os.environ.get("ALLOWED_EXTENSIONS", ".jpg,.jpeg,.png,.
 
 OLLAMA_URL   = os.environ.get("OLLAMA_URL", "http://localhost:11434")
 OLLAMA_MODEL = os.environ.get("OLLAMA_MODEL", "my-assistant")
+
+TMDB_API_KEY = os.environ.get("TMDB_API_KEY", "")

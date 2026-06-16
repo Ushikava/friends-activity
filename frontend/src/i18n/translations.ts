@@ -66,6 +66,10 @@ export const ru: Dict = {
   'movies.editPoster':      'Постер',
   'movies.deleteTitle':     'Удалить фильм?',
   'movies.deleteWarning':   'Это действие удалит фильм для <b>всех</b> юзеров. Отменить нельзя.',
+  'movies.addManual':       'Вручную',
+  'movies.searchPlaceholder':'Название фильма или сериала...',
+  'movies.noResults':       'Ничего не найдено',
+  'movies.tmdbError':       'Ошибка поиска в TMDB',
 
   // games
   'games.title':       'Игры',
@@ -244,6 +248,10 @@ export const en: Dict = {
   'movies.editPoster':      'Poster',
   'movies.deleteTitle':     'Delete movie?',
   'movies.deleteWarning':   'This will delete the movie for <b>all</b> users. This cannot be undone.',
+  'movies.addManual':       'Manually',
+  'movies.searchPlaceholder':'Movie or series title...',
+  'movies.noResults':       'No results found',
+  'movies.tmdbError':       'TMDB search error',
 
   // games
   'games.title':       'Games',

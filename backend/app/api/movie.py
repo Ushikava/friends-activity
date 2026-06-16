@@ -1,11 +1,12 @@
 import os
 import uuid
 
+import httpx
 from fastapi import APIRouter, Depends, Query, UploadFile, File, Form
 from sqlalchemy.orm import Session
 
 from core.auth import get_user_from_token, require_not_observer
-from core.settings import POSTERS_DIR, ALLOWED_EXTENSIONS
+from core.settings import POSTERS_DIR, ALLOWED_EXTENSIONS, TMDB_API_KEY
 from db.session import get_db
 from db import movie as movie_db
 from db import user as user_db
@@ -59,6 +60,40 @@ def add_movie(
     movie = movie_db.create_movie(db, title=title, poster=poster, user_id=user_id)
     log_activity(db, user_id=user_id, username=user.username, action="movie_add", entity_title=title)
     return movie
+
+
+@router.get("/tmdb-search")
+def tmdb_search(
+    q: str = Query(..., min_length=1, max_length=200),
+    _: int = Depends(get_user_from_token),
+):
+    if not TMDB_API_KEY:
+        raise BadRequestError("TMDB API ключ не настроен")
+    try:
+        resp = httpx.get(
+            "https://api.themoviedb.org/3/search/multi",
+            params={"api_key": TMDB_API_KEY, "query": q, "language": "ru-RU", "page": 1},
+            timeout=5.0,
+        )
+        resp.raise_for_status()
+    except httpx.HTTPError:
+        raise BadRequestError("TMDB API недоступен")
+
+    results = []
+    for item in resp.json().get("results", [])[:10]:
+        if item.get("media_type") not in ("movie", "tv"):
+            continue
+        title = item.get("title") or item.get("name", "")
+        poster_path = item.get("poster_path")
+        date_str = item.get("release_date") or item.get("first_air_date", "")
+        results.append({
+            "tmdb_id": item["id"],
+            "title": title,
+            "year": date_str[:4] if date_str else "",
+            "thumbnail": f"https://image.tmdb.org/t/p/w92{poster_path}" if poster_path else "",
+            "poster_url": f"https://image.tmdb.org/t/p/w500{poster_path}" if poster_path else "",
+        })
+    return results
 
 
 @router.get("/{movie_id}/detail", response_model=MovieDetail)

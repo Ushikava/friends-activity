@@ -1,6 +1,14 @@
 import { apiFetch } from './auth'
 import type { Movie, MovieDetail, PaginatedResponse } from '../types'
 
+export interface TmdbMovie {
+  tmdb_id: number
+  title: string
+  year: string
+  thumbnail: string
+  poster_url: string
+}
+
 const API = import.meta.env.VITE_API_URL
 
 export async function fetchMovies(page = 1, limit = 20): Promise<PaginatedResponse<Movie>> {
@@ -60,4 +68,10 @@ export async function updateMovie(
 export async function deleteMovie(id: number): Promise<void> {
   const res = await apiFetch(`${API}/movies/${id}`, { method: 'DELETE' })
   if (!res.ok) throw new Error('Ошибка удаления')
+}
+
+export async function searchTmdb(query: string): Promise<TmdbMovie[]> {
+  const res = await apiFetch(`${API}/movies/tmdb-search?q=${encodeURIComponent(query)}`)
+  if (!res.ok) throw new Error('Ошибка поиска')
+  return res.json() as Promise<TmdbMovie[]>
 }
