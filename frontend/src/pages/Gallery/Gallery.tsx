@@ -45,7 +45,10 @@ function UploadModal({ onClose, onUploaded }: UploadModalProps) {
     if (!items) return
     for (const item of items) {
       if (item.type.startsWith('image/')) {
-        handleFile(item.getAsFile())
+        const raw = item.getAsFile()
+        if (!raw) break
+        const ext = ({ 'image/jpeg': 'jpg', 'image/png': 'png', 'image/webp': 'webp', 'image/gif': 'gif' } as Record<string, string>)[item.type] ?? 'png'
+        handleFile(new File([raw], `paste.${ext}`, { type: item.type }))
         break
       }
     }

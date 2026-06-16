@@ -13,9 +13,10 @@ def get_user_by_id(db: Session, user_id: int):
     return db.query(UserData).filter(UserData.id == user_id).first()
 
 
-def save_refresh_token(db: Session, user_id: int, token: str, expires_at: datetime):
+def save_refresh_token(db: Session, user_id: int, token: str, expires_at: datetime, current_date: datetime):
     rt = RefreshToken(user_id=user_id, token=token, expires_at=expires_at)
     db.add(rt)
+    db.query(RefreshToken).filter(RefreshToken.expires_at <= current_date).delete()
     db.commit()
 
 

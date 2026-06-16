@@ -3,11 +3,12 @@ import json
 import httpx
 from fastapi import APIRouter, Depends
 from fastapi.responses import StreamingResponse
+from sqlalchemy.orm import Session
 
 from core.auth import require_not_observer
 from core.exceptions import NotFoundError
 from core.settings import OLLAMA_URL, OLLAMA_MODEL
-from db.session import SessionLocal
+from db.session import get_db, SessionLocal
 from db import chat as chat_db
 from schemas.chat import ChatRoomOut, ChatRoomCreate, ChatRoomRename, ChatMessageOut, ChatRequest
 
@@ -17,67 +18,41 @@ CONTEXT_MESSAGES = 20
 
 
 @router.get("/chat/rooms", response_model=list[ChatRoomOut])
-def list_rooms(user_id: int = Depends(require_not_observer)):
-    db = SessionLocal()
-    try:
-        return chat_db.get_rooms(db, user_id)
-    finally:
-        db.close()
+def list_rooms(db: Session = Depends(get_db), user_id: int = Depends(require_not_observer)):
+    return chat_db.get_rooms(db, user_id)
 
 
-@router.post("/chat/rooms", response_model=ChatRoomOut)
-def create_room(body: ChatRoomCreate, user_id: int = Depends(require_not_observer)):
-    db = SessionLocal()
-    try:
-        return chat_db.create_room(db, user_id, body.name)
-    finally:
-        db.close()
+@router.post("/chat/rooms", response_model=ChatRoomOut, status_code=201)
+def create_room(body: ChatRoomCreate, db: Session = Depends(get_db), user_id: int = Depends(require_not_observer)):
+    return chat_db.create_room(db, user_id, body.name)
 
 
 @router.patch("/chat/rooms/{room_id}", response_model=ChatRoomOut)
-def rename_room(room_id: int, body: ChatRoomRename, user_id: int = Depends(require_not_observer)):
-    db = SessionLocal()
-    try:
-        room = chat_db.rename_room(db, room_id, user_id, body.name)
-        if not room:
-            raise NotFoundError("Комната")
-        return room
-    finally:
-        db.close()
+def rename_room(room_id: int, body: ChatRoomRename, db: Session = Depends(get_db), user_id: int = Depends(require_not_observer)):
+    room = chat_db.rename_room(db, room_id, user_id, body.name)
+    if not room:
+        raise NotFoundError("Комната")
+    return room
 
 
-@router.delete("/chat/rooms/{room_id}")
-def delete_room(room_id: int, user_id: int = Depends(require_not_observer)):
-    db = SessionLocal()
-    try:
-        if not chat_db.delete_room(db, room_id, user_id):
-            raise NotFoundError("Комната")
-        return {"status": "ok"}
-    finally:
-        db.close()
+@router.delete("/chat/rooms/{room_id}", status_code=204)
+def delete_room(room_id: int, db: Session = Depends(get_db), user_id: int = Depends(require_not_observer)):
+    if not chat_db.delete_room(db, room_id, user_id):
+        raise NotFoundError("Комната")
 
 
 @router.get("/chat/rooms/{room_id}/history", response_model=list[ChatMessageOut])
-def get_history(room_id: int, user_id: int = Depends(require_not_observer)):
-    db = SessionLocal()
-    try:
-        if not chat_db.get_room(db, room_id, user_id):
-            raise NotFoundError("Комната")
-        return chat_db.get_history(db, room_id)
-    finally:
-        db.close()
+def get_history(room_id: int, db: Session = Depends(get_db), user_id: int = Depends(require_not_observer)):
+    if not chat_db.get_room(db, room_id, user_id):
+        raise NotFoundError("Комната")
+    return chat_db.get_history(db, room_id)
 
 
-@router.delete("/chat/rooms/{room_id}/history")
-def clear_history(room_id: int, user_id: int = Depends(require_not_observer)):
-    db = SessionLocal()
-    try:
-        if not chat_db.get_room(db, room_id, user_id):
-            raise NotFoundError("Комната")
-        chat_db.clear_history(db, room_id, user_id)
-        return {"status": "ok"}
-    finally:
-        db.close()
+@router.delete("/chat/rooms/{room_id}/history", status_code=204)
+def clear_history(room_id: int, db: Session = Depends(get_db), user_id: int = Depends(require_not_observer)):
+    if not chat_db.get_room(db, room_id, user_id):
+        raise NotFoundError("Комната")
+    chat_db.clear_history(db, room_id, user_id)
 
 
 @router.post("/chat/rooms/{room_id}/send")
@@ -86,6 +61,8 @@ async def send_message(
     body: ChatRequest,
     user_id: int = Depends(require_not_observer),
 ):
+    # DB session closed before stream starts to avoid holding the connection
+    # during the long Ollama streaming response
     db = SessionLocal()
     try:
         if not chat_db.get_room(db, room_id, user_id):

@@ -4,27 +4,18 @@ import uuid
 from fastapi import APIRouter, Depends, Query, UploadFile, File, Form
 from sqlalchemy.orm import Session
 
-from core.auth import get_user_from_token
-from db.session import SessionLocal
+from core.auth import get_user_from_token, require_not_observer
+from core.settings import POSTERS_DIR, ALLOWED_EXTENSIONS
+from db.session import get_db
 from db import movie as movie_db
 from db import user as user_db
 from db.activity_log import log_activity
 from schemas.movie import MovieOut, MoviePage, MovieDetail, MovieWatchUpdate, MovieUpdateOut
 from utils.image import compress_image
-from core.exceptions import ForbiddenError, NotFoundError, BadRequestError
+from core.exceptions import NotFoundError, BadRequestError
 
-POSTERS_DIR = "uploads/posters"
-ALLOWED_EXTENSIONS = {".jpg", ".jpeg", ".png", ".webp", ".gif"}
 
 router = APIRouter(prefix="/movies", tags=["movies"])
-
-
-def get_db():
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
 
 
 @router.get("/", response_model=MoviePage)
@@ -37,17 +28,15 @@ def list_movies(
     return {"items": movie_db.get_all_movies(db, skip=skip, limit=limit, user_id=user_id), "total": movie_db.count_movies(db)}
 
 
-@router.post("/", response_model=MovieOut)
+@router.post("/", response_model=MovieOut, status_code=201)
 def add_movie(
     title: str = Form(...),
     poster_url: str | None = Form(None),
     file: UploadFile | None = File(None),
-    user_id: int = Depends(get_user_from_token),
+    user_id: int = Depends(require_not_observer),
     db: Session = Depends(get_db),
 ):
     user = user_db.get_user_by_id(db, user_id)
-    if not user or user.role == "observer":
-        raise ForbiddenError()
 
     poster = None
 
@@ -75,7 +64,7 @@ def add_movie(
 @router.get("/{movie_id}/detail", response_model=MovieDetail)
 def get_movie_detail(
     movie_id: int,
-    user_id: int = Depends(get_user_from_token),
+    _: int = Depends(get_user_from_token),
     db: Session = Depends(get_db),
 ):
     detail = movie_db.get_movie_detail(db, movie_id)
@@ -88,12 +77,11 @@ def get_movie_detail(
 def toggle_watched(
     movie_id: int,
     body: MovieWatchUpdate = MovieWatchUpdate(),
-    user_id: int = Depends(get_user_from_token),
+    user_id: int = Depends(require_not_observer),
     db: Session = Depends(get_db),
 ):
     user = user_db.get_user_by_id(db, user_id)
-    if not user or user.role == "observer":
-        raise ForbiddenError()
+
     detail = movie_db.toggle_user_watched(
         db, movie_id, user_id, rating=body.rating, review=body.review
     )
@@ -112,13 +100,9 @@ def update_movie(
     movie_id: int,
     title: str = Form(...),
     file: UploadFile | None = File(None),
-    user_id: int = Depends(get_user_from_token),
+    _: int = Depends(require_not_observer),
     db: Session = Depends(get_db),
 ):
-    user = user_db.get_user_by_id(db, user_id)
-    if not user or user.role == "observer":
-        raise ForbiddenError()
-
     existing = movie_db.get_movie_by_id(db, movie_id)
     if not existing:
         raise NotFoundError("Фильм")
@@ -147,15 +131,13 @@ def update_movie(
     return updated
 
 
-@router.delete("/{movie_id}")
+@router.delete("/{movie_id}", status_code=204)
 def delete_movie(
     movie_id: int,
-    user_id: int = Depends(get_user_from_token),
+    user_id: int = Depends(require_not_observer),
     db: Session = Depends(get_db),
 ):
     user = user_db.get_user_by_id(db, user_id)
-    if not user or user.role == "observer":
-        raise ForbiddenError()
 
     movie = movie_db.get_movie_by_id(db, movie_id)
     if not movie:
@@ -168,4 +150,3 @@ def delete_movie(
 
     log_activity(db, user_id=user_id, username=user.username, action="movie_delete", entity_title=movie.title)
     movie_db.delete_movie(db, movie_id)
-    return {"status": "ok"}

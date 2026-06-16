@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Navigate, useNavigate } from 'react-router-dom'
 import NavBar from '../../components/NavBar/NavBar'
-import { getUsername, getRole, changeUsername, changePassword, createUser, logout, deleteUser } from '../../api/auth'
+import { getUsername, getRole, changeUsername, changePassword, createUser, logout, deleteUser, clearSession } from '../../api/auth'
 import { useLang } from '../../i18n/LangContext'
 import ConfirmModal from '../../components/ConfirmModal/ConfirmModal'
 import ToastContainer, { useToast } from '../../components/Toast/Toast'
@@ -82,8 +82,8 @@ export default function Profile() {
     setPasswordLoading(true)
     try {
       await changePassword(currentPassword, newPassword)
-      setCurrentPassword(''); setNewPassword(''); setConfirmPassword('')
-      showToast(true, t('profile.changePass.saved') as string)
+      clearSession()
+      window.location.href = '/login'
     } catch (err) { showToast(false, (err as Error).message) }
     finally { setPasswordLoading(false) }
   }

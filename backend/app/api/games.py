@@ -4,27 +4,18 @@ import uuid
 from fastapi import APIRouter, Depends, Query, UploadFile, File, Form
 from sqlalchemy.orm import Session
 
-from core.auth import get_user_from_token
-from db.session import SessionLocal
+from core.auth import get_user_from_token, require_not_observer
+from core.settings import GAMES_DIR, ALLOWED_EXTENSIONS
+from db.session import get_db
 from db import games as game_db
 from db import user as user_db
 from db.activity_log import log_activity
 from schemas.games import GameOut, GamePage, GameDetail, GamePlayUpdate, GameUpdateOut
 from utils.image import compress_image
-from core.exceptions import ForbiddenError, NotFoundError, BadRequestError
+from core.exceptions import NotFoundError, BadRequestError
 
-POSTERS_DIR = "uploads/games"
-ALLOWED_EXTENSIONS = {".jpg", ".jpeg", ".png", ".webp", ".gif"}
 
 router = APIRouter(prefix="/games", tags=["games"])
-
-
-def get_db():
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
 
 
 @router.get("/", response_model=GamePage)
@@ -37,18 +28,16 @@ def list_games(
     return {"items": game_db.get_all_games(db, skip=skip, limit=limit, user_id=user_id), "total": game_db.count_games(db)}
 
 
-@router.post("/", response_model=GameOut)
+@router.post("/", response_model=GameOut, status_code=201)
 def add_game(
     title: str = Form(...),
     poster_url: str | None = Form(None),
     file: UploadFile | None = File(None),
     steam_link: str | None = Form(None),
-    user_id: int = Depends(get_user_from_token),
+    user_id: int = Depends(require_not_observer),
     db: Session = Depends(get_db),
 ):
     user = user_db.get_user_by_id(db, user_id)
-    if not user or user.role == "observer":
-        raise ForbiddenError()
 
     poster = None
 
@@ -60,9 +49,9 @@ def add_game(
             data, ext = compress_image(file.file.read(), max_dimension=900)
         except ValueError as e:
             raise BadRequestError(str(e))
-        os.makedirs(POSTERS_DIR, exist_ok=True)
+        os.makedirs(GAMES_DIR, exist_ok=True)
         filename = f"{uuid.uuid4()}{ext}"
-        with open(os.path.join(POSTERS_DIR, filename), "wb") as f:
+        with open(os.path.join(GAMES_DIR, filename), "wb") as f:
             f.write(data)
         poster = f"games/{filename}"
     elif poster_url:
@@ -76,7 +65,7 @@ def add_game(
 @router.get("/{game_id}/detail", response_model=GameDetail)
 def get_game_detail(
     game_id: int,
-    user_id: int = Depends(get_user_from_token),
+    _: int = Depends(get_user_from_token),
     db: Session = Depends(get_db),
 ):
     detail = game_db.get_game_detail(db, game_id)
@@ -89,15 +78,15 @@ def get_game_detail(
 def toggle_played(
     game_id: int,
     body: GamePlayUpdate = GamePlayUpdate(),
-    user_id: int = Depends(get_user_from_token),
+    user_id: int = Depends(require_not_observer),
     db: Session = Depends(get_db),
 ):
     user = user_db.get_user_by_id(db, user_id)
-    if not user or user.role == "observer":
-        raise ForbiddenError()
+    
     detail = game_db.toggle_user_played(db, game_id, user_id, rating=body.rating, review=body.review)
     if not detail:
         raise NotFoundError("Игра")
+    
     user_status = next((s for s in detail['statuses'] if s['user_id'] == user_id), None)
     if user_status and user_status['is_played']:
         has_review = bool(user_status.get('review')) or user_status.get('rating') is not None
@@ -112,13 +101,9 @@ def update_game(
     title: str = Form(...),
     steam_link: str | None = Form(None),
     file: UploadFile | None = File(None),
-    user_id: int = Depends(get_user_from_token),
+    _: int = Depends(require_not_observer),
     db: Session = Depends(get_db),
 ):
-    user = user_db.get_user_by_id(db, user_id)
-    if not user or user.role == "observer":
-        raise ForbiddenError()
-
     existing = game_db.get_game_by_id(db, game_id)
     if not existing:
         raise NotFoundError("Игра")
@@ -137,9 +122,9 @@ def update_game(
             old_path = os.path.join("uploads", existing.poster)
             if os.path.exists(old_path):
                 os.remove(old_path)
-        os.makedirs(POSTERS_DIR, exist_ok=True)
+        os.makedirs(GAMES_DIR, exist_ok=True)
         filename = f"{uuid.uuid4()}{ext}"
-        with open(os.path.join(POSTERS_DIR, filename), "wb") as f:
+        with open(os.path.join(GAMES_DIR, filename), "wb") as f:
             f.write(data)
         new_poster = f"games/{filename}"
 
@@ -149,15 +134,13 @@ def update_game(
     return updated
 
 
-@router.delete("/{game_id}")
+@router.delete("/{game_id}", status_code=204)
 def delete_game(
     game_id: int,
-    user_id: int = Depends(get_user_from_token),
+    user_id: int = Depends(require_not_observer),
     db: Session = Depends(get_db),
 ):
     user = user_db.get_user_by_id(db, user_id)
-    if not user or user.role == "observer":
-        raise ForbiddenError()
 
     game = game_db.get_game_by_id(db, game_id)
     if not game:
@@ -170,4 +153,3 @@ def delete_game(
 
     log_activity(db, user_id=user_id, username=user.username, action="game_delete", entity_title=game.title)
     game_db.delete_game(db, game_id)
-    return {"status": "ok"}

@@ -202,7 +202,10 @@ function EditMovieModal({
     const imageItem = Array.from(e.clipboardData?.items ?? []).find(i => i.type.startsWith('image/'))
     if (imageItem) {
       e.preventDefault()
-      handleFile(imageItem.getAsFile())
+      const raw = imageItem.getAsFile()
+      if (!raw) return
+      const ext = ({ 'image/jpeg': 'jpg', 'image/png': 'png', 'image/webp': 'webp', 'image/gif': 'gif' } as Record<string, string>)[imageItem.type] ?? 'png'
+      handleFile(new File([raw], `paste.${ext}`, { type: imageItem.type }))
     }
   }
 

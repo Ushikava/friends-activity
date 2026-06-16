@@ -6,7 +6,7 @@ import jwt
 from fastapi import Request
 
 from core.settings import SECRET_KEY, ALGORITHM, ACCESS_TOKEN_EXPIRE_MINUTES
-from core.exceptions import UnauthorizedError
+from core.exceptions import UnauthorizedError, ForbiddenError
 
 REFRESH_TOKEN_EXPIRE_DAYS = 30
 
@@ -43,7 +43,6 @@ def get_user_from_token(request: Request) -> int:
 
 
 def require_not_observer(request: Request) -> int:
-    from core.exceptions import ForbiddenError
     token = request.cookies.get("access_token")
     if not token:
         raise UnauthorizedError("Не авторизован")
@@ -62,6 +61,9 @@ def get_optional_user(request: Request) -> Optional[int]:
         return None
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-        return int(payload.get("sub"))
+        sub = payload.get("sub")
+        if not sub:
+            return None
+        return int(sub)
     except Exception:
         return None
