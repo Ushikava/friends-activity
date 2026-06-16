@@ -142,27 +142,25 @@ export default function Login() {
             />
           </div>
 
-          {!isObserver && (
-            <div className="login-field">
-              <div className="password-wrap">
-                <input
-                  type={showPassword ? 'text' : 'password'}
-                  value={password}
-                  onChange={e => setPassword(e.target.value)}
-                  autoComplete="current-password"
-                  placeholder={t('login.password')}
-                />
-                <button
-                  type="button"
-                  className="password-toggle"
-                  onClick={() => setShowPassword(v => !v)}
-                  tabIndex={-1}
-                >
-                  {showPassword ? <IconEyeOff /> : <IconEye />}
-                </button>
-              </div>
+          <div className="login-field" style={{ visibility: isObserver ? 'hidden' : 'visible' }}>
+            <div className="password-wrap">
+              <input
+                type={showPassword ? 'text' : 'password'}
+                value={password}
+                onChange={e => setPassword(e.target.value)}
+                autoComplete="current-password"
+                placeholder={t('login.password')}
+              />
+              <button
+                type="button"
+                className="password-toggle"
+                onClick={() => setShowPassword(v => !v)}
+                tabIndex={-1}
+              >
+                {showPassword ? <IconEyeOff /> : <IconEye />}
+              </button>
             </div>
-          )}
+          </div>
 
           {loadErr && <p className="login-error">{t('common.errLoadUsers')}</p>}
           {error && <p className="login-error">{error}</p>}

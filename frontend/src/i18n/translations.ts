@@ -84,6 +84,11 @@ export const ru: Dict = {
   'games.reviewLabel':      'Отзыв',
   'games.reviewPlaceholder':'Твой отзыв (необязательно)...',
   'games.markConfirm':      'Отметить пройденной',
+  'games.addManual':        'Вручную',
+  'games.searchPlaceholder':'Название игры...',
+  'games.search':           'Найти',
+  'games.noResults':        'Ничего не найдено',
+  'games.steamError':       'Ошибка поиска в Steam',
 
   // activity
   'activity.title': 'Активность',
@@ -257,6 +262,11 @@ export const en: Dict = {
   'games.reviewLabel':      'Review',
   'games.reviewPlaceholder':'Your review (optional)...',
   'games.markConfirm':      'Mark as completed',
+  'games.addManual':        'Manually',
+  'games.searchPlaceholder':'Game title...',
+  'games.search':           'Search',
+  'games.noResults':        'No results found',
+  'games.steamError':       'Steam search error',
 
   // activity
   'activity.title': 'Activity',

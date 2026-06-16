@@ -1,6 +1,13 @@
 import { apiFetch } from './auth'
 import type { Game, GameDetail, PaginatedResponse } from '../types'
 
+export interface SteamGame {
+  appid: number
+  name: string
+  cover_url: string
+  cover_fallback: string
+}
+
 const API = import.meta.env.VITE_API_URL
 
 export async function fetchGames(page = 1, limit = 20): Promise<PaginatedResponse<Game>> {
@@ -64,4 +71,10 @@ export async function updateGame(
 export async function deleteGame(id: number): Promise<void> {
   const res = await apiFetch(`${API}/games/${id}`, { method: 'DELETE' })
   if (!res.ok) throw new Error('Ошибка удаления')
+}
+
+export async function searchSteam(query: string): Promise<SteamGame[]> {
+  const res = await apiFetch(`${API}/games/steam-search?q=${encodeURIComponent(query)}`)
+  if (!res.ok) throw new Error('Ошибка поиска')
+  return res.json() as Promise<SteamGame[]>
 }

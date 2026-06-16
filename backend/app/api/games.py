@@ -1,6 +1,7 @@
 import os
 import uuid
 
+import httpx
 from fastapi import APIRouter, Depends, Query, UploadFile, File, Form
 from sqlalchemy.orm import Session
 
@@ -60,6 +61,34 @@ def add_game(
     game = game_db.create_game(db, title=title, poster=poster, user_id=user_id, steam_link=steam_link)
     log_activity(db, user_id=user_id, username=user.username, action="game_add", entity_title=title)
     return game
+
+
+@router.get("/steam-search")
+def steam_search(
+    q: str = Query(..., min_length=1, max_length=100),
+    _: int = Depends(get_user_from_token),
+):
+    try:
+        resp = httpx.get(
+            "https://store.steampowered.com/api/storesearch/",
+            params={"term": q, "l": "english", "cc": "US"},
+            timeout=5.0,
+        )
+        resp.raise_for_status()
+    except httpx.HTTPError:
+        raise BadRequestError("Steam API недоступен")
+
+    items = resp.json().get("items", [])
+    return [
+        {
+            "appid": item["id"],
+            "name": item["name"],
+            "cover_url": f"https://cdn.cloudflare.steamstatic.com/steam/apps/{item['id']}/library_600x900_2x.jpg",
+            "cover_fallback": f"https://cdn.cloudflare.steamstatic.com/steam/apps/{item['id']}/header.jpg",
+        }
+        for item in items[:10]
+        if item.get("id") and item.get("name")
+    ]
 
 
 @router.get("/{game_id}/detail", response_model=GameDetail)
