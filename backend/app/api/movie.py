@@ -89,7 +89,11 @@ def tmdb_search(
             params={"api_key": TMDB_API_KEY, "query": q, "language": "ru-RU", "page": 1},
             timeout=5.0,
         )
+        if resp.status_code == 429:
+            raise BadRequestError("Слишком много запросов к TMDB, подождите немного")
         resp.raise_for_status()
+    except BadRequestError:
+        raise
     except httpx.HTTPError:
         raise BadRequestError("TMDB API недоступен")
 
