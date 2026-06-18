@@ -4,9 +4,12 @@ import type { Place, PaginatedResponse } from '../types'
 const API = import.meta.env.VITE_API_URL
 const UPLOADS = import.meta.env.VITE_UPLOADS_URL
 
-export async function fetchPlaces(page = 1, limit = 20): Promise<PaginatedResponse<Place>> {
+export async function fetchPlaces(page = 1, limit = 20, q?: string, sort?: string): Promise<PaginatedResponse<Place>> {
   const skip = (page - 1) * limit
-  const res = await apiFetch(`${API}/places/?skip=${skip}&limit=${limit}`)
+  const params = new URLSearchParams({ skip: String(skip), limit: String(limit) })
+  if (q) params.set('q', q)
+  if (sort) params.set('sort', sort)
+  const res = await apiFetch(`${API}/places/?${params}`)
   if (!res.ok) throw new Error('Ошибка загрузки')
   return res.json() as Promise<PaginatedResponse<Place>>
 }

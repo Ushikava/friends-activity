@@ -1,4 +1,4 @@
-from sqlalchemy import func
+from sqlalchemy import func, or_
 from sqlalchemy.orm import Session
 
 from db.models import Photo
@@ -10,6 +10,31 @@ def create_photo(db: Session, filename: str, description: str | None, user_id: i
     db.commit()
     db.refresh(photo)
     return photo
+
+
+def get_photos(
+    db: Session,
+    skip: int = 0,
+    limit: int = 20,
+    q: str | None = None,
+    sort: str = 'newest',
+) -> tuple[list[Photo], int]:
+    query = db.query(Photo)
+    if q:
+        query = query.filter(
+            Photo.description.isnot(None),
+            or_(
+                func.word_similarity(q, Photo.description) > 0.2,
+                Photo.description.ilike(f'%{q}%'),
+            )
+        ).order_by(func.word_similarity(q, Photo.description).desc(), Photo.uploaded_at.desc())
+    elif sort == 'oldest':
+        query = query.order_by(Photo.uploaded_at.asc())
+    else:
+        query = query.order_by(Photo.uploaded_at.desc())
+    total: int = query.count()
+    photos = query.offset(skip).limit(limit).all()
+    return photos, total
 
 
 def get_all_photos(db: Session, skip: int = 0, limit: int = 20) -> list[Photo]:

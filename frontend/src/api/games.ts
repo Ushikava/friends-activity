@@ -13,9 +13,12 @@ export interface SteamImage {
 
 const API = import.meta.env.VITE_API_URL
 
-export async function fetchGames(page = 1, limit = 20): Promise<PaginatedResponse<Game>> {
+export async function fetchGames(page = 1, limit = 20, q?: string, status?: string): Promise<PaginatedResponse<Game>> {
   const skip = (page - 1) * limit
-  const res = await apiFetch(`${API}/games/?skip=${skip}&limit=${limit}`)
+  const params = new URLSearchParams({ skip: String(skip), limit: String(limit) })
+  if (q) params.set('q', q)
+  if (status) params.set('status', status)
+  const res = await apiFetch(`${API}/games/?${params}`)
   if (!res.ok) throw new Error('Ошибка загрузки')
   return res.json() as Promise<PaginatedResponse<Game>>
 }

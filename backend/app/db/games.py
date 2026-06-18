@@ -1,9 +1,80 @@
 from datetime import datetime, timezone
 
-from sqlalchemy import func
+from sqlalchemy import func, or_
 from sqlalchemy.orm import Session
 
 from db.models import Game, GamePlay, UserData
+
+
+def _build_game_dicts(db: Session, games: list, user_id: int | None) -> list[dict]:
+    if not games:
+        return []
+    user_count: int = db.query(func.count(UserData.id)).filter(UserData.role != 'observer').scalar() or 0
+    game_ids = [g.id for g in games]
+    play_counts: dict[int, int] = dict(
+        db.query(GamePlay.game_id, func.count(GamePlay.id))
+        .filter(GamePlay.game_id.in_(game_ids), GamePlay.is_played.is_(True))
+        .group_by(GamePlay.game_id)
+        .all()
+    )
+    my_played: set[int] = set()
+    if user_id is not None:
+        my_played = {
+            w.game_id
+            for w in db.query(GamePlay.game_id)
+            .filter(GamePlay.game_id.in_(game_ids), GamePlay.user_id == user_id, GamePlay.is_played.is_(True))
+            .all()
+        }
+    return [
+        {
+            'id': g.id,
+            'title': g.title,
+            'poster': g.poster,
+            'steam_link': g.steam_link,
+            'play_count': play_counts.get(g.id, 0),
+            'user_count': user_count,
+            'is_played_by_me': g.id in my_played,
+            'added_by': g.added_by,
+            'created_at': g.created_at,
+        }
+        for g in games
+    ]
+
+
+def get_games(
+    db: Session,
+    skip: int = 0,
+    limit: int = 20,
+    user_id: int | None = None,
+    q: str | None = None,
+    status: str | None = None,
+) -> tuple[list[dict], int]:
+    query = db.query(Game)
+
+    if q:
+        query = query.filter(
+            or_(
+                func.word_similarity(q, Game.title) > 0.2,
+                Game.title.ilike(f'%{q}%'),
+            )
+        ).order_by(func.word_similarity(q, Game.title).desc(), Game.created_at.desc())
+    else:
+        query = query.order_by(Game.created_at.desc())
+
+    if status == 'played' and user_id is not None:
+        played_ids = db.query(GamePlay.game_id).filter(
+            GamePlay.user_id == user_id, GamePlay.is_played.is_(True)
+        ).subquery()
+        query = query.filter(Game.id.in_(played_ids))
+    elif status == 'unplayed' and user_id is not None:
+        played_ids = db.query(GamePlay.game_id).filter(
+            GamePlay.user_id == user_id, GamePlay.is_played.is_(True)
+        ).subquery()
+        query = query.filter(~Game.id.in_(played_ids))
+
+    total: int = query.count()
+    games = query.offset(skip).limit(limit).all()
+    return _build_game_dicts(db, games, user_id), total
 
 
 def get_all_games(db: Session, skip: int = 0, limit: int = 20, user_id: int | None = None) -> list[dict]:

@@ -46,9 +46,17 @@ export const ru: Dict = {
   'home.games':           'Игры',
 
   // gallery / places
-  'gallery.title':    'Скриншоты',
-  'gallery.addPhoto': 'Добавить фото',
-  'places.title':     'ИРЛ фото',
+  'gallery.title':         'Скриншоты',
+  'gallery.addPhoto':      'Добавить фото',
+  'gallery.gridSearch':    'Поиск по описанию...',
+  'gallery.sortNewest':    'Сначала новые',
+  'gallery.sortOldest':    'Сначала старые',
+  'gallery.noSearchResults': 'Ничего не нашлось',
+  'places.title':          'ИРЛ фото',
+  'places.gridSearch':     'Поиск по описанию...',
+  'places.sortNewest':     'Сначала новые',
+  'places.sortOldest':     'Сначала старые',
+  'places.noSearchResults': 'Ничего не нашлось',
 
   // movies
   'movies.title':     'Фильмы / Сериалы',
@@ -70,6 +78,11 @@ export const ru: Dict = {
   'movies.searchPlaceholder':'Название фильма или сериала...',
   'movies.noResults':       'Ничего не найдено',
   'movies.tmdbError':       'Ошибка поиска в TMDB',
+  'movies.gridSearch':      'Поиск по названию...',
+  'movies.filterAll':       'Все',
+  'movies.filterWatched':   'Просмотрено',
+  'movies.filterUnwatched': 'Не просмотрено',
+  'movies.noSearchResults': 'Ничего не нашлось',
 
   // games
   'games.title':       'Игры',
@@ -93,6 +106,11 @@ export const ru: Dict = {
   'games.search':           'Найти',
   'games.noResults':        'Ничего не найдено',
   'games.steamError':       'Ошибка поиска в Steam',
+  'games.gridSearch':       'Поиск по названию...',
+  'games.filterAll':        'Все',
+  'games.filterPlayed':     'Пройдено',
+  'games.filterUnplayed':   'Не пройдено',
+  'games.noSearchResults':  'Ничего не нашлось',
 
   // activity
   'activity.title': 'Активность',
@@ -240,9 +258,17 @@ export const en: Dict = {
   'home.games':           'Games',
 
   // gallery / places
-  'gallery.title':    'Gallery',
-  'gallery.addPhoto': 'Add photo',
-  'places.title':     'IRL Photos',
+  'gallery.title':         'Gallery',
+  'gallery.addPhoto':      'Add photo',
+  'gallery.gridSearch':    'Search by description...',
+  'gallery.sortNewest':    'Newest first',
+  'gallery.sortOldest':    'Oldest first',
+  'gallery.noSearchResults': 'Nothing found',
+  'places.title':          'IRL Photos',
+  'places.gridSearch':     'Search by description...',
+  'places.sortNewest':     'Newest first',
+  'places.sortOldest':     'Oldest first',
+  'places.noSearchResults': 'Nothing found',
 
   // movies
   'movies.title':     'Movies / Series',
@@ -264,6 +290,11 @@ export const en: Dict = {
   'movies.searchPlaceholder':'Movie or series title...',
   'movies.noResults':       'No results found',
   'movies.tmdbError':       'TMDB search error',
+  'movies.gridSearch':      'Search by title...',
+  'movies.filterAll':       'All',
+  'movies.filterWatched':   'Watched',
+  'movies.filterUnwatched': 'Unwatched',
+  'movies.noSearchResults': 'Nothing found',
 
   // games
   'games.title':       'Games',
@@ -287,6 +318,11 @@ export const en: Dict = {
   'games.search':           'Search',
   'games.noResults':        'No results found',
   'games.steamError':       'Steam search error',
+  'games.gridSearch':       'Search by title...',
+  'games.filterAll':        'All',
+  'games.filterPlayed':     'Completed',
+  'games.filterUnplayed':   'Not completed',
+  'games.noSearchResults':  'Nothing found',
 
   // activity
   'activity.title': 'Activity',

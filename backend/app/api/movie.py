@@ -24,10 +24,13 @@ router = APIRouter(prefix="/movies", tags=["movies"])
 def list_movies(
     skip: int = Query(0, ge=0),
     limit: int = Query(20, ge=1, le=200),
+    q: str | None = Query(None, max_length=200),
+    status: str | None = Query(None),
     user_id: int = Depends(get_user_from_token),
     db: Session = Depends(get_db),
 ):
-    return {"items": movie_db.get_all_movies(db, skip=skip, limit=limit, user_id=user_id), "total": movie_db.count_movies(db)}
+    items, total = movie_db.get_movies(db, skip=skip, limit=limit, user_id=user_id, q=q or None, status=status or None)
+    return {"items": items, "total": total}
 
 
 @router.post("/", response_model=MovieOut, status_code=201)

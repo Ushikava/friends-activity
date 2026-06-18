@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import NavBar from '../../components/NavBar/NavBar'
@@ -131,38 +131,77 @@ export default function Gallery() {
   const [selected, setSelected] = useState<Photo | null>(null)
   const canEdit = getRole() !== 'observer'
 
+  const [searchOpen, setSearchOpen] = useState(false)
+  const [searchQuery, setSearchQuery] = useState('')
+  const [debouncedQuery, setDebouncedQuery] = useState('')
+  const [filterOpen, setFilterOpen] = useState(false)
+  const [sort, setSort] = useState<'newest' | 'oldest'>('newest')
+  const searchInputRef = useRef<HTMLInputElement>(null)
+
+  useEffect(() => {
+    const timer = setTimeout(() => setDebouncedQuery(searchQuery), 500)
+    return () => clearTimeout(timer)
+  }, [searchQuery])
+
+  useEffect(() => { setPage(1) }, [debouncedQuery, sort])
+
   useEffect(() => {
     setLoading(true)
-    fetchPhotos(page, PAGE_SIZE)
+    const q = debouncedQuery.trim() || undefined
+    fetchPhotos(page, PAGE_SIZE, q, sort)
       .then(data => { setPhotos(data.items); setTotal(data.total) })
       .catch(console.error)
       .finally(() => setLoading(false))
-  }, [page])
+  }, [page, debouncedQuery, sort])
 
   useEffect(() => {
     const id = searchParams.get('id')
     if (id) fetchPhotoById(Number(id)).then(setSelected).catch(() => {})
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
+  const handleSearchToggle = useCallback(() => {
+    if (searchOpen && !searchQuery) {
+      setSearchOpen(false)
+    } else if (!searchOpen) {
+      setSearchOpen(true)
+      setTimeout(() => searchInputRef.current?.focus(), 50)
+    }
+  }, [searchOpen, searchQuery])
+
+  function handleSearchClear() {
+    setSearchQuery('')
+    setSearchOpen(false)
+  }
+
   function handleDelete(id: number) {
     const isLastOnPage = photos.length === 1 && page > 1
     deletePhoto(id)
       .then(() => {
-        setPhotos(p => p.filter(ph => ph.id !== id))
-        setTotal(n => n - 1)
-        if (isLastOnPage) setPage(p => p - 1)
+        if (isLastOnPage) {
+          setPage(p => p - 1)
+        } else {
+          const q = debouncedQuery.trim() || undefined
+          fetchPhotos(page, PAGE_SIZE, q, sort)
+            .then(data => { setPhotos(data.items); setTotal(data.total) })
+            .catch(console.error)
+        }
       })
       .catch(console.error)
   }
 
   function handleUploaded(photo: Photo) {
-    if (page === 1) {
+    if (page === 1 && !debouncedQuery && sort === 'newest') {
       setPhotos(p => [photo, ...p.slice(0, PAGE_SIZE - 1)])
       setTotal(n => n + 1)
     } else {
+      setDebouncedQuery('')
+      setSearchQuery('')
+      setSort('newest')
       setPage(1)
     }
   }
+
+  const isSearchActive = debouncedQuery.trim() !== ''
 
   return (
     <div className="page">
@@ -170,15 +209,62 @@ export default function Gallery() {
       <main className="page__main">
         <div className="media-header">
           <h1 className="media-header__title">{t('gallery.title')}</h1>
-          {canEdit && (
-            <button className="media-header__add" onClick={() => setShowModal(true)}>+</button>
-          )}
+
+          <div className="media-header__controls">
+            <div className={`media-search${searchOpen ? ' media-search--open' : ''}`}>
+              <input
+                ref={searchInputRef}
+                className="media-search__input"
+                placeholder={t('gallery.gridSearch')}
+                value={searchQuery}
+                onChange={e => setSearchQuery(e.target.value)}
+                onKeyDown={e => { if (e.key === 'Escape') handleSearchClear() }}
+              />
+            </div>
+
+            <button
+              className={`media-header__icon-btn${searchOpen || debouncedQuery ? ' media-header__icon-btn--active' : ''}`}
+              onClick={searchOpen && searchQuery ? handleSearchClear : handleSearchToggle}
+              title="Поиск"
+            >
+              {searchOpen && searchQuery
+                ? <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M18 6L6 18M6 6l12 12"/></svg>
+                : <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+              }
+            </button>
+
+            <button
+              className={`media-header__icon-btn${filterOpen || sort !== 'newest' ? ' media-header__icon-btn--active' : ''}`}
+              onClick={() => setFilterOpen(v => !v)}
+              title="Сортировка"
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M22 3H2l8 9.46V19l4 2v-8.54L22 3z"/></svg>
+            </button>
+
+            {canEdit && (
+              <button className="media-header__add" onClick={() => setShowModal(true)}>+</button>
+            )}
+          </div>
         </div>
+
+        {filterOpen && (
+          <div className="media-filter-bar">
+            {(['newest', 'oldest'] as const).map(val => (
+              <button
+                key={val}
+                className={`media-filter-pill${sort === val ? ' media-filter-pill--active' : ''}`}
+                onClick={() => setSort(val)}
+              >
+                {t(`gallery.sort${val.charAt(0).toUpperCase() + val.slice(1)}` as Parameters<typeof t>[0])}
+              </button>
+            ))}
+          </div>
+        )}
 
         {loading
           ? <div className="loading-spinner" />
-          : photos.length === 0 && total === 0
-          ? <p className="media-empty">{t('common.empty')}</p>
+          : photos.length === 0
+          ? <p className="media-empty">{isSearchActive ? t('gallery.noSearchResults') : t('common.empty')}</p>
           : (
             <>
               <motion.div

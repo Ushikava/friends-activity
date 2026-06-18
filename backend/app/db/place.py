@@ -1,7 +1,32 @@
-from sqlalchemy import func
+from sqlalchemy import func, or_
 from sqlalchemy.orm import Session
 
 from db.models import Place
+
+
+def get_places(
+    db: Session,
+    skip: int = 0,
+    limit: int = 20,
+    q: str | None = None,
+    sort: str = 'newest',
+) -> tuple[list[Place], int]:
+    query = db.query(Place)
+    if q:
+        query = query.filter(
+            Place.description.isnot(None),
+            or_(
+                func.word_similarity(q, Place.description) > 0.2,
+                Place.description.ilike(f'%{q}%'),
+            )
+        ).order_by(func.word_similarity(q, Place.description).desc(), Place.uploaded_at.desc())
+    elif sort == 'oldest':
+        query = query.order_by(Place.uploaded_at.asc())
+    else:
+        query = query.order_by(Place.uploaded_at.desc())
+    total: int = query.count()
+    places = query.offset(skip).limit(limit).all()
+    return places, total
 
 
 def get_all_places(db: Session, skip: int = 0, limit: int = 20) -> list[Place]:

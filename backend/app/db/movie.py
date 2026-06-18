@@ -1,9 +1,79 @@
 from datetime import datetime, timezone
 
-from sqlalchemy import func
+from sqlalchemy import func, or_
 from sqlalchemy.orm import Session
 
 from db.models import Movie, MovieWatch, UserData
+
+
+def _build_movie_dicts(db: Session, movies: list, user_id: int | None) -> list[dict]:
+    if not movies:
+        return []
+    user_count: int = db.query(func.count(UserData.id)).filter(UserData.role != 'observer').scalar() or 0
+    movie_ids = [m.id for m in movies]
+    watch_counts: dict[int, int] = dict(
+        db.query(MovieWatch.movie_id, func.count(MovieWatch.id))
+        .filter(MovieWatch.movie_id.in_(movie_ids), MovieWatch.is_watched.is_(True))
+        .group_by(MovieWatch.movie_id)
+        .all()
+    )
+    my_watched: set[int] = set()
+    if user_id is not None:
+        my_watched = {
+            w.movie_id
+            for w in db.query(MovieWatch.movie_id)
+            .filter(MovieWatch.movie_id.in_(movie_ids), MovieWatch.user_id == user_id, MovieWatch.is_watched.is_(True))
+            .all()
+        }
+    return [
+        {
+            'id': m.id,
+            'title': m.title,
+            'poster': m.poster,
+            'watch_count': watch_counts.get(m.id, 0),
+            'user_count': user_count,
+            'is_watched_by_me': m.id in my_watched,
+            'added_by': m.added_by,
+            'created_at': m.created_at,
+        }
+        for m in movies
+    ]
+
+
+def get_movies(
+    db: Session,
+    skip: int = 0,
+    limit: int = 20,
+    user_id: int | None = None,
+    q: str | None = None,
+    status: str | None = None,
+) -> tuple[list[dict], int]:
+    query = db.query(Movie)
+
+    if q:
+        query = query.filter(
+            or_(
+                func.word_similarity(q, Movie.title) > 0.2,
+                Movie.title.ilike(f'%{q}%'),
+            )
+        ).order_by(func.word_similarity(q, Movie.title).desc(), Movie.created_at.desc())
+    else:
+        query = query.order_by(Movie.created_at.desc())
+
+    if status == 'watched' and user_id is not None:
+        watched_ids = db.query(MovieWatch.movie_id).filter(
+            MovieWatch.user_id == user_id, MovieWatch.is_watched.is_(True)
+        ).subquery()
+        query = query.filter(Movie.id.in_(watched_ids))
+    elif status == 'unwatched' and user_id is not None:
+        watched_ids = db.query(MovieWatch.movie_id).filter(
+            MovieWatch.user_id == user_id, MovieWatch.is_watched.is_(True)
+        ).subquery()
+        query = query.filter(~Movie.id.in_(watched_ids))
+
+    total: int = query.count()
+    movies = query.offset(skip).limit(limit).all()
+    return _build_movie_dicts(db, movies, user_id), total
 
 
 def get_all_movies(db: Session, skip: int = 0, limit: int = 20, user_id: int | None = None) -> list[dict]:

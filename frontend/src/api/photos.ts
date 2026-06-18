@@ -4,9 +4,12 @@ import type { Photo, PaginatedResponse } from '../types'
 const API = import.meta.env.VITE_API_URL
 const UPLOADS = import.meta.env.VITE_UPLOADS_URL
 
-export async function fetchPhotos(page = 1, limit = 20): Promise<PaginatedResponse<Photo>> {
+export async function fetchPhotos(page = 1, limit = 20, q?: string, sort?: string): Promise<PaginatedResponse<Photo>> {
   const skip = (page - 1) * limit
-  const res = await apiFetch(`${API}/photos/?skip=${skip}&limit=${limit}`)
+  const params = new URLSearchParams({ skip: String(skip), limit: String(limit) })
+  if (q) params.set('q', q)
+  if (sort) params.set('sort', sort)
+  const res = await apiFetch(`${API}/photos/?${params}`)
   if (!res.ok) throw new Error('Ошибка загрузки')
   return res.json() as Promise<PaginatedResponse<Photo>>
 }

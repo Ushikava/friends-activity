@@ -10,9 +10,12 @@ export interface TmdbMovie {
 
 const API = import.meta.env.VITE_API_URL
 
-export async function fetchMovies(page = 1, limit = 20): Promise<PaginatedResponse<Movie>> {
+export async function fetchMovies(page = 1, limit = 20, q?: string, status?: string): Promise<PaginatedResponse<Movie>> {
   const skip = (page - 1) * limit
-  const res = await apiFetch(`${API}/movies/?skip=${skip}&limit=${limit}`)
+  const params = new URLSearchParams({ skip: String(skip), limit: String(limit) })
+  if (q) params.set('q', q)
+  if (status) params.set('status', status)
+  const res = await apiFetch(`${API}/movies/?${params}`)
   if (!res.ok) throw new Error('Ошибка загрузки')
   return res.json() as Promise<PaginatedResponse<Movie>>
 }

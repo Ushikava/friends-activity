@@ -28,9 +28,12 @@ router = APIRouter(prefix="/places", tags=["places"])
 def list_places(
     skip: int = Query(0, ge=0),
     limit: int = Query(20, ge=1, le=200),
+    q: str | None = Query(None, max_length=200),
+    sort: str = Query('newest'),
     db: Session = Depends(get_db),
 ):
-    return {"items": place_db.get_all_places(db, skip=skip, limit=limit), "total": place_db.count_places(db)}
+    items, total = place_db.get_places(db, skip=skip, limit=limit, q=q or None, sort=sort)
+    return {"items": items, "total": total}
 
 
 @router.post("/", response_model=PlaceOut, status_code=201)

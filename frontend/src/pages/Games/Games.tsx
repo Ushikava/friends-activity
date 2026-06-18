@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import NavBar from '../../components/NavBar/NavBar'
@@ -245,10 +245,30 @@ export default function Games() {
   const [errMsg, setErrMsg] = useState('')
   const canEdit = getRole() !== 'observer'
 
+  const [searchOpen, setSearchOpen] = useState(false)
+  const [searchQuery, setSearchQuery] = useState('')
+  const [debouncedQuery, setDebouncedQuery] = useState('')
+  const [filterOpen, setFilterOpen] = useState(false)
+  const [statusFilter, setStatusFilter] = useState<'all' | 'played' | 'unplayed'>('all')
+  const searchInputRef = useRef<HTMLInputElement>(null)
+
   function showErr(msg: string) {
     setErrMsg(msg)
     setTimeout(() => setErrMsg(''), 4000)
   }
+
+  // Debounce search query
+  useEffect(() => {
+    const timer = setTimeout(() => setDebouncedQuery(searchQuery), 500)
+    return () => clearTimeout(timer)
+  }, [searchQuery])
+
+  // Reset to page 1 when search/filter changes (after deep link resolved)
+  useEffect(() => {
+    if (!deepLinkPageResolved.current) return
+    if (deepLinkId) setSearchParams({}, { replace: true })
+    setPage(1)
+  }, [debouncedQuery, statusFilter]) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     if (!deepLinkId) return
@@ -264,11 +284,27 @@ export default function Games() {
   useEffect(() => {
     if (page === 0) return
     setLoading(true)
-    fetchGames(page, PAGE_SIZE)
+    const q = debouncedQuery.trim() || undefined
+    const st = statusFilter !== 'all' ? statusFilter : undefined
+    fetchGames(page, PAGE_SIZE, q, st)
       .then(data => { setGames(data.items); setTotal(data.total) })
       .catch(console.error)
       .finally(() => setLoading(false))
-  }, [page]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [page, debouncedQuery, statusFilter]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  const handleSearchToggle = useCallback(() => {
+    if (searchOpen && !searchQuery) {
+      setSearchOpen(false)
+    } else if (!searchOpen) {
+      setSearchOpen(true)
+      setTimeout(() => searchInputRef.current?.focus(), 50)
+    }
+  }, [searchOpen, searchQuery])
+
+  function handleSearchClear() {
+    setSearchQuery('')
+    setSearchOpen(false)
+  }
 
   function handlePlayUpdated(updated: Game) {
     setGames(p => p.map(g => g.id === updated.id ? updated : g))
@@ -282,7 +318,9 @@ export default function Games() {
         if (isLastOnPage) {
           setPage(p => p - 1)
         } else {
-          fetchGames(page, PAGE_SIZE)
+          const q = debouncedQuery.trim() || undefined
+          const st = statusFilter !== 'all' ? statusFilter : undefined
+          fetchGames(page, PAGE_SIZE, q, st)
             .then(data => { setGames(data.items); setTotal(data.total) })
             .catch(console.error)
         }
@@ -291,13 +329,19 @@ export default function Games() {
   }
 
   function handleGameAdded(game: Game) {
-    if (page === 1) {
+    if (page === 1 && !debouncedQuery && statusFilter === 'all') {
       setGames(p => [game, ...p.slice(0, PAGE_SIZE - 1)])
       setTotal(n => n + 1)
     } else {
+      setDebouncedQuery('')
+      setSearchQuery('')
+      setStatusFilter('all')
       setPage(1)
     }
   }
+
+  const isSearchActive = debouncedQuery.trim() !== '' || statusFilter !== 'all'
+  const currentDeepLinkId = isSearchActive ? null : deepLinkId
 
   return (
     <div className="page">
@@ -307,22 +351,69 @@ export default function Games() {
 
         <div className="media-header">
           <h1 className="media-header__title">{t('games.title')}</h1>
-          {canEdit && (
-            <button className="media-header__add" onClick={() => setShowModal(true)}>+</button>
-          )}
+
+          <div className="media-header__controls">
+            <div className={`media-search${searchOpen ? ' media-search--open' : ''}`}>
+              <input
+                ref={searchInputRef}
+                className="media-search__input"
+                placeholder={t('games.gridSearch')}
+                value={searchQuery}
+                onChange={e => setSearchQuery(e.target.value)}
+                onKeyDown={e => { if (e.key === 'Escape') handleSearchClear() }}
+              />
+            </div>
+
+            <button
+              className={`media-header__icon-btn${searchOpen || debouncedQuery ? ' media-header__icon-btn--active' : ''}`}
+              onClick={searchOpen && searchQuery ? handleSearchClear : handleSearchToggle}
+              title="Поиск"
+            >
+              {searchOpen && searchQuery
+                ? <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M18 6L6 18M6 6l12 12"/></svg>
+                : <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+              }
+            </button>
+
+            <button
+              className={`media-header__icon-btn${filterOpen || statusFilter !== 'all' ? ' media-header__icon-btn--active' : ''}`}
+              onClick={() => setFilterOpen(v => !v)}
+              title="Фильтр"
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M22 3H2l8 9.46V19l4 2v-8.54L22 3z"/></svg>
+            </button>
+
+            {canEdit && (
+              <button className="media-header__add" onClick={() => setShowModal(true)}>+</button>
+            )}
+          </div>
         </div>
+
+        {filterOpen && (
+          <div className="media-filter-bar">
+            {(['all', 'played', 'unplayed'] as const).map(val => (
+              <button
+                key={val}
+                className={`media-filter-pill${statusFilter === val ? ' media-filter-pill--active' : ''}`}
+                onClick={() => setStatusFilter(val)}
+              >
+                {t(`games.filter${val.charAt(0).toUpperCase() + val.slice(1)}` as Parameters<typeof t>[0])}
+              </button>
+            ))}
+          </div>
+        )}
 
         {loading
           ? <div className="loading-spinner" />
           : games.length === 0
-          ? <p className="media-empty">{t('common.empty')}</p>
+          ? <p className="media-empty">{isSearchActive ? t('games.noSearchResults') : t('common.empty')}</p>
           : (
             <motion.div
               className="media-grid"
               variants={containerVariants}
-              initial={deepLinkId ? false : 'hidden'}
+              initial={currentDeepLinkId ? false : 'hidden'}
               animate="show"
-              style={deepLinkId && !deepLinkReady ? { visibility: 'hidden' } : undefined}
+              style={currentDeepLinkId && !deepLinkReady ? { visibility: 'hidden' } : undefined}
             >
               {games.map(g => (
                 <motion.div key={g.id} variants={cardVariants}>
@@ -331,8 +422,8 @@ export default function Games() {
                     canEdit={canEdit}
                     onDelete={handleDelete}
                     onPlayUpdated={handlePlayUpdated}
-                    deepLinkReady={g.id === Number(deepLinkId) ? deepLinkReady : undefined}
-                    onDeepLinkReady={g.id === Number(deepLinkId) ? () => setDeepLinkReady(true) : undefined}
+                    deepLinkReady={g.id === Number(currentDeepLinkId) ? deepLinkReady : undefined}
+                    onDeepLinkReady={g.id === Number(currentDeepLinkId) ? () => setDeepLinkReady(true) : undefined}
                   />
                 </motion.div>
               ))}

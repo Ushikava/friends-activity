@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import NavBar from '../../components/NavBar/NavBar'
@@ -240,30 +240,66 @@ export default function Movies() {
   const [errMsg, setErrMsg] = useState('')
   const canEdit = getRole() !== 'observer'
 
+  const [searchOpen, setSearchOpen] = useState(false)
+  const [searchQuery, setSearchQuery] = useState('')
+  const [debouncedQuery, setDebouncedQuery] = useState('')
+  const [filterOpen, setFilterOpen] = useState(false)
+  const [statusFilter, setStatusFilter] = useState<'all' | 'watched' | 'unwatched'>('all')
+  const searchInputRef = useRef<HTMLInputElement>(null)
+
   function showErr(msg: string) {
     setErrMsg(msg)
     setTimeout(() => setErrMsg(''), 4000)
   }
+
+  // Debounce search query
+  useEffect(() => {
+    const timer = setTimeout(() => setDebouncedQuery(searchQuery), 500)
+    return () => clearTimeout(timer)
+  }, [searchQuery])
+
+  // Reset to page 1 when search/filter changes (after deep link resolved)
+  useEffect(() => {
+    if (!deepLinkPageResolved.current) return
+    if (deepLinkId) setSearchParams({}, { replace: true })
+    setPage(1)
+  }, [debouncedQuery, statusFilter]) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     if (!deepLinkId) return
     fetchMoviePageNumber(Number(deepLinkId), PAGE_SIZE)
       .then(targetPage => {
         deepLinkPageResolved.current = true
-        if (targetPage === null) { setDeepLinkReady(true); return }
+        if (targetPage === null) { setDeepLinkReady(true); setPage(1); return }
         setPage(targetPage)
       })
-      .catch(() => { deepLinkPageResolved.current = true; setDeepLinkReady(true) })
+      .catch(() => { deepLinkPageResolved.current = true; setDeepLinkReady(true); setPage(1) })
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     if (page === 0) return
     setLoading(true)
-    fetchMovies(page, PAGE_SIZE)
+    const q = debouncedQuery.trim() || undefined
+    const st = statusFilter !== 'all' ? statusFilter : undefined
+    fetchMovies(page, PAGE_SIZE, q, st)
       .then(data => { setMovies(data.items); setTotal(data.total) })
       .catch(console.error)
       .finally(() => setLoading(false))
-  }, [page]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [page, debouncedQuery, statusFilter]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  const handleSearchToggle = useCallback(() => {
+    if (searchOpen && !searchQuery) {
+      setSearchOpen(false)
+    } else if (!searchOpen) {
+      setSearchOpen(true)
+      setTimeout(() => searchInputRef.current?.focus(), 50)
+    }
+  }, [searchOpen, searchQuery])
+
+  function handleSearchClear() {
+    setSearchQuery('')
+    setSearchOpen(false)
+  }
 
   function handleDelete(id: number) {
     const isLastOnPage = movies.length === 1 && page > 1
@@ -273,7 +309,9 @@ export default function Movies() {
         if (isLastOnPage) {
           setPage(p => p - 1)
         } else {
-          fetchMovies(page, PAGE_SIZE)
+          const q = debouncedQuery.trim() || undefined
+          const st = statusFilter !== 'all' ? statusFilter : undefined
+          fetchMovies(page, PAGE_SIZE, q, st)
             .then(data => { setMovies(data.items); setTotal(data.total) })
             .catch(console.error)
         }
@@ -286,13 +324,19 @@ export default function Movies() {
   }
 
   function handleMovieAdded(movie: Movie) {
-    if (page === 1) {
+    if (page === 1 && !debouncedQuery && statusFilter === 'all') {
       setMovies(p => [movie, ...p.slice(0, PAGE_SIZE - 1)])
       setTotal(n => n + 1)
     } else {
+      setDebouncedQuery('')
+      setSearchQuery('')
+      setStatusFilter('all')
       setPage(1)
     }
   }
+
+  const isSearchActive = debouncedQuery.trim() !== '' || statusFilter !== 'all'
+  const currentDeepLinkId = isSearchActive ? null : deepLinkId
 
   return (
     <div className="page">
@@ -302,22 +346,69 @@ export default function Movies() {
 
         <div className="media-header">
           <h1 className="media-header__title">{t('movies.title')}</h1>
-          {canEdit && (
-            <button className="media-header__add" onClick={() => setShowModal(true)}>+</button>
-          )}
+
+          <div className="media-header__controls">
+            <div className={`media-search${searchOpen ? ' media-search--open' : ''}`}>
+              <input
+                ref={searchInputRef}
+                className="media-search__input"
+                placeholder={t('movies.gridSearch')}
+                value={searchQuery}
+                onChange={e => setSearchQuery(e.target.value)}
+                onKeyDown={e => { if (e.key === 'Escape') handleSearchClear() }}
+              />
+            </div>
+
+            <button
+              className={`media-header__icon-btn${searchOpen || debouncedQuery ? ' media-header__icon-btn--active' : ''}`}
+              onClick={searchOpen && searchQuery ? handleSearchClear : handleSearchToggle}
+              title="Поиск"
+            >
+              {searchOpen && searchQuery
+                ? <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M18 6L6 18M6 6l12 12"/></svg>
+                : <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+              }
+            </button>
+
+            <button
+              className={`media-header__icon-btn${filterOpen || statusFilter !== 'all' ? ' media-header__icon-btn--active' : ''}`}
+              onClick={() => setFilterOpen(v => !v)}
+              title="Фильтр"
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M22 3H2l8 9.46V19l4 2v-8.54L22 3z"/></svg>
+            </button>
+
+            {canEdit && (
+              <button className="media-header__add" onClick={() => setShowModal(true)}>+</button>
+            )}
+          </div>
         </div>
+
+        {filterOpen && (
+          <div className="media-filter-bar">
+            {(['all', 'watched', 'unwatched'] as const).map(val => (
+              <button
+                key={val}
+                className={`media-filter-pill${statusFilter === val ? ' media-filter-pill--active' : ''}`}
+                onClick={() => setStatusFilter(val)}
+              >
+                {t(`movies.filter${val.charAt(0).toUpperCase() + val.slice(1)}` as Parameters<typeof t>[0])}
+              </button>
+            ))}
+          </div>
+        )}
 
         {loading
           ? <div className="loading-spinner" />
           : movies.length === 0
-          ? <p className="media-empty">{t('common.empty')}</p>
+          ? <p className="media-empty">{isSearchActive ? t('movies.noSearchResults') : t('common.empty')}</p>
           : (
             <motion.div
               className="media-grid"
               variants={containerVariants}
-              initial={deepLinkId ? false : 'hidden'}
+              initial={currentDeepLinkId ? false : 'hidden'}
               animate="show"
-              style={deepLinkId && !deepLinkReady ? { visibility: 'hidden' } : undefined}
+              style={currentDeepLinkId && !deepLinkReady ? { visibility: 'hidden' } : undefined}
             >
               {movies.map(m => (
                 <motion.div key={m.id} variants={cardVariants}>
@@ -326,8 +417,8 @@ export default function Movies() {
                     canEdit={canEdit}
                     onDelete={handleDelete}
                     onWatchUpdated={handleWatchUpdated}
-                    deepLinkReady={m.id === Number(deepLinkId) ? deepLinkReady : undefined}
-                    onDeepLinkReady={m.id === Number(deepLinkId) ? () => setDeepLinkReady(true) : undefined}
+                    deepLinkReady={m.id === Number(currentDeepLinkId) ? deepLinkReady : undefined}
+                    onDeepLinkReady={m.id === Number(currentDeepLinkId) ? () => setDeepLinkReady(true) : undefined}
                   />
                 </motion.div>
               ))}
