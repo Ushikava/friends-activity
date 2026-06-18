@@ -138,3 +138,4 @@ class Notification(Base):
     entity_title = Column(String, nullable=False)
     is_read = Column(Boolean, default=False, nullable=False)
     created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
+    scheduled_at = Column(DateTime, nullable=True)

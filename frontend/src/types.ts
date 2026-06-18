@@ -120,6 +120,7 @@ export interface Notification {
   entity_title: string
   is_read: boolean
   created_at: string
+  scheduled_at: string | null
 }
 
 // ── Chat ──────────────────────────────────────────────────────────────────────

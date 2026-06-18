@@ -21,6 +21,7 @@ export async function sendNotification(
   entityType: 'movie' | 'game',
   entityId: number,
   entityTitle: string,
+  scheduledAt?: string | null,
 ): Promise<void> {
   const res = await apiFetch(`${API}/notifications/`, {
     method: 'POST',
@@ -30,6 +31,7 @@ export async function sendNotification(
       entity_type: entityType,
       entity_id: entityId,
       entity_title: entityTitle,
+      scheduled_at: scheduledAt ?? null,
     }),
   })
   if (!res.ok) throw new Error('Ошибка отправки')

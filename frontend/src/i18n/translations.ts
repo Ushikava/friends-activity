@@ -211,6 +211,8 @@ export const ru: Dict = {
   'notif.inviteTitle':     'Пригласить',
   'notif.sent':            'Приглашение отправлено',
   'notif.errSend':         'Не удалось отправить',
+  'notif.scheduleLabel':   'Когда? (необязательно)',
+  'notif.scheduledAt':     'Запланировано на',
 }
 
 export const en: Dict = {
@@ -419,4 +421,6 @@ export const en: Dict = {
   'notif.inviteTitle':     'Invite',
   'notif.sent':            'Invitation sent',
   'notif.errSend':         'Failed to send',
+  'notif.scheduleLabel':   'When? (optional)',
+  'notif.scheduledAt':     'Scheduled for',
 }

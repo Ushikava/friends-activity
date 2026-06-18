@@ -137,6 +137,13 @@
   color: var(--text-h);
 }
 
+.notif-item__scheduled {
+  font-size: 0.78rem;
+  color: var(--accent);
+  font-weight: 500;
+  margin: 2px 0 0;
+}
+
 .notif-item__time {
   font-size: 0.72rem;
   color: var(--muted);

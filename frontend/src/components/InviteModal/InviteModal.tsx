@@ -20,6 +20,7 @@ export default function InviteModal({ entityType, entityId, entityTitle, doneUse
   const [sending, setSending] = useState<number | null>(null)
   const [sent, setSent] = useState<Set<number>>(new Set())
   const [err, setErr] = useState('')
+  const [scheduledAt, setScheduledAt] = useState('')
 
   useEffect(() => {
     fetchUsers()
@@ -32,7 +33,8 @@ export default function InviteModal({ entityType, entityId, entityTitle, doneUse
     setSending(user.id)
     setErr('')
     try {
-      await sendNotification(user.id, entityType, entityId, entityTitle)
+      const isoScheduled = scheduledAt ? new Date(scheduledAt).toISOString() : null
+      await sendNotification(user.id, entityType, entityId, entityTitle, isoScheduled)
       setSent(p => new Set(p).add(user.id))
     } catch {
       setErr(t('notif.errSend') as string)
@@ -53,6 +55,17 @@ export default function InviteModal({ entityType, entityId, entityTitle, doneUse
         </div>
 
         <p className="invite-modal__entity">{entityTitle}</p>
+
+        <div className="invite-modal__schedule">
+          <label className="invite-modal__schedule-label">{t('notif.scheduleLabel') as string}</label>
+          <input
+            type="datetime-local"
+            className="invite-modal__datetime"
+            value={scheduledAt}
+            onChange={e => setScheduledAt(e.target.value)}
+            min={new Date().toISOString().slice(0, 16)}
+          />
+        </div>
 
         {err && <p className="invite-modal__err">{err}</p>}
 

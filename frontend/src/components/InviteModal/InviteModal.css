@@ -1,3 +1,43 @@
+/* ── Schedule picker ── */
+.invite-modal__schedule {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.invite-modal__schedule-label {
+  font-size: 0.76rem;
+  color: var(--muted);
+}
+
+.invite-modal__datetime {
+  width: 100%;
+  padding: 7px 10px;
+  border: 1.5px solid var(--input-border);
+  border-radius: 8px;
+  font-size: 0.85rem;
+  font-family: inherit;
+  background: var(--input-bg);
+  color: var(--text);
+  outline: none;
+  transition: border-color 0.15s;
+  cursor: pointer;
+}
+
+.invite-modal__datetime:focus {
+  border-color: var(--accent);
+}
+
+.invite-modal__datetime::-webkit-calendar-picker-indicator {
+  opacity: 0.5;
+  cursor: pointer;
+  filter: var(--calendar-icon-filter, none);
+}
+
+[data-theme="dark"] .invite-modal__datetime::-webkit-calendar-picker-indicator {
+  filter: invert(1);
+}
+
 .invite-backdrop {
   position: absolute;
   inset: 0;

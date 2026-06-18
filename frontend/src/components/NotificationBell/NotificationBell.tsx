@@ -32,6 +32,14 @@ import { useLang } from '../../i18n/LangContext'
 import type { Notification } from '../../types'
 import './NotificationBell.css'
 
+function formatScheduledAt(iso: string, lang: string): string {
+  const d = new Date(iso)
+  if (lang === 'ru') {
+    return d.toLocaleString('ru-RU', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })
+  }
+  return d.toLocaleString('en-US', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })
+}
+
 function formatTime(iso: string, lang: string): string {
   const diffMs = Date.now() - new Date(iso).getTime()
   const diffMin = Math.floor(diffMs / 60_000)
@@ -164,6 +172,11 @@ export default function NotificationBell() {
                           {' '}
                           <em>{n.entity_title}</em>
                         </p>
+                        {n.scheduled_at && (
+                          <p className="notif-item__scheduled">
+                            {t('notif.scheduledAt') as string}: {formatScheduledAt(n.scheduled_at, lang)}
+                          </p>
+                        )}
                         <time className="notif-item__time">{formatTime(n.created_at, lang)}</time>
                       </div>
                       <button

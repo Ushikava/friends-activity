@@ -11,6 +11,7 @@ def create_notification(
     entity_type: str,
     entity_id: int,
     entity_title: str,
+    scheduled_at=None,
 ) -> Notification:
     n = Notification(
         sender_id=sender_id,
@@ -19,6 +20,7 @@ def create_notification(
         entity_type=entity_type,
         entity_id=entity_id,
         entity_title=entity_title,
+        scheduled_at=scheduled_at,
     )
     db.add(n)
     db.commit()

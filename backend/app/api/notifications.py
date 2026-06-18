@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from fastapi import APIRouter, Depends, status
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
@@ -16,6 +18,7 @@ class SendNotificationBody(BaseModel):
     entity_type: str   # "movie" | "game"
     entity_id: int
     entity_title: str
+    scheduled_at: datetime | None = None
 
 
 @router.post("/", status_code=201)
@@ -40,6 +43,7 @@ def send_notification(
         entity_type=body.entity_type,
         entity_id=body.entity_id,
         entity_title=body.entity_title,
+        scheduled_at=body.scheduled_at,
     )
     return {"ok": True}
 
@@ -59,6 +63,7 @@ def get_notifications(
             "entity_title": n.entity_title,
             "is_read": n.is_read,
             "created_at": n.created_at.isoformat() if n.created_at else None,
+            "scheduled_at": n.scheduled_at.isoformat() if n.scheduled_at else None,
         }
         for n in items
     ]
