@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { fetchUsers, getUsername } from '../../api/auth'
 import { sendNotification } from '../../api/notifications'
 import { useLang } from '../../i18n/LangContext'
+import DateTimePicker from '../DateTimePicker/DateTimePicker'
 import type { UserInfo } from '../../types'
 import './InviteModal.css'
 
@@ -58,12 +59,11 @@ export default function InviteModal({ entityType, entityId, entityTitle, doneUse
 
         <div className="invite-modal__schedule">
           <label className="invite-modal__schedule-label">{t('notif.scheduleLabel') as string}</label>
-          <input
-            type="datetime-local"
-            className="invite-modal__datetime"
+          <DateTimePicker
             value={scheduledAt}
-            onChange={e => setScheduledAt(e.target.value)}
-            min={new Date().toISOString().slice(0, 16)}
+            onChange={setScheduledAt}
+            placeholder={t('notif.scheduleLabel') as string}
+            minDateTime={new Date().toISOString().slice(0, 16)}
           />
         </div>
 

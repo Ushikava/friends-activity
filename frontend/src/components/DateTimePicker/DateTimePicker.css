@@ -1,0 +1,245 @@
+/* ── Wrapper ── */
+.dtp {
+  position: relative;
+  width: 100%;
+}
+
+/* ── Trigger button ── */
+.dtp__trigger {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 8px 11px;
+  border: 1.5px solid var(--input-border);
+  border-radius: 10px;
+  background: var(--input-bg);
+  color: var(--muted);
+  font-size: 0.85rem;
+  font-family: inherit;
+  cursor: pointer;
+  text-align: left;
+  transition: border-color 0.15s;
+}
+
+.dtp__trigger:hover,
+.dtp__trigger:focus-visible {
+  border-color: var(--accent);
+  outline: none;
+}
+
+.dtp__trigger--filled {
+  color: var(--text);
+}
+
+.dtp__cal-icon {
+  flex-shrink: 0;
+  color: var(--muted);
+}
+
+.dtp__trigger--filled .dtp__cal-icon {
+  color: var(--accent);
+}
+
+.dtp__trigger-text {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.dtp__clear {
+  flex-shrink: 0;
+  font-size: 1rem;
+  line-height: 1;
+  color: var(--muted);
+  cursor: pointer;
+  padding: 0 2px;
+  transition: color 0.12s;
+}
+
+.dtp__clear:hover {
+  color: var(--accent);
+}
+
+/* ── Dropdown panel ── */
+.dtp__panel {
+  position: absolute;
+  left: 0;
+  top: calc(100% + 6px);
+  z-index: 200;
+  width: 270px;
+  background: var(--card-bg);
+  border: 1.5px solid var(--input-border);
+  border-radius: 14px;
+  padding: 14px 12px 12px;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.18);
+  animation: dtp-in 0.12s ease;
+}
+
+@keyframes dtp-in {
+  from { opacity: 0; transform: translateY(-5px) }
+  to   { opacity: 1; transform: translateY(0) }
+}
+
+/* ── Month navigation ── */
+.dtp__nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.dtp__nav-btn {
+  width: 26px;
+  height: 26px;
+  border: 1.5px solid var(--input-border);
+  border-radius: 8px;
+  background: transparent;
+  color: var(--text);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.12s, border-color 0.12s, color 0.12s;
+  padding: 0;
+}
+
+.dtp__nav-btn:hover {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+}
+
+.dtp__month-label {
+  font-size: 0.84rem;
+  font-weight: 700;
+  color: var(--text-h);
+  letter-spacing: 0.01em;
+}
+
+/* ── Weekday row ── */
+.dtp__weekdays {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  margin-bottom: 4px;
+}
+
+.dtp__wd {
+  text-align: center;
+  font-size: 0.68rem;
+  font-weight: 600;
+  color: var(--muted);
+  padding: 2px 0;
+  letter-spacing: 0.02em;
+}
+
+/* ── Day grid ── */
+.dtp__grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 1px;
+}
+
+.dtp__day {
+  aspect-ratio: 1;
+  border: none;
+  border-radius: 50%;
+  background: none;
+  font-family: inherit;
+  font-size: 0.78rem;
+  color: var(--text);
+  cursor: pointer;
+  transition: background 0.1s, color 0.1s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  position: relative;
+}
+
+.dtp__day:hover:not(.dtp__day--disabled):not(.dtp__day--sel) {
+  background: var(--accent-bg);
+  color: var(--accent);
+}
+
+.dtp__day--other {
+  color: var(--muted-extra);
+}
+
+.dtp__day--today {
+  color: var(--accent);
+  font-weight: 700;
+}
+
+.dtp__day--today::after {
+  content: '';
+  position: absolute;
+  bottom: 3px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--accent);
+}
+
+.dtp__day--sel {
+  background: var(--accent);
+  color: #fff;
+  font-weight: 700;
+}
+
+.dtp__day--sel.dtp__day--today::after {
+  background: #fff;
+}
+
+.dtp__day--disabled {
+  color: var(--muted-extra);
+  cursor: not-allowed;
+  opacity: 0.35;
+}
+
+/* ── Time row ── */
+.dtp__time {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid var(--border);
+}
+
+.dtp__time-inp {
+  width: 50px;
+  text-align: center;
+  padding: 5px 4px;
+  border: 1.5px solid var(--input-border);
+  border-radius: 8px;
+  background: var(--input-bg);
+  color: var(--text);
+  font-family: inherit;
+  font-size: 1rem;
+  font-weight: 700;
+  -moz-appearance: textfield;
+  transition: border-color 0.13s;
+}
+
+.dtp__time-inp:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+
+.dtp__time-inp::-webkit-inner-spin-button,
+.dtp__time-inp::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+}
+
+.dtp__colon {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--text);
+  line-height: 1;
+  margin-bottom: 1px;
+}
