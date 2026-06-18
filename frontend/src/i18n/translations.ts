@@ -181,6 +181,18 @@ export const ru: Dict = {
   'feed.game_played':   'прошёл(а)',
   'feed.game_reviewed': 'прошёл(а) и оставил(а) отзыв на',
   'feed.user_created':  'присоединился(ась)',
+
+  // notifications
+  'notif.title':           'Уведомления',
+  'notif.empty':           'Нет уведомлений',
+  'notif.markAllRead':     'Прочитать все',
+  'notif.invite.movie':    'приглашает посмотреть',
+  'notif.invite.game':     'приглашает сыграть в',
+  'notif.open':            'Открыть',
+  'notif.invite':          'Пригласить',
+  'notif.inviteTitle':     'Пригласить',
+  'notif.sent':            'Приглашение отправлено',
+  'notif.errSend':         'Не удалось отправить',
 }
 
 export const en: Dict = {
@@ -359,4 +371,16 @@ export const en: Dict = {
   'feed.game_played':   'completed',
   'feed.game_reviewed': 'completed and reviewed',
   'feed.user_created':  'joined',
+
+  // notifications
+  'notif.title':           'Notifications',
+  'notif.empty':           'No notifications',
+  'notif.markAllRead':     'Mark all read',
+  'notif.invite.movie':    'invites you to watch',
+  'notif.invite.game':     'invites you to play',
+  'notif.open':            'Open',
+  'notif.invite':          'Invite',
+  'notif.inviteTitle':     'Invite',
+  'notif.sent':            'Invitation sent',
+  'notif.errSend':         'Failed to send',
 }

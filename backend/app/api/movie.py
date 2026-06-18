@@ -72,7 +72,7 @@ def add_movie(
             poster = poster_url
 
     movie = movie_db.create_movie(db, title=title, poster=poster, user_id=user_id)
-    log_activity(db, user_id=user_id, username=user.username, action="movie_add", entity_title=title)
+    log_activity(db, user_id=user_id, username=user.username, action="movie_add", entity_title=title, entity_type="movie", entity_id=movie['id'])
     return movie
 
 
@@ -133,6 +133,19 @@ def tmdb_poster(
     return Response(content=resp.content, media_type=resp.headers.get("content-type", "image/jpeg"))
 
 
+@router.get("/{movie_id}/page-number")
+def get_movie_page_number(
+    movie_id: int,
+    limit: int = Query(20),
+    _: int = Depends(get_user_from_token),
+    db: Session = Depends(get_db),
+):
+    page = movie_db.get_movie_page(db, movie_id, limit)
+    if page is None:
+        raise NotFoundError("Фильм")
+    return {"page": page}
+
+
 @router.get("/{movie_id}/detail", response_model=MovieDetail)
 def get_movie_detail(
     movie_id: int,
@@ -163,7 +176,7 @@ def toggle_watched(
     if user_status and user_status['is_watched']:
         has_review = bool(user_status.get('review')) or user_status.get('rating') is not None
         action = "movie_reviewed" if has_review else "movie_watched"
-        log_activity(db, user_id=user_id, username=user.username, action=action, entity_title=detail['title'])
+        log_activity(db, user_id=user_id, username=user.username, action=action, entity_title=detail['title'], entity_type="movie", entity_id=movie_id)
     return detail
 
 

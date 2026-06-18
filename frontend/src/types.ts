@@ -104,6 +104,21 @@ export interface FeedEvent {
   username: string | null
   action: string
   entity_title: string | null
+  entity_type: string | null
+  entity_id: number | null
+  count: number
+  created_at: string
+}
+
+// ── Notifications ─────────────────────────────────────────────────────────────
+
+export interface Notification {
+  id: number
+  sender_username: string
+  entity_type: 'movie' | 'game'
+  entity_id: number
+  entity_title: string
+  is_read: boolean
   created_at: string
 }
 

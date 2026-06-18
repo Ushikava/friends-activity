@@ -72,6 +72,14 @@ def get_game_by_id(db: Session, game_id: int) -> Game | None:
     return db.query(Game).filter(Game.id == game_id).first()
 
 
+def get_game_page(db: Session, game_id: int, limit: int = 20) -> int | None:
+    game = get_game_by_id(db, game_id)
+    if not game:
+        return None
+    position = db.query(func.count(Game.id)).filter(Game.created_at > game.created_at).scalar() or 0
+    return (position // limit) + 1
+
+
 def get_game_detail(db: Session, game_id: int) -> dict | None:
     game = get_game_by_id(db, game_id)
     if not game:

@@ -29,6 +29,12 @@ export async function updatePlaceDescription(id: number, description: string | n
   if (!res.ok) throw new Error('Ошибка обновления описания')
 }
 
+export async function fetchPlaceById(id: number): Promise<Place> {
+  const res = await apiFetch(`${API}/places/${id}`)
+  if (!res.ok) throw new Error('Место не найдено')
+  return res.json() as Promise<Place>
+}
+
 export async function deletePlace(id: number): Promise<void> {
   const res = await apiFetch(`${API}/places/${id}`, { method: 'DELETE' })
   if (!res.ok) throw new Error('Ошибка удаления')

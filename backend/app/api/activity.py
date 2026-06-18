@@ -40,7 +40,7 @@ def get_feed_endpoint(
     user_id: int = Depends(get_user_from_token),
     db: Session = Depends(get_db),
 ):
-    return get_feed(db, limit=50)
+    return get_feed(db, limit=15)
 
 
 @router.get("/stats")

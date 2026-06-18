@@ -1,7 +1,10 @@
 import { useState, useEffect, useRef } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import { fetchMovieDetail, toggleUserWatched, updateMovie } from '../../api/movies'
 import { getRole, getUsername } from '../../api/auth'
 import { useLang } from '../../i18n/LangContext'
+import InviteModal from '../InviteModal/InviteModal'
+import { UserPlusIcon } from '@heroicons/react/24/outline'
 import type { Movie, MovieDetail, MovieUserStatus } from '../../types'
 import './MovieCard.css'
 
@@ -313,28 +316,53 @@ interface Props {
   canEdit: boolean
   onDelete: (id: number) => void
   onWatchUpdated: (updated: Movie) => void
+  deepLinkReady?: boolean
+  onDeepLinkReady?: () => void
 }
 
-export default function MovieCard({ movie, canEdit, onDelete, onWatchUpdated }: Props) {
+export default function MovieCard({ movie, canEdit, onDelete, onWatchUpdated, deepLinkReady, onDeepLinkReady }: Props) {
   const { t } = useLang()
-  const [detailOpen, setDetailOpen] = useState(false)
+  const [searchParams, setSearchParams] = useSearchParams()
+  const isPreOpen = searchParams.get('movie') === String(movie.id)
+  const [detailOpen, setDetailOpen] = useState(isPreOpen)
   const [detailClosing, setDetailClosing] = useState(false)
   const [detail, setDetail] = useState<MovieDetail | null>(null)
-  const [loadingDetail, setLoadingDetail] = useState(false)
+  const [loadingDetail, setLoadingDetail] = useState(isPreOpen)
+  const [animateModal, setAnimateModal] = useState(!isPreOpen)
   const [toggling, setToggling] = useState(false)
   const [reviewOpen, setReviewOpen] = useState(false)
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false)
   const [editOpen, setEditOpen] = useState(false)
   const [editSaving, setEditSaving] = useState(false)
+  const [inviteOpen, setInviteOpen] = useState(false)
   const src = posterSrc(movie.poster)
   const isObserver = getRole() === 'observer'
   const currentUsername = getUsername()
   const isAllWatched = movie.user_count > 0 && movie.watch_count === movie.user_count
 
+  useEffect(() => {
+    if (isPreOpen) {
+      setDetailOpen(true)
+      setDetailClosing(false)
+      setLoadingDetail(true)
+      fetchMovieDetail(movie.id)
+        .then(d => { setDetail(d); onDeepLinkReady?.() })
+        .catch(console.error)
+        .finally(() => setLoadingDetail(false))
+    }
+  }, [isPreOpen]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
+    if (deepLinkReady && isPreOpen && !animateModal) {
+      requestAnimationFrame(() => setAnimateModal(true))
+    }
+  }, [deepLinkReady]) // eslint-disable-line react-hooks/exhaustive-deps
+
   function openDetail() {
     setDetailOpen(true)
     setDetailClosing(false)
     setLoadingDetail(true)
+    setSearchParams({ movie: String(movie.id) }, { replace: true })
     fetchMovieDetail(movie.id)
       .then(d => setDetail(d))
       .catch(console.error)
@@ -346,6 +374,9 @@ export default function MovieCard({ movie, canEdit, onDelete, onWatchUpdated }: 
     setReviewOpen(false)
     setDeleteConfirmOpen(false)
     setEditOpen(false)
+    if (searchParams.get('movie') === String(movie.id)) {
+      setSearchParams({}, { replace: true })
+    }
   }
 
   function handleAnimationEnd(e: React.AnimationEvent) {
@@ -356,13 +387,13 @@ export default function MovieCard({ movie, canEdit, onDelete, onWatchUpdated }: 
   }
 
   useEffect(() => {
-    if (!detailOpen || reviewOpen || deleteConfirmOpen || editOpen) return
+    if (!detailOpen || reviewOpen || deleteConfirmOpen || editOpen || inviteOpen) return
     function onKey(e: KeyboardEvent) {
       if (e.key === 'Escape') closeDetail()
     }
     document.addEventListener('keydown', onKey)
     return () => document.removeEventListener('keydown', onKey)
-  }, [detailOpen, reviewOpen, deleteConfirmOpen, editOpen])
+  }, [detailOpen, reviewOpen, deleteConfirmOpen, editOpen, inviteOpen])
 
   function applyToggleResult(d: MovieDetail) {
     setDetail(d)
@@ -456,7 +487,7 @@ export default function MovieCard({ movie, canEdit, onDelete, onWatchUpdated }: 
 
       {detailOpen && (
         <div
-          className={`movie-detail-backdrop${detailClosing ? ' movie-detail-backdrop--closing' : ''}`}
+          className={`movie-detail-backdrop${detailClosing ? ' movie-detail-backdrop--closing' : ''}${isPreOpen && !animateModal ? ' movie-detail-backdrop--preload' : ''}`}
           onClick={closeDetail}
           onAnimationEnd={handleAnimationEnd}
         >
@@ -468,32 +499,43 @@ export default function MovieCard({ movie, canEdit, onDelete, onWatchUpdated }: 
               <div className="movie-detail__header">
                 <div className="movie-detail__header-row">
                   <h2 className="movie-detail__title">{movie.title}</h2>
-                  {canEdit && (
-                    <div className="movie-detail__header-btns">
+                  <div className="movie-detail__header-btns">
+                    {!isObserver && (
                       <button
                         className="movie-detail__edit-btn"
-                        onClick={e => { e.stopPropagation(); setEditOpen(true) }}
-                        title={t('common.edit') as string}
+                        onClick={e => { e.stopPropagation(); setInviteOpen(true) }}
+                        title={t('notif.invite') as string}
                       >
-                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                          <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
-                          <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
-                        </svg>
+                        <UserPlusIcon style={{ width: 17, height: 17 }} />
                       </button>
-                      <button
-                        className="movie-detail__delete-btn"
-                        onClick={e => { e.stopPropagation(); setDeleteConfirmOpen(true) }}
-                        title={t('common.delete') as string}
-                      >
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                          <polyline points="3 6 5 6 21 6" />
-                          <path d="M19 6l-1 14H6L5 6" />
-                          <path d="M10 11v6M14 11v6" />
-                          <path d="M9 6V4h6v2" />
-                        </svg>
-                      </button>
-                    </div>
-                  )}
+                    )}
+                    {canEdit && (
+                      <>
+                        <button
+                          className="movie-detail__edit-btn"
+                          onClick={e => { e.stopPropagation(); setEditOpen(true) }}
+                          title={t('common.edit') as string}
+                        >
+                          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+                            <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+                          </svg>
+                        </button>
+                        <button
+                          className="movie-detail__delete-btn"
+                          onClick={e => { e.stopPropagation(); setDeleteConfirmOpen(true) }}
+                          title={t('common.delete') as string}
+                        >
+                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <polyline points="3 6 5 6 21 6" />
+                            <path d="M19 6l-1 14H6L5 6" />
+                            <path d="M10 11v6M14 11v6" />
+                            <path d="M9 6V4h6v2" />
+                          </svg>
+                        </button>
+                      </>
+                    )}
+                  </div>
                 </div>
                 <span className="movie-detail__subtitle">
                   {t('movies.watchedBy')}
@@ -565,6 +607,16 @@ export default function MovieCard({ movie, canEdit, onDelete, onWatchUpdated }: 
               onSave={handleSaveEdit}
               onCancel={() => setEditOpen(false)}
               loading={editSaving}
+            />
+          )}
+
+          {inviteOpen && (
+            <InviteModal
+              entityType="movie"
+              entityId={movie.id}
+              entityTitle={movie.title}
+              doneUsernames={detail?.statuses.filter(s => s.is_watched).map(s => s.username) ?? []}
+              onClose={() => setInviteOpen(false)}
             />
           )}
         </div>

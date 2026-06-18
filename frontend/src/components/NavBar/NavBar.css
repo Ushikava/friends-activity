@@ -21,9 +21,9 @@
 }
 
 .navbar__left {
+  flex: 1;
   display: flex;
   align-items: center;
-  margin-right: auto;
 }
 
 .navbar__center {
@@ -33,9 +33,10 @@
 }
 
 .navbar__right {
+  flex: 1;
   display: flex;
   align-items: center;
-  margin-left: auto;
+  justify-content: flex-end;
 }
 
 .navbar__item {

@@ -38,6 +38,13 @@ export async function fetchMovieDetail(id: number): Promise<MovieDetail> {
   return res.json() as Promise<MovieDetail>
 }
 
+export async function fetchMoviePageNumber(id: number, limit: number): Promise<number | null> {
+  const res = await apiFetch(`${API}/movies/${id}/page-number?limit=${limit}`)
+  if (!res.ok) return null
+  const data = await res.json() as { page: number }
+  return data.page
+}
+
 export async function toggleUserWatched(
   id: number,
   body?: { rating: number | null; review: string | null },

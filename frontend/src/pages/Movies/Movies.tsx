@@ -1,9 +1,10 @@
 import { useState, useEffect, useRef } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import NavBar from '../../components/NavBar/NavBar'
 import MovieCard from '../../components/MovieCard/MovieCard'
 import Pagination from '../../components/Pagination/Pagination'
-import { fetchMovies, addMovie, deleteMovie, searchTmdb } from '../../api/movies'
+import { fetchMovies, addMovie, deleteMovie, searchTmdb, fetchMoviePageNumber } from '../../api/movies'
 import type { TmdbMovie } from '../../api/movies'
 
 const API = import.meta.env.VITE_API_URL
@@ -227,9 +228,13 @@ function AddMovieModal({ onClose, onAdd }: AddMovieModalProps) {
 
 export default function Movies() {
   const { t } = useLang()
+  const [searchParams, setSearchParams] = useSearchParams()
+  const deepLinkId = searchParams.get('movie')
+  const [deepLinkReady, setDeepLinkReady] = useState(!deepLinkId)
+  const deepLinkPageResolved = useRef(!deepLinkId)
   const [movies, setMovies] = useState<Movie[]>([])
   const [total, setTotal] = useState(0)
-  const [page, setPage] = useState(1)
+  const [page, setPage] = useState(deepLinkId ? 0 : 1)
   const [loading, setLoading] = useState(true)
   const [showModal, setShowModal] = useState(false)
   const [errMsg, setErrMsg] = useState('')
@@ -241,20 +246,37 @@ export default function Movies() {
   }
 
   useEffect(() => {
+    if (!deepLinkId) return
+    fetchMoviePageNumber(Number(deepLinkId), PAGE_SIZE)
+      .then(targetPage => {
+        deepLinkPageResolved.current = true
+        if (targetPage === null) { setDeepLinkReady(true); return }
+        setPage(targetPage)
+      })
+      .catch(() => { deepLinkPageResolved.current = true; setDeepLinkReady(true) })
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
+    if (page === 0) return
     setLoading(true)
     fetchMovies(page, PAGE_SIZE)
       .then(data => { setMovies(data.items); setTotal(data.total) })
       .catch(console.error)
       .finally(() => setLoading(false))
-  }, [page])
+  }, [page]) // eslint-disable-line react-hooks/exhaustive-deps
 
   function handleDelete(id: number) {
     const isLastOnPage = movies.length === 1 && page > 1
     deleteMovie(id)
       .then(() => {
-        setMovies(p => p.filter(m => m.id !== id))
-        setTotal(n => n - 1)
-        if (isLastOnPage) setPage(p => p - 1)
+        if (String(id) === deepLinkId) setSearchParams({}, { replace: true })
+        if (isLastOnPage) {
+          setPage(p => p - 1)
+        } else {
+          fetchMovies(page, PAGE_SIZE)
+            .then(data => { setMovies(data.items); setTotal(data.total) })
+            .catch(console.error)
+        }
       })
       .catch(() => showErr(t('common.errDeleteFail')))
   }
@@ -293,8 +315,9 @@ export default function Movies() {
             <motion.div
               className="media-grid"
               variants={containerVariants}
-              initial="hidden"
+              initial={deepLinkId ? false : 'hidden'}
               animate="show"
+              style={deepLinkId && !deepLinkReady ? { visibility: 'hidden' } : undefined}
             >
               {movies.map(m => (
                 <motion.div key={m.id} variants={cardVariants}>
@@ -303,6 +326,8 @@ export default function Movies() {
                     canEdit={canEdit}
                     onDelete={handleDelete}
                     onWatchUpdated={handleWatchUpdated}
+                    deepLinkReady={m.id === Number(deepLinkId) ? deepLinkReady : undefined}
+                    onDeepLinkReady={m.id === Number(deepLinkId) ? () => setDeepLinkReady(true) : undefined}
                   />
                 </motion.div>
               ))}

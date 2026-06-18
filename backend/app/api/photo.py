@@ -63,6 +63,14 @@ def upload_photo(
     return photo
 
 
+@router.get("/{photo_id}", response_model=PhotoOut)
+def get_photo(photo_id: int, db: Session = Depends(get_db)):
+    photo = photo_db.get_photo_by_id(db, photo_id)
+    if not photo:
+        raise NotFoundError("Фото")
+    return photo
+
+
 @router.patch("/{photo_id}/description")
 def update_photo_description(
     photo_id: int,

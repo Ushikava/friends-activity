@@ -70,6 +70,14 @@ def get_movie_by_id(db: Session, movie_id: int) -> Movie | None:
     return db.query(Movie).filter(Movie.id == movie_id).first()
 
 
+def get_movie_page(db: Session, movie_id: int, limit: int = 20) -> int | None:
+    movie = get_movie_by_id(db, movie_id)
+    if not movie:
+        return None
+    position = db.query(func.count(Movie.id)).filter(Movie.created_at > movie.created_at).scalar() or 0
+    return (position // limit) + 1
+
+
 def get_movie_detail(db: Session, movie_id: int) -> dict | None:
     movie = get_movie_by_id(db, movie_id)
     if not movie:

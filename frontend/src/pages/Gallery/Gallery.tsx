@@ -1,9 +1,10 @@
 import { useState, useEffect, useRef } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import NavBar from '../../components/NavBar/NavBar'
 import Pagination from '../../components/Pagination/Pagination'
 import Lightbox from '../../components/Lightbox/Lightbox'
-import { fetchPhotos, uploadPhoto, deletePhoto, updatePhotoDescription, photoSrc } from '../../api/photos'
+import { fetchPhotos, fetchPhotoById, uploadPhoto, deletePhoto, updatePhotoDescription, photoSrc } from '../../api/photos'
 import { getRole } from '../../api/auth'
 import { useLang } from '../../i18n/LangContext'
 import { containerVariants, cardVariants } from '../../utils/animations'
@@ -121,6 +122,7 @@ function UploadModal({ onClose, onUploaded }: UploadModalProps) {
 
 export default function Gallery() {
   const { t } = useLang()
+  const [searchParams, setSearchParams] = useSearchParams()
   const [photos, setPhotos] = useState<Photo[]>([])
   const [total, setTotal] = useState(0)
   const [page, setPage] = useState(1)
@@ -136,6 +138,11 @@ export default function Gallery() {
       .catch(console.error)
       .finally(() => setLoading(false))
   }, [page])
+
+  useEffect(() => {
+    const id = searchParams.get('id')
+    if (id) fetchPhotoById(Number(id)).then(setSelected).catch(() => {})
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   function handleDelete(id: number) {
     const isLastOnPage = photos.length === 1 && page > 1
@@ -185,7 +192,7 @@ export default function Gallery() {
                     key={photo.id}
                     className="gallery-item"
                     variants={cardVariants}
-                    onClick={() => setSelected(photo)}
+                    onClick={() => { setSelected(photo); setSearchParams({ id: String(photo.id) }, { replace: true }) }}
                   >
                     <img
                       src={photoSrc(photo.filename) ?? undefined}
@@ -215,7 +222,7 @@ export default function Gallery() {
             src={photoSrc(selected.filename) ?? ''}
             description={selected.description ?? undefined}
             createdAt={selected.uploaded_at}
-            onClose={() => setSelected(null)}
+            onClose={() => { setSelected(null); setSearchParams({}, { replace: true }) }}
             onDelete={canEdit ? () => handleDelete(selected.id) : undefined}
             onSaveDescription={canEdit ? async (desc) => {
               await updatePhotoDescription(selected.id, desc)

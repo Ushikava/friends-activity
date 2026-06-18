@@ -60,7 +60,7 @@ def add_game(
         poster = poster_url
 
     game = game_db.create_game(db, title=title, poster=poster, user_id=user_id, steam_link=steam_link)
-    log_activity(db, user_id=user_id, username=user.username, action="game_add", entity_title=title)
+    log_activity(db, user_id=user_id, username=user.username, action="game_add", entity_title=title, entity_type="game", entity_id=game['id'])
     return game
 
 
@@ -127,6 +127,19 @@ def steam_image(
     return {"cover_url": cover_url}
 
 
+@router.get("/{game_id}/page-number")
+def get_game_page_number(
+    game_id: int,
+    limit: int = Query(20),
+    _: int = Depends(get_user_from_token),
+    db: Session = Depends(get_db),
+):
+    page = game_db.get_game_page(db, game_id, limit)
+    if page is None:
+        raise NotFoundError("Игра")
+    return {"page": page}
+
+
 @router.get("/{game_id}/detail", response_model=GameDetail)
 def get_game_detail(
     game_id: int,
@@ -156,7 +169,7 @@ def toggle_played(
     if user_status and user_status['is_played']:
         has_review = bool(user_status.get('review')) or user_status.get('rating') is not None
         action = "game_reviewed" if has_review else "game_played"
-        log_activity(db, user_id=user_id, username=user.username, action=action, entity_title=detail['title'])
+        log_activity(db, user_id=user_id, username=user.username, action=action, entity_title=detail['title'], entity_type="game", entity_id=game_id)
     return detail
 
 

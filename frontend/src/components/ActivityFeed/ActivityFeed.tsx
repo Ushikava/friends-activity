@@ -1,28 +1,7 @@
+import { Link } from 'react-router-dom'
 import { useLang } from '../../i18n/LangContext'
 import type { FeedEvent } from '../../types'
 import './ActivityFeed.css'
-
-interface GroupedEvent extends FeedEvent {
-  count: number
-}
-
-const STACKABLE_ACTIONS = new Set(['photo_upload', 'place_upload', 'movie_add', 'game_add'])
-
-function groupEvents(events: FeedEvent[]): GroupedEvent[] {
-  const groups = new Map<string, GroupedEvent>()
-  for (const event of events) {
-    const day = event.created_at.slice(0, 10)
-    const key = STACKABLE_ACTIONS.has(event.action)
-      ? `${event.username}|${event.action}|${day}`
-      : `id:${event.id}`
-    if (groups.has(key)) {
-      groups.get(key)!.count++
-    } else {
-      groups.set(key, { ...event, count: 1 })
-    }
-  }
-  return Array.from(groups.values())
-}
 
 const ACTION_ICONS: Record<string, string> = {
   photo_upload: '🖼️',
@@ -86,13 +65,11 @@ export default function ActivityFeed({ events }: Props) {
     )
   }
 
-  const grouped = groupEvents(events)
-
   return (
     <section className="feed-section">
       <h2 className="home-section__title" style={{ marginBottom: 16 }}>{t('home.feed') as string}</h2>
       <ul className="feed">
-        {grouped.map(event => (
+        {events.map(event => (
           <li key={event.id} className="feed__item">
             <span className={`feed__icon feed__icon--${actionCategory(event.action)}`}>
               {ACTION_ICONS[event.action] ?? '•'}
@@ -103,7 +80,18 @@ export default function ActivityFeed({ events }: Props) {
                 {' '}
                 {t(`feed.${event.action}`) as string}
                 {event.count === 1 && event.entity_title && (
-                  <> <em className="feed__entity">{event.entity_title}</em></>
+                  <>{' '}
+                    {event.entity_type && event.entity_id ? (
+                      <Link
+                        className="feed__entity feed__entity--link"
+                        to={`/${event.entity_type === 'movie' ? 'movies' : 'games'}?${event.entity_type}=${event.entity_id}`}
+                      >
+                        {event.entity_title}
+                      </Link>
+                    ) : (
+                      <em className="feed__entity">{event.entity_title}</em>
+                    )}
+                  </>
                 )}
                 {event.count > 1 && (
                   <span className="feed__count">×{event.count}</span>

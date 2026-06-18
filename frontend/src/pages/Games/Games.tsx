@@ -1,9 +1,10 @@
 import { useState, useEffect, useRef } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import NavBar from '../../components/NavBar/NavBar'
 import GameCard from '../../components/GameCard/GameCard'
 import Pagination from '../../components/Pagination/Pagination'
-import { fetchGames, addGame, deleteGame, searchSteam, fetchSteamImage } from '../../api/games'
+import { fetchGames, addGame, deleteGame, searchSteam, fetchSteamImage, fetchGamePageNumber } from '../../api/games'
 import type { SteamGame } from '../../api/games'
 import { getRole } from '../../api/auth'
 import { useLang } from '../../i18n/LangContext'
@@ -232,9 +233,13 @@ function AddGameModal({ onClose, onAdd }: AddGameModalProps) {
 
 export default function Games() {
   const { t } = useLang()
+  const [searchParams, setSearchParams] = useSearchParams()
+  const deepLinkId = searchParams.get('game')
+  const [deepLinkReady, setDeepLinkReady] = useState(!deepLinkId)
+  const deepLinkPageResolved = useRef(!deepLinkId)
   const [games, setGames] = useState<Game[]>([])
   const [total, setTotal] = useState(0)
-  const [page, setPage] = useState(1)
+  const [page, setPage] = useState(deepLinkId ? 0 : 1)
   const [loading, setLoading] = useState(true)
   const [showModal, setShowModal] = useState(false)
   const [errMsg, setErrMsg] = useState('')
@@ -246,12 +251,24 @@ export default function Games() {
   }
 
   useEffect(() => {
+    if (!deepLinkId) return
+    fetchGamePageNumber(Number(deepLinkId), PAGE_SIZE)
+      .then(targetPage => {
+        deepLinkPageResolved.current = true
+        if (targetPage === null) { setDeepLinkReady(true); setPage(1); return }
+        setPage(targetPage)
+      })
+      .catch(() => { deepLinkPageResolved.current = true; setDeepLinkReady(true); setPage(1) })
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
+    if (page === 0) return
     setLoading(true)
     fetchGames(page, PAGE_SIZE)
       .then(data => { setGames(data.items); setTotal(data.total) })
       .catch(console.error)
       .finally(() => setLoading(false))
-  }, [page])
+  }, [page]) // eslint-disable-line react-hooks/exhaustive-deps
 
   function handlePlayUpdated(updated: Game) {
     setGames(p => p.map(g => g.id === updated.id ? updated : g))
@@ -261,9 +278,14 @@ export default function Games() {
     const isLastOnPage = games.length === 1 && page > 1
     deleteGame(id)
       .then(() => {
-        setGames(p => p.filter(g => g.id !== id))
-        setTotal(n => n - 1)
-        if (isLastOnPage) setPage(p => p - 1)
+        if (String(id) === deepLinkId) setSearchParams({}, { replace: true })
+        if (isLastOnPage) {
+          setPage(p => p - 1)
+        } else {
+          fetchGames(page, PAGE_SIZE)
+            .then(data => { setGames(data.items); setTotal(data.total) })
+            .catch(console.error)
+        }
       })
       .catch(() => showErr(t('common.errDeleteFail')))
   }
@@ -298,8 +320,9 @@ export default function Games() {
             <motion.div
               className="media-grid"
               variants={containerVariants}
-              initial="hidden"
+              initial={deepLinkId ? false : 'hidden'}
               animate="show"
+              style={deepLinkId && !deepLinkReady ? { visibility: 'hidden' } : undefined}
             >
               {games.map(g => (
                 <motion.div key={g.id} variants={cardVariants}>
@@ -308,6 +331,8 @@ export default function Games() {
                     canEdit={canEdit}
                     onDelete={handleDelete}
                     onPlayUpdated={handlePlayUpdated}
+                    deepLinkReady={g.id === Number(deepLinkId) ? deepLinkReady : undefined}
+                    onDeepLinkReady={g.id === Number(deepLinkId) ? () => setDeepLinkReady(true) : undefined}
                   />
                 </motion.div>
               ))}

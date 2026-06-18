@@ -98,6 +98,12 @@
   animation: modal-out 0.2s ease forwards;
 }
 
+.movie-detail-backdrop--preload,
+.movie-detail-backdrop--preload .movie-detail {
+  animation: none !important;
+  opacity: 0 !important;
+}
+
 /* ══════════════════════════════════════════
    Detail modal — layout
    LEFT: floating user cards on dark bg
@@ -444,6 +450,11 @@
   background: rgba(0, 0, 0, 0.5);
   z-index: 10;
   animation: modal-in 0.15s ease;
+}
+
+.review-backdrop--instant,
+.review-backdrop--instant > * {
+  animation: none !important;
 }
 
 .review-modal {

@@ -78,3 +78,10 @@
   border-radius: 50%;
   animation: spin 0.7s linear infinite;
 }
+
+.deeplink-overlay {
+  position: fixed;
+  inset: 0;
+  background: var(--bg);
+  z-index: 9999;
+}

@@ -61,6 +61,14 @@ def upload_place(
     return place
 
 
+@router.get("/{place_id}", response_model=PlaceOut)
+def get_place(place_id: int, db: Session = Depends(get_db)):
+    place = place_db.get_place_by_id(db, place_id)
+    if not place:
+        raise NotFoundError("Место")
+    return place
+
+
 @router.patch("/{place_id}/description")
 def update_place_description(
     place_id: int,

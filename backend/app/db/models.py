@@ -121,4 +121,20 @@ class ActivityLog(Base):
     username = Column(String, nullable=True)
     action = Column(String, nullable=False)
     entity_title = Column(String, nullable=True)
+    entity_type = Column(String, nullable=True)
+    entity_id = Column(Integer, nullable=True)
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
+
+
+class Notification(Base):
+    __tablename__ = "notifications"
+
+    id = Column(Integer, primary_key=True)
+    sender_id = Column(Integer, ForeignKey("users_data.id", ondelete="CASCADE"), nullable=False)
+    sender_username = Column(String, nullable=False)
+    recipient_id = Column(Integer, ForeignKey("users_data.id", ondelete="CASCADE"), nullable=False)
+    entity_type = Column(String, nullable=False)   # "movie" | "game"
+    entity_id = Column(Integer, nullable=False)
+    entity_title = Column(String, nullable=False)
+    is_read = Column(Boolean, default=False, nullable=False)
     created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))

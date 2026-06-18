@@ -33,8 +33,8 @@ router = APIRouter(tags=["auth"])
 
 @router.get("/users")
 def list_users(db: Session = Depends(get_db)):
-    users = db.query(UserData.username, UserData.role).all()
-    return [{"username": u.username, "role": u.role} for u in users]
+    users = db.query(UserData.id, UserData.username, UserData.role).all()
+    return [{"id": u.id, "username": u.username, "role": u.role} for u in users]
 
 
 @router.post("/users", response_model=UserOut, status_code=201)

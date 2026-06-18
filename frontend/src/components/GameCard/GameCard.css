@@ -77,6 +77,12 @@
   animation: modal-out 0.2s ease forwards;
 }
 
+.gd-backdrop--preload,
+.gd-backdrop--preload > * {
+  animation: none !important;
+  opacity: 0 !important;
+}
+
 .gd-modal {
   position: relative;
   display: flex;

@@ -1,9 +1,10 @@
 import { useState, useEffect, useRef } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import NavBar from '../../components/NavBar/NavBar'
 import Pagination from '../../components/Pagination/Pagination'
 import Lightbox from '../../components/Lightbox/Lightbox'
-import { fetchPlaces, uploadPlace, deletePlace, updatePlaceDescription, placeSrc } from '../../api/places'
+import { fetchPlaces, fetchPlaceById, uploadPlace, deletePlace, updatePlaceDescription, placeSrc } from '../../api/places'
 import { getRole } from '../../api/auth'
 import { useLang } from '../../i18n/LangContext'
 import { containerVariants, cardVariants } from '../../utils/animations'
@@ -121,6 +122,7 @@ function UploadModal({ onClose, onUploaded }: UploadModalProps) {
 
 export default function Places() {
   const { t } = useLang()
+  const [searchParams, setSearchParams] = useSearchParams()
   const [places, setPlaces] = useState<Place[]>([])
   const [total, setTotal] = useState(0)
   const [page, setPage] = useState(1)
@@ -142,6 +144,11 @@ export default function Places() {
       .catch(console.error)
       .finally(() => setLoading(false))
   }, [page])
+
+  useEffect(() => {
+    const id = searchParams.get('id')
+    if (id) fetchPlaceById(Number(id)).then(setSelected).catch(() => {})
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   function handleDelete(id: number) {
     const isLastOnPage = places.length === 1 && page > 1
@@ -192,7 +199,7 @@ export default function Places() {
                     key={place.id}
                     className="gallery-item"
                     variants={cardVariants}
-                    onClick={() => setSelected(place)}
+                    onClick={() => { setSelected(place); setSearchParams({ id: String(place.id) }, { replace: true }) }}
                   >
                     <img
                       src={placeSrc(place.filename) ?? undefined}
@@ -222,7 +229,7 @@ export default function Places() {
             src={placeSrc(selected.filename) ?? ''}
             description={selected.description ?? undefined}
             createdAt={selected.uploaded_at}
-            onClose={() => setSelected(null)}
+            onClose={() => { setSelected(null); setSearchParams({}, { replace: true }) }}
             onDelete={canEdit ? () => handleDelete(selected.id) : undefined}
             onSaveDescription={canEdit ? async (desc) => {
               await updatePlaceDescription(selected.id, desc)

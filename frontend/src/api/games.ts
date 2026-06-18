@@ -43,6 +43,13 @@ export async function fetchGameDetail(id: number): Promise<GameDetail> {
   return res.json() as Promise<GameDetail>
 }
 
+export async function fetchGamePageNumber(id: number, limit: number): Promise<number | null> {
+  const res = await apiFetch(`${API}/games/${id}/page-number?limit=${limit}`)
+  if (!res.ok) return null
+  const data = await res.json() as { page: number }
+  return data.page
+}
+
 export async function toggleUserPlayed(
   id: number,
   body?: { rating: number | null; review: string | null },

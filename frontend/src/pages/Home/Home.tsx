@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import NavBar from '../../components/NavBar/NavBar'
 import MovieCard from '../../components/MovieCard/MovieCard'
@@ -98,6 +98,14 @@ export default function Home() {
   const [loading, setLoading] = useState(true)
   const [lightbox, setLightbox] = useState<{ src: string; description?: string; createdAt: string } | null>(null)
   const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
+
+  useEffect(() => {
+    const movieId = searchParams.get('movie')
+    const gameId = searchParams.get('game')
+    if (movieId) { navigate(`/movies?movie=${movieId}`, { replace: true }); return }
+    if (gameId)  { navigate(`/games?game=${gameId}`,   { replace: true }); return }
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     Promise.allSettled([

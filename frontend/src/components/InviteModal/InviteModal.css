@@ -1,0 +1,134 @@
+.invite-backdrop {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 10;
+  animation: modal-in 0.15s ease;
+}
+
+.invite-modal {
+  background: var(--card-bg);
+  border-radius: 16px;
+  padding: 20px 20px 16px;
+  width: min(300px, 90%);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.35);
+  animation: modal-content-in 0.15s ease;
+}
+
+.invite-modal__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.invite-modal__title {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--text-h);
+}
+
+.invite-modal__close {
+  background: none;
+  border: none;
+  font-size: 1.4rem;
+  color: var(--muted);
+  cursor: pointer;
+  line-height: 1;
+  padding: 0;
+}
+
+.invite-modal__entity {
+  font-size: 0.82rem;
+  color: var(--muted);
+  margin: -6px 0 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.invite-modal__err {
+  font-size: 0.82rem;
+  color: #d94040;
+  margin: 0;
+}
+
+.invite-modal__list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+/* ── User row ── */
+.invite-user {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.invite-user__check {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  border: 1.5px solid var(--input-border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.7rem;
+  color: var(--muted);
+  flex-shrink: 0;
+}
+
+.invite-user__check--done {
+  border-color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 15%, transparent);
+  color: var(--accent);
+  font-weight: 700;
+}
+
+.invite-user__name {
+  flex: 1;
+  font-size: 0.88rem;
+  color: var(--text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.invite-user__btn {
+  flex-shrink: 0;
+  padding: 5px 12px;
+  border: 1.5px solid var(--accent);
+  border-radius: 8px;
+  background: transparent;
+  color: var(--accent);
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+
+.invite-user__btn:hover:not(:disabled) {
+  background: var(--accent);
+  color: #fff;
+}
+
+.invite-user__btn--sent {
+  border-color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 15%, transparent);
+  color: var(--accent);
+  cursor: default;
+}
+
+.invite-user__btn:disabled {
+  cursor: default;
+  opacity: 0.6;
+}

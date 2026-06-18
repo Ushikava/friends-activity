@@ -29,6 +29,12 @@ export async function updatePhotoDescription(id: number, description: string | n
   if (!res.ok) throw new Error('Ошибка обновления описания')
 }
 
+export async function fetchPhotoById(id: number): Promise<Photo> {
+  const res = await apiFetch(`${API}/photos/${id}`)
+  if (!res.ok) throw new Error('Фото не найдено')
+  return res.json() as Promise<Photo>
+}
+
 export async function deletePhoto(id: number): Promise<void> {
   const res = await apiFetch(`${API}/photos/${id}`, { method: 'DELETE' })
   if (!res.ok) throw new Error('Ошибка удаления')

@@ -1,7 +1,10 @@
 import { useState, useEffect, useRef } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import { fetchGameDetail, toggleUserPlayed, updateGame } from '../../api/games'
 import { getRole, getUsername } from '../../api/auth'
 import { useLang } from '../../i18n/LangContext'
+import InviteModal from '../InviteModal/InviteModal'
+import { UserPlusIcon } from '@heroicons/react/24/outline'
 import type { Game, GameDetail, GameUserStatus } from '../../types'
 import './GameCard.css'
 
@@ -317,28 +320,53 @@ interface Props {
   canEdit: boolean
   onDelete: (id: number) => void
   onPlayUpdated: (updated: Game) => void
+  deepLinkReady?: boolean
+  onDeepLinkReady?: () => void
 }
 
-export default function GameCard({ game, canEdit, onDelete, onPlayUpdated }: Props) {
+export default function GameCard({ game, canEdit, onDelete, onPlayUpdated, deepLinkReady, onDeepLinkReady }: Props) {
   const { t } = useLang()
-  const [detailOpen, setDetailOpen] = useState(false)
+  const [searchParams, setSearchParams] = useSearchParams()
+  const isPreOpen = searchParams.get('game') === String(game.id)
+  const [detailOpen, setDetailOpen] = useState(isPreOpen)
   const [detailClosing, setDetailClosing] = useState(false)
   const [detail, setDetail] = useState<GameDetail | null>(null)
-  const [loadingDetail, setLoadingDetail] = useState(false)
+  const [loadingDetail, setLoadingDetail] = useState(isPreOpen)
+  const [animateModal, setAnimateModal] = useState(!isPreOpen)
   const [toggling, setToggling] = useState(false)
   const [reviewOpen, setReviewOpen] = useState(false)
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false)
   const [editOpen, setEditOpen] = useState(false)
   const [editSaving, setEditSaving] = useState(false)
+  const [inviteOpen, setInviteOpen] = useState(false)
   const src = posterSrc(game.poster)
   const isObserver = getRole() === 'observer'
   const currentUsername = getUsername()
   const isAllPlayed = game.user_count > 0 && game.play_count === game.user_count
 
+  useEffect(() => {
+    if (isPreOpen) {
+      setDetailOpen(true)
+      setDetailClosing(false)
+      setLoadingDetail(true)
+      fetchGameDetail(game.id)
+        .then(d => { setDetail(d); onDeepLinkReady?.() })
+        .catch(console.error)
+        .finally(() => setLoadingDetail(false))
+    }
+  }, [isPreOpen]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
+    if (deepLinkReady && isPreOpen && !animateModal) {
+      requestAnimationFrame(() => setAnimateModal(true))
+    }
+  }, [deepLinkReady]) // eslint-disable-line react-hooks/exhaustive-deps
+
   function openDetail() {
     setDetailOpen(true)
     setDetailClosing(false)
     setLoadingDetail(true)
+    setSearchParams({ game: String(game.id) }, { replace: true })
     fetchGameDetail(game.id)
       .then(d => setDetail(d))
       .catch(console.error)
@@ -350,6 +378,9 @@ export default function GameCard({ game, canEdit, onDelete, onPlayUpdated }: Pro
     setReviewOpen(false)
     setDeleteConfirmOpen(false)
     setEditOpen(false)
+    if (searchParams.get('game') === String(game.id)) {
+      setSearchParams({}, { replace: true })
+    }
   }
 
   function handleAnimationEnd(e: React.AnimationEvent) {
@@ -360,11 +391,11 @@ export default function GameCard({ game, canEdit, onDelete, onPlayUpdated }: Pro
   }
 
   useEffect(() => {
-    if (!detailOpen || reviewOpen || deleteConfirmOpen || editOpen) return
+    if (!detailOpen || reviewOpen || deleteConfirmOpen || editOpen || inviteOpen) return
     function onKey(e: KeyboardEvent) { if (e.key === 'Escape') closeDetail() }
     document.addEventListener('keydown', onKey)
     return () => document.removeEventListener('keydown', onKey)
-  }, [detailOpen, reviewOpen, deleteConfirmOpen, editOpen])
+  }, [detailOpen, reviewOpen, deleteConfirmOpen, editOpen, inviteOpen])
 
   function applyToggleResult(d: GameDetail) {
     setDetail(d)
@@ -453,7 +484,7 @@ export default function GameCard({ game, canEdit, onDelete, onPlayUpdated }: Pro
 
       {detailOpen && (
         <div
-          className={`gd-backdrop${detailClosing ? ' gd-backdrop--closing' : ''}`}
+          className={`gd-backdrop${detailClosing ? ' gd-backdrop--closing' : ''}${isPreOpen && !animateModal ? ' gd-backdrop--preload' : ''}`}
           onClick={closeDetail}
           onAnimationEnd={handleAnimationEnd}
         >
@@ -466,6 +497,15 @@ export default function GameCard({ game, canEdit, onDelete, onPlayUpdated }: Pro
                 <div className="gd-modal__header-row">
                   <h2 className="gd-modal__title">{game.title}</h2>
                   <div className="gd-modal__header-btns">
+                    {!isObserver && (
+                      <button
+                        className="gd-modal__edit-btn"
+                        onClick={e => { e.stopPropagation(); setInviteOpen(true) }}
+                        title={t('notif.invite') as string}
+                      >
+                        <UserPlusIcon style={{ width: 17, height: 17 }} />
+                      </button>
+                    )}
                     {game.steam_link && (
                       <a
                         className="gd-modal__link-btn"
@@ -580,6 +620,16 @@ export default function GameCard({ game, canEdit, onDelete, onPlayUpdated }: Pro
               onSave={handleSaveEdit}
               onCancel={() => setEditOpen(false)}
               loading={editSaving}
+            />
+          )}
+
+          {inviteOpen && (
+            <InviteModal
+              entityType="game"
+              entityId={game.id}
+              entityTitle={game.title}
+              doneUsernames={detail?.statuses.filter(s => s.is_played).map(s => s.username) ?? []}
+              onClose={() => setInviteOpen(false)}
             />
           )}
         </div>
