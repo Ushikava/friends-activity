@@ -1,12 +1,16 @@
+import random as rand_mod
 from datetime import datetime, timezone
 
 from sqlalchemy import func, or_
 from sqlalchemy.orm import Session
 
 from db.models import Movie, MovieWatch, UserData
+from db import favorites as fav_db
 
 
-def _build_movie_dicts(db: Session, movies: list, user_id: int | None) -> list[dict]:
+def _build_movie_dicts(
+    db: Session, movies: list, user_id: int | None, favorite_ids: set[int] | None = None
+) -> list[dict]:
     if not movies:
         return []
     user_count: int = db.query(func.count(UserData.id)).filter(UserData.role != 'observer').scalar() or 0
@@ -25,6 +29,7 @@ def _build_movie_dicts(db: Session, movies: list, user_id: int | None) -> list[d
             .filter(MovieWatch.movie_id.in_(movie_ids), MovieWatch.user_id == user_id, MovieWatch.is_watched.is_(True))
             .all()
         }
+    favs = favorite_ids or set()
     return [
         {
             'id': m.id,
@@ -33,6 +38,7 @@ def _build_movie_dicts(db: Session, movies: list, user_id: int | None) -> list[d
             'watch_count': watch_counts.get(m.id, 0),
             'user_count': user_count,
             'is_watched_by_me': m.id in my_watched,
+            'is_favorite': m.id in favs,
             'added_by': m.added_by,
             'created_at': m.created_at,
         }
@@ -47,6 +53,7 @@ def get_movies(
     user_id: int | None = None,
     q: str | None = None,
     status: str | None = None,
+    favorites_only: bool = False,
 ) -> tuple[list[dict], int]:
     query = db.query(Movie)
 
@@ -71,9 +78,14 @@ def get_movies(
         ).subquery()
         query = query.filter(~Movie.id.in_(watched_ids))
 
+    if favorites_only and user_id is not None:
+        fav_ids_sq = fav_db.get_favorite_ids(db, user_id, 'movie')
+        query = query.filter(Movie.id.in_(fav_ids_sq))
+
     total: int = query.count()
     movies = query.offset(skip).limit(limit).all()
-    return _build_movie_dicts(db, movies, user_id), total
+    fav_ids = fav_db.get_favorite_ids(db, user_id, 'movie') if user_id is not None else set()
+    return _build_movie_dicts(db, movies, user_id, fav_ids), total
 
 
 def get_all_movies(db: Session, skip: int = 0, limit: int = 20, user_id: int | None = None) -> list[dict]:
@@ -131,6 +143,7 @@ def create_movie(db: Session, title: str, poster: str | None, user_id: int) -> d
         'watch_count': 0,
         'user_count': len(users),
         'is_watched_by_me': False,
+        'is_favorite': False,
         'added_by': movie.added_by,
         'created_at': movie.created_at,
     }
@@ -219,3 +232,17 @@ def update_movie(db: Session, movie_id: int, title: str, poster: str | None) -> 
 def delete_movie(db: Session, movie_id: int) -> None:
     db.query(Movie).filter(Movie.id == movie_id).delete()
     db.commit()
+
+
+def get_random_movie(db: Session, user_id: int | None = None, favorites_only: bool = False) -> dict | None:
+    query = db.query(Movie)
+    if favorites_only and user_id is not None:
+        fav_ids = fav_db.get_favorite_ids(db, user_id, 'movie')
+        if not fav_ids:
+            return None
+        query = query.filter(Movie.id.in_(fav_ids))
+    total = query.count()
+    if total == 0:
+        return None
+    movie = query.offset(rand_mod.randint(0, total - 1)).limit(1).first()
+    return {'id': movie.id} if movie else None

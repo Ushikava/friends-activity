@@ -10,14 +10,31 @@ export interface TmdbMovie {
 
 const API = import.meta.env.VITE_API_URL
 
-export async function fetchMovies(page = 1, limit = 20, q?: string, status?: string): Promise<PaginatedResponse<Movie>> {
+export async function fetchMovies(
+  page = 1, limit = 20, q?: string, status?: string, favoritesOnly?: boolean,
+): Promise<PaginatedResponse<Movie>> {
   const skip = (page - 1) * limit
   const params = new URLSearchParams({ skip: String(skip), limit: String(limit) })
   if (q) params.set('q', q)
   if (status) params.set('status', status)
+  if (favoritesOnly) params.set('favorites_only', 'true')
   const res = await apiFetch(`${API}/movies/?${params}`)
   if (!res.ok) throw new Error('Ошибка загрузки')
   return res.json() as Promise<PaginatedResponse<Movie>>
+}
+
+export async function toggleMovieFavorite(id: number): Promise<{ is_favorite: boolean }> {
+  const res = await apiFetch(`${API}/movies/${id}/favorite`, { method: 'POST' })
+  if (!res.ok) throw new Error('Ошибка')
+  return res.json()
+}
+
+export async function fetchRandomMovie(favoritesOnly = false): Promise<{ id: number } | null> {
+  const params = favoritesOnly ? '?favorites_only=true' : ''
+  const res = await apiFetch(`${API}/movies/random${params}`)
+  if (res.status === 404) return null
+  if (!res.ok) throw new Error('Ошибка')
+  return res.json()
 }
 
 export async function addMovie(

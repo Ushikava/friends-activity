@@ -11,6 +11,7 @@ from core.settings import GAMES_DIR, ALLOWED_EXTENSIONS
 from db.session import get_db
 from db import games as game_db
 from db import user as user_db
+from db import favorites as fav_db
 from db.activity_log import log_activity
 from schemas.games import GameOut, GamePage, GameDetail, GamePlayUpdate, GameUpdateOut
 from utils.image import compress_image
@@ -20,16 +21,32 @@ from core.exceptions import NotFoundError, BadRequestError
 router = APIRouter(prefix="/games", tags=["games"])
 
 
+@router.get("/random")
+def get_random_game(
+    favorites_only: bool = Query(False),
+    user_id: int = Depends(get_user_from_token),
+    db: Session = Depends(get_db),
+):
+    result = game_db.get_random_game(db, user_id=user_id, favorites_only=favorites_only)
+    if not result:
+        raise NotFoundError("Игра")
+    return result
+
+
 @router.get("/", response_model=GamePage)
 def list_games(
     skip: int = Query(0, ge=0),
     limit: int = Query(20, ge=1, le=200),
     q: str | None = Query(None, max_length=200),
     status: str | None = Query(None),
+    favorites_only: bool = Query(False),
     user_id: int = Depends(get_user_from_token),
     db: Session = Depends(get_db),
 ):
-    items, total = game_db.get_games(db, skip=skip, limit=limit, user_id=user_id, q=q or None, status=status or None)
+    items, total = game_db.get_games(
+        db, skip=skip, limit=limit, user_id=user_id,
+        q=q or None, status=status or None, favorites_only=favorites_only,
+    )
     return {"items": items, "total": total}
 
 
@@ -153,6 +170,18 @@ def get_game_detail(
     if not detail:
         raise NotFoundError("Игра")
     return detail
+
+
+@router.post("/{game_id}/favorite")
+def toggle_game_favorite(
+    game_id: int,
+    user_id: int = Depends(get_user_from_token),
+    db: Session = Depends(get_db),
+):
+    if not game_db.get_game_by_id(db, game_id):
+        raise NotFoundError("Игра")
+    is_fav = fav_db.toggle_favorite(db, user_id=user_id, entity_type='game', entity_id=game_id)
+    return {"is_favorite": is_fav}
 
 
 @router.patch("/{game_id}/played", response_model=GameDetail)

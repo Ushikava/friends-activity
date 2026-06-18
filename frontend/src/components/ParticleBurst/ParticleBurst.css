@@ -1,0 +1,18 @@
+.pburst {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  pointer-events: none;
+  z-index: 9999;
+}
+
+.pburst__item {
+  position: absolute;
+  top: 0;
+  left: 0;
+  line-height: 1;
+  user-select: none;
+  will-change: transform, opacity;
+}

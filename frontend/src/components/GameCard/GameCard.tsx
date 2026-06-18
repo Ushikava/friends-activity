@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { useSearchParams } from 'react-router-dom'
-import { fetchGameDetail, toggleUserPlayed, updateGame } from '../../api/games'
+import { fetchGameDetail, toggleUserPlayed, updateGame, toggleGameFavorite } from '../../api/games'
 import { getRole, getUsername } from '../../api/auth'
 import { useLang } from '../../i18n/LangContext'
 import InviteModal from '../InviteModal/InviteModal'
@@ -320,11 +320,12 @@ interface Props {
   canEdit: boolean
   onDelete: (id: number) => void
   onPlayUpdated: (updated: Game) => void
+  onToggleFavorite?: (id: number, isFav: boolean) => void
   deepLinkReady?: boolean
   onDeepLinkReady?: () => void
 }
 
-export default function GameCard({ game, canEdit, onDelete, onPlayUpdated, deepLinkReady, onDeepLinkReady }: Props) {
+export default function GameCard({ game, canEdit, onDelete, onPlayUpdated, onToggleFavorite, deepLinkReady, onDeepLinkReady }: Props) {
   const { t } = useLang()
   const [searchParams, setSearchParams] = useSearchParams()
   const isPreOpen = searchParams.get('game') === String(game.id)
@@ -337,6 +338,8 @@ export default function GameCard({ game, canEdit, onDelete, onPlayUpdated, deepL
   const [reviewOpen, setReviewOpen] = useState(false)
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false)
   const [editOpen, setEditOpen] = useState(false)
+  const [isFav, setIsFav] = useState(game.is_favorite)
+  const [favLoading, setFavLoading] = useState(false)
   const [editSaving, setEditSaving] = useState(false)
   const [inviteOpen, setInviteOpen] = useState(false)
   const src = posterSrc(game.poster)
@@ -397,6 +400,7 @@ export default function GameCard({ game, canEdit, onDelete, onPlayUpdated, deepL
     return () => document.removeEventListener('keydown', onKey)
   }, [detailOpen, reviewOpen, deleteConfirmOpen, editOpen, inviteOpen])
 
+
   function applyToggleResult(d: GameDetail) {
     setDetail(d)
     const play_count = d.statuses.filter(s => s.is_played).length
@@ -439,6 +443,19 @@ export default function GameCard({ game, canEdit, onDelete, onPlayUpdated, deepL
   const myStatus = detail?.statuses.find(s => s.username === currentUsername)
   const iMePlayed = myStatus?.is_played ?? false
 
+  function handleFav(e: React.MouseEvent) {
+    e.stopPropagation()
+    if (favLoading) return
+    setFavLoading(true)
+    toggleGameFavorite(game.id)
+      .then(({ is_favorite }) => {
+        setIsFav(is_favorite)
+        onToggleFavorite?.(game.id, is_favorite)
+      })
+      .catch(console.error)
+      .finally(() => setFavLoading(false))
+  }
+
   function handleTilt(e: React.MouseEvent<HTMLDivElement>) {
     const el = e.currentTarget
     const rect = el.getBoundingClientRect()
@@ -480,7 +497,14 @@ export default function GameCard({ game, canEdit, onDelete, onPlayUpdated, deepL
         </div>
       </div>
 
-      <p className="game-card__title">{game.title}</p>
+      <div className="game-card__title-row">
+        <button
+          className={`game-card__fav${isFav ? ' game-card__fav--on' : ''}`}
+          onClick={handleFav}
+          title={isFav ? t('games.removeFavorite') as string : t('games.addFavorite') as string}
+        >★</button>
+        <p className="game-card__title">{game.title}</p>
+      </div>
 
       {detailOpen && (
         <div
@@ -632,6 +656,8 @@ export default function GameCard({ game, canEdit, onDelete, onPlayUpdated, deepL
               onClose={() => setInviteOpen(false)}
             />
           )}
+
+
         </div>
       )}
     </div>

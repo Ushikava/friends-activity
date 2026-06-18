@@ -41,6 +41,7 @@ export interface Movie {
   watch_count: number
   user_count: number
   is_watched_by_me: boolean
+  is_favorite: boolean
   created_at: string
 }
 
@@ -68,6 +69,7 @@ export interface Game {
   play_count: number
   user_count: number
   is_played_by_me: boolean
+  is_favorite: boolean
   created_at: string
 }
 

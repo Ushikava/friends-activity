@@ -1,12 +1,16 @@
+import random as rand_mod
 from datetime import datetime, timezone
 
 from sqlalchemy import func, or_
 from sqlalchemy.orm import Session
 
 from db.models import Game, GamePlay, UserData
+from db import favorites as fav_db
 
 
-def _build_game_dicts(db: Session, games: list, user_id: int | None) -> list[dict]:
+def _build_game_dicts(
+    db: Session, games: list, user_id: int | None, favorite_ids: set[int] | None = None
+) -> list[dict]:
     if not games:
         return []
     user_count: int = db.query(func.count(UserData.id)).filter(UserData.role != 'observer').scalar() or 0
@@ -25,6 +29,7 @@ def _build_game_dicts(db: Session, games: list, user_id: int | None) -> list[dic
             .filter(GamePlay.game_id.in_(game_ids), GamePlay.user_id == user_id, GamePlay.is_played.is_(True))
             .all()
         }
+    favs = favorite_ids or set()
     return [
         {
             'id': g.id,
@@ -34,6 +39,7 @@ def _build_game_dicts(db: Session, games: list, user_id: int | None) -> list[dic
             'play_count': play_counts.get(g.id, 0),
             'user_count': user_count,
             'is_played_by_me': g.id in my_played,
+            'is_favorite': g.id in favs,
             'added_by': g.added_by,
             'created_at': g.created_at,
         }
@@ -48,6 +54,7 @@ def get_games(
     user_id: int | None = None,
     q: str | None = None,
     status: str | None = None,
+    favorites_only: bool = False,
 ) -> tuple[list[dict], int]:
     query = db.query(Game)
 
@@ -72,9 +79,14 @@ def get_games(
         ).subquery()
         query = query.filter(~Game.id.in_(played_ids))
 
+    if favorites_only and user_id is not None:
+        fav_ids_sq = fav_db.get_favorite_ids(db, user_id, 'game')
+        query = query.filter(Game.id.in_(fav_ids_sq))
+
     total: int = query.count()
     games = query.offset(skip).limit(limit).all()
-    return _build_game_dicts(db, games, user_id), total
+    fav_ids = fav_db.get_favorite_ids(db, user_id, 'game') if user_id is not None else set()
+    return _build_game_dicts(db, games, user_id, fav_ids), total
 
 
 def get_all_games(db: Session, skip: int = 0, limit: int = 20, user_id: int | None = None) -> list[dict]:
@@ -134,6 +146,7 @@ def create_game(db: Session, title: str, poster: str | None, user_id: int, steam
         'play_count': 0,
         'user_count': len(users),
         'is_played_by_me': False,
+        'is_favorite': False,
         'added_by': game.added_by,
         'created_at': game.created_at,
     }
@@ -224,3 +237,17 @@ def update_game(db: Session, game_id: int, title: str, poster: str | None, steam
 def delete_game(db: Session, game_id: int) -> None:
     db.query(Game).filter(Game.id == game_id).delete()
     db.commit()
+
+
+def get_random_game(db: Session, user_id: int | None = None, favorites_only: bool = False) -> dict | None:
+    query = db.query(Game)
+    if favorites_only and user_id is not None:
+        fav_ids = fav_db.get_favorite_ids(db, user_id, 'game')
+        if not fav_ids:
+            return None
+        query = query.filter(Game.id.in_(fav_ids))
+    total = query.count()
+    if total == 0:
+        return None
+    game = query.offset(rand_mod.randint(0, total - 1)).limit(1).first()
+    return {'id': game.id} if game else None

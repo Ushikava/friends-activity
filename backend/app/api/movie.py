@@ -11,6 +11,7 @@ from core.settings import POSTERS_DIR, ALLOWED_EXTENSIONS, TMDB_API_KEY
 from db.session import get_db
 from db import movie as movie_db
 from db import user as user_db
+from db import favorites as fav_db
 from db.activity_log import log_activity
 from schemas.movie import MovieOut, MoviePage, MovieDetail, MovieWatchUpdate, MovieUpdateOut
 from utils.image import compress_image
@@ -20,16 +21,32 @@ from core.exceptions import NotFoundError, BadRequestError
 router = APIRouter(prefix="/movies", tags=["movies"])
 
 
+@router.get("/random")
+def get_random_movie(
+    favorites_only: bool = Query(False),
+    user_id: int = Depends(get_user_from_token),
+    db: Session = Depends(get_db),
+):
+    result = movie_db.get_random_movie(db, user_id=user_id, favorites_only=favorites_only)
+    if not result:
+        raise NotFoundError("Фильм")
+    return result
+
+
 @router.get("/", response_model=MoviePage)
 def list_movies(
     skip: int = Query(0, ge=0),
     limit: int = Query(20, ge=1, le=200),
     q: str | None = Query(None, max_length=200),
     status: str | None = Query(None),
+    favorites_only: bool = Query(False),
     user_id: int = Depends(get_user_from_token),
     db: Session = Depends(get_db),
 ):
-    items, total = movie_db.get_movies(db, skip=skip, limit=limit, user_id=user_id, q=q or None, status=status or None)
+    items, total = movie_db.get_movies(
+        db, skip=skip, limit=limit, user_id=user_id,
+        q=q or None, status=status or None, favorites_only=favorites_only,
+    )
     return {"items": items, "total": total}
 
 
@@ -159,6 +176,18 @@ def get_movie_detail(
     if not detail:
         raise NotFoundError("Фильм")
     return detail
+
+
+@router.post("/{movie_id}/favorite")
+def toggle_movie_favorite(
+    movie_id: int,
+    user_id: int = Depends(get_user_from_token),
+    db: Session = Depends(get_db),
+):
+    if not movie_db.get_movie_by_id(db, movie_id):
+        raise NotFoundError("Фильм")
+    is_fav = fav_db.toggle_favorite(db, user_id=user_id, entity_type='movie', entity_id=movie_id)
+    return {"is_favorite": is_fav}
 
 
 @router.patch("/{movie_id}/watched", response_model=MovieDetail)

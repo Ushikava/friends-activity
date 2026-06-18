@@ -4,10 +4,13 @@ import { motion } from 'framer-motion'
 import NavBar from '../../components/NavBar/NavBar'
 import MovieCard from '../../components/MovieCard/MovieCard'
 import Pagination from '../../components/Pagination/Pagination'
-import { fetchMovies, addMovie, deleteMovie, searchTmdb, fetchMoviePageNumber } from '../../api/movies'
+import { fetchMovies, addMovie, deleteMovie, searchTmdb, fetchMoviePageNumber, fetchRandomMovie } from '../../api/movies'
 import type { TmdbMovie } from '../../api/movies'
-
+import { SparklesIcon } from '@heroicons/react/24/outline'
+import ParticleBurst from '../../components/ParticleBurst/ParticleBurst'
 const API = import.meta.env.VITE_API_URL
+
+const MOVIE_EMOJIS = ['🎬', '⭐', '🍿', '🎭', '🎥', '🎦']
 import { getRole } from '../../api/auth'
 import { useLang } from '../../i18n/LangContext'
 import { containerVariants, cardVariants } from '../../utils/animations'
@@ -245,6 +248,9 @@ export default function Movies() {
   const [debouncedQuery, setDebouncedQuery] = useState('')
   const [filterOpen, setFilterOpen] = useState(false)
   const [statusFilter, setStatusFilter] = useState<'all' | 'watched' | 'unwatched'>('all')
+  const [favoritesOnly, setFavoritesOnly] = useState(false)
+  const [randomLoading, setRandomLoading] = useState(false)
+  const [showBurst, setShowBurst] = useState(false)
   const searchInputRef = useRef<HTMLInputElement>(null)
 
   function showErr(msg: string) {
@@ -263,7 +269,7 @@ export default function Movies() {
     if (!deepLinkPageResolved.current) return
     if (deepLinkId) setSearchParams({}, { replace: true })
     setPage(1)
-  }, [debouncedQuery, statusFilter]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [debouncedQuery, statusFilter, favoritesOnly]) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     if (!deepLinkId) return
@@ -281,11 +287,11 @@ export default function Movies() {
     setLoading(true)
     const q = debouncedQuery.trim() || undefined
     const st = statusFilter !== 'all' ? statusFilter : undefined
-    fetchMovies(page, PAGE_SIZE, q, st)
+    fetchMovies(page, PAGE_SIZE, q, st, favoritesOnly || undefined)
       .then(data => { setMovies(data.items); setTotal(data.total) })
       .catch(console.error)
       .finally(() => setLoading(false))
-  }, [page, debouncedQuery, statusFilter]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [page, debouncedQuery, statusFilter, favoritesOnly]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleSearchToggle = useCallback(() => {
     if (searchOpen && !searchQuery) {
@@ -311,7 +317,7 @@ export default function Movies() {
         } else {
           const q = debouncedQuery.trim() || undefined
           const st = statusFilter !== 'all' ? statusFilter : undefined
-          fetchMovies(page, PAGE_SIZE, q, st)
+          fetchMovies(page, PAGE_SIZE, q, st, favoritesOnly || undefined)
             .then(data => { setMovies(data.items); setTotal(data.total) })
             .catch(console.error)
         }
@@ -324,18 +330,47 @@ export default function Movies() {
   }
 
   function handleMovieAdded(movie: Movie) {
-    if (page === 1 && !debouncedQuery && statusFilter === 'all') {
+    if (page === 1 && !debouncedQuery && statusFilter === 'all' && !favoritesOnly) {
       setMovies(p => [movie, ...p.slice(0, PAGE_SIZE - 1)])
       setTotal(n => n + 1)
     } else {
       setDebouncedQuery('')
       setSearchQuery('')
       setStatusFilter('all')
+      setFavoritesOnly(false)
       setPage(1)
     }
   }
 
-  const isSearchActive = debouncedQuery.trim() !== '' || statusFilter !== 'all'
+  function handleToggleFavorite(id: number, isFav: boolean) {
+    if (favoritesOnly && !isFav) {
+      setMovies(p => p.filter(m => m.id !== id))
+      setTotal(n => n - 1)
+    } else {
+      setMovies(p => p.map(m => m.id === id ? { ...m, is_favorite: isFav } : m))
+    }
+  }
+
+  async function handleRandom() {
+    if (randomLoading) return
+    setRandomLoading(true)
+    try {
+      const result = await fetchRandomMovie(favoritesOnly)
+      if (!result) return
+      setSearchQuery('')
+      setDebouncedQuery('')
+      setStatusFilter('all')
+      setFavoritesOnly(false)
+      setShowBurst(true)
+      setSearchParams({ movie: String(result.id) }, { replace: true })
+    } catch {
+      showErr(t('common.errAction') as string)
+    } finally {
+      setRandomLoading(false)
+    }
+  }
+
+  const isSearchActive = debouncedQuery.trim() !== '' || statusFilter !== 'all' || favoritesOnly
   const currentDeepLinkId = isSearchActive ? null : deepLinkId
 
   return (
@@ -371,11 +406,20 @@ export default function Movies() {
             </button>
 
             <button
-              className={`media-header__icon-btn${filterOpen || statusFilter !== 'all' ? ' media-header__icon-btn--active' : ''}`}
+              className={`media-header__icon-btn${filterOpen || statusFilter !== 'all' || favoritesOnly ? ' media-header__icon-btn--active' : ''}`}
               onClick={() => setFilterOpen(v => !v)}
               title="Фильтр"
             >
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M22 3H2l8 9.46V19l4 2v-8.54L22 3z"/></svg>
+            </button>
+
+            <button
+              className={`media-header__icon-btn${randomLoading ? ' media-header__icon-btn--loading' : ''}`}
+              onClick={handleRandom}
+              title={t('movies.randomTitle') as string}
+              disabled={randomLoading}
+            >
+              <SparklesIcon width={22} height={22} />
             </button>
 
             {canEdit && (
@@ -389,19 +433,25 @@ export default function Movies() {
             {(['all', 'watched', 'unwatched'] as const).map(val => (
               <button
                 key={val}
-                className={`media-filter-pill${statusFilter === val ? ' media-filter-pill--active' : ''}`}
-                onClick={() => setStatusFilter(val)}
+                className={`media-filter-pill${statusFilter === val && !favoritesOnly ? ' media-filter-pill--active' : ''}`}
+                onClick={() => { setStatusFilter(val); setFavoritesOnly(false) }}
               >
                 {t(`movies.filter${val.charAt(0).toUpperCase() + val.slice(1)}` as Parameters<typeof t>[0])}
               </button>
             ))}
+            <button
+              className={`media-filter-pill${favoritesOnly ? ' media-filter-pill--active' : ''}`}
+              onClick={() => { setFavoritesOnly(v => !v); setStatusFilter('all') }}
+            >
+              {t('movies.filterFavorites')}
+            </button>
           </div>
         )}
 
         {loading
           ? <div className="loading-spinner" />
           : movies.length === 0
-          ? <p className="media-empty">{isSearchActive ? t('movies.noSearchResults') : t('common.empty')}</p>
+          ? <p className="media-empty">{favoritesOnly ? t('movies.noFavorites') : isSearchActive ? t('movies.noSearchResults') : t('common.empty')}</p>
           : (
             <motion.div
               className="media-grid"
@@ -417,6 +467,8 @@ export default function Movies() {
                     canEdit={canEdit}
                     onDelete={handleDelete}
                     onWatchUpdated={handleWatchUpdated}
+                    onToggleFavorite={handleToggleFavorite}
+
                     deepLinkReady={m.id === Number(currentDeepLinkId) ? deepLinkReady : undefined}
                     onDeepLinkReady={m.id === Number(currentDeepLinkId) ? () => setDeepLinkReady(true) : undefined}
                   />
@@ -433,6 +485,10 @@ export default function Movies() {
             onClose={() => setShowModal(false)}
             onAdd={handleMovieAdded}
           />
+        )}
+
+        {showBurst && (
+          <ParticleBurst emojis={MOVIE_EMOJIS} onDone={() => setShowBurst(false)} />
         )}
       </main>
     </div>

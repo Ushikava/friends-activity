@@ -10,6 +10,7 @@ class MovieOut(BaseModel):
     watch_count: int
     user_count: int
     is_watched_by_me: bool
+    is_favorite: bool = False
     added_by: int
     created_at: datetime
 

@@ -139,3 +139,13 @@ class Notification(Base):
     is_read = Column(Boolean, default=False, nullable=False)
     created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
     scheduled_at = Column(DateTime, nullable=True)
+
+
+class Favorite(Base):
+    __tablename__ = "favorites"
+
+    id = Column(Integer, primary_key=True)
+    user_id = Column(Integer, ForeignKey("users_data.id", ondelete="CASCADE"), nullable=False)
+    entity_type = Column(String, nullable=False)   # "movie" | "game"
+    entity_id = Column(Integer, nullable=False)
+    __table_args__ = (UniqueConstraint('user_id', 'entity_type', 'entity_id', name='uq_favorites'),)

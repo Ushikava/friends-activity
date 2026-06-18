@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { useSearchParams } from 'react-router-dom'
-import { fetchMovieDetail, toggleUserWatched, updateMovie } from '../../api/movies'
+import { fetchMovieDetail, toggleUserWatched, updateMovie, toggleMovieFavorite } from '../../api/movies'
 import { getRole, getUsername } from '../../api/auth'
 import { useLang } from '../../i18n/LangContext'
 import InviteModal from '../InviteModal/InviteModal'
@@ -316,11 +316,12 @@ interface Props {
   canEdit: boolean
   onDelete: (id: number) => void
   onWatchUpdated: (updated: Movie) => void
+  onToggleFavorite?: (id: number, isFav: boolean) => void
   deepLinkReady?: boolean
   onDeepLinkReady?: () => void
 }
 
-export default function MovieCard({ movie, canEdit, onDelete, onWatchUpdated, deepLinkReady, onDeepLinkReady }: Props) {
+export default function MovieCard({ movie, canEdit, onDelete, onWatchUpdated, onToggleFavorite, deepLinkReady, onDeepLinkReady }: Props) {
   const { t } = useLang()
   const [searchParams, setSearchParams] = useSearchParams()
   const isPreOpen = searchParams.get('movie') === String(movie.id)
@@ -329,6 +330,8 @@ export default function MovieCard({ movie, canEdit, onDelete, onWatchUpdated, de
   const [detail, setDetail] = useState<MovieDetail | null>(null)
   const [loadingDetail, setLoadingDetail] = useState(isPreOpen)
   const [animateModal, setAnimateModal] = useState(!isPreOpen)
+  const [isFav, setIsFav] = useState(movie.is_favorite)
+  const [favLoading, setFavLoading] = useState(false)
   const [toggling, setToggling] = useState(false)
   const [reviewOpen, setReviewOpen] = useState(false)
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false)
@@ -395,6 +398,7 @@ export default function MovieCard({ movie, canEdit, onDelete, onWatchUpdated, de
     return () => document.removeEventListener('keydown', onKey)
   }, [detailOpen, reviewOpen, deleteConfirmOpen, editOpen, inviteOpen])
 
+
   function applyToggleResult(d: MovieDetail) {
     setDetail(d)
     const watch_count = d.statuses.filter(s => s.is_watched).length
@@ -436,6 +440,19 @@ export default function MovieCard({ movie, canEdit, onDelete, onWatchUpdated, de
   function handleDeleteConfirmed() {
     setDetailOpen(false)
     onDelete(movie.id)
+  }
+
+  function handleFav(e: React.MouseEvent) {
+    e.stopPropagation()
+    if (favLoading) return
+    setFavLoading(true)
+    toggleMovieFavorite(movie.id)
+      .then(({ is_favorite }) => {
+        setIsFav(is_favorite)
+        onToggleFavorite?.(movie.id, is_favorite)
+      })
+      .catch(console.error)
+      .finally(() => setFavLoading(false))
   }
 
   const watchedStatuses = detail?.statuses.filter(s => s.is_watched) ?? []
@@ -483,7 +500,14 @@ export default function MovieCard({ movie, canEdit, onDelete, onWatchUpdated, de
         </div>
       </div>
 
-      <p className="movie-card__title">{movie.title}</p>
+      <div className="movie-card__title-row">
+        <button
+          className={`movie-card__fav${isFav ? ' movie-card__fav--on' : ''}`}
+          onClick={handleFav}
+          title={isFav ? t('movies.removeFavorite') as string : t('movies.addFavorite') as string}
+        >★</button>
+        <p className="movie-card__title">{movie.title}</p>
+      </div>
 
       {detailOpen && (
         <div
@@ -619,6 +643,8 @@ export default function MovieCard({ movie, canEdit, onDelete, onWatchUpdated, de
               onClose={() => setInviteOpen(false)}
             />
           )}
+
+
         </div>
       )}
     </div>

@@ -47,6 +47,45 @@
   user-select: none;
 }
 
+/* ── Favorite star ── */
+.movie-card__title-row {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  overflow: hidden;
+}
+
+.movie-card__fav {
+  flex-shrink: 0;
+  width: 18px;
+  height: 18px;
+  border: none;
+  background: none;
+  color: var(--muted);
+  font-size: 0.8rem;
+  line-height: 1;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.15s, color 0.15s;
+  padding: 0;
+}
+
+.movie-card__title-row:hover .movie-card__fav {
+  opacity: 1;
+}
+
+.movie-card__fav--on {
+  opacity: 1 !important;
+  color: #f4c430;
+}
+
+.movie-card__fav:hover {
+  color: #f4c430;
+}
+
 /* ── Watch count badge ── */
 .movie-card__badge {
   position: absolute;
@@ -72,10 +111,11 @@
 .movie-card__title {
   font-size: 0.85rem;
   font-weight: 400;
-  text-align: center;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  flex: 1;
+  min-width: 0;
 }
 
 /* ══════════════════════════════════════════

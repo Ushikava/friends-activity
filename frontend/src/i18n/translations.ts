@@ -82,7 +82,12 @@ export const ru: Dict = {
   'movies.filterAll':       'Все',
   'movies.filterWatched':   'Просмотрено',
   'movies.filterUnwatched': 'Не просмотрено',
+  'movies.filterFavorites': '★ Избранное',
   'movies.noSearchResults': 'Ничего не нашлось',
+  'movies.noFavorites':     'Нет избранных фильмов',
+  'movies.addFavorite':     'Добавить в избранное',
+  'movies.removeFavorite':  'Убрать из избранного',
+  'movies.randomTitle':     'Случайный фильм',
 
   // games
   'games.title':       'Игры',
@@ -110,7 +115,12 @@ export const ru: Dict = {
   'games.filterAll':        'Все',
   'games.filterPlayed':     'Пройдено',
   'games.filterUnplayed':   'Не пройдено',
+  'games.filterFavorites':  '★ Избранное',
   'games.noSearchResults':  'Ничего не нашлось',
+  'games.noFavorites':      'Нет избранных игр',
+  'games.addFavorite':      'Добавить в избранное',
+  'games.removeFavorite':   'Убрать из избранного',
+  'games.randomTitle':      'Случайная игра',
 
   // activity
   'activity.title': 'Активность',
@@ -296,7 +306,12 @@ export const en: Dict = {
   'movies.filterAll':       'All',
   'movies.filterWatched':   'Watched',
   'movies.filterUnwatched': 'Unwatched',
+  'movies.filterFavorites': '★ Favorites',
   'movies.noSearchResults': 'Nothing found',
+  'movies.noFavorites':     'No favorite movies',
+  'movies.addFavorite':     'Add to favorites',
+  'movies.removeFavorite':  'Remove from favorites',
+  'movies.randomTitle':     'Random movie',
 
   // games
   'games.title':       'Games',
@@ -324,7 +339,12 @@ export const en: Dict = {
   'games.filterAll':        'All',
   'games.filterPlayed':     'Completed',
   'games.filterUnplayed':   'Not completed',
+  'games.filterFavorites':  '★ Favorites',
   'games.noSearchResults':  'Nothing found',
+  'games.noFavorites':      'No favorite games',
+  'games.addFavorite':      'Add to favorites',
+  'games.removeFavorite':   'Remove from favorites',
+  'games.randomTitle':      'Random game',
 
   // activity
   'activity.title': 'Activity',
