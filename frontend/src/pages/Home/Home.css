@@ -51,7 +51,7 @@
   border-radius: 16px;
   padding: 12px 20px;
   margin-bottom: 32px;
-  box-shadow: 0 4px 3px 0 rgba(0, 0, 0, 0.15);
+  box-shadow: 0 4px 3px 0 rgba(0, 0, 0, 0.3);
 }
 
 .home-statusbar__title {
@@ -83,7 +83,7 @@
   align-items: center;
   justify-content: center;
   gap: 8px;
-  box-shadow: 0 4px 3px 0 rgba(0, 0, 0, 0.15);
+  box-shadow: 0 4px 3px 0 rgba(0, 0, 0, 0.3);
 }
 
 .home-stat__big {

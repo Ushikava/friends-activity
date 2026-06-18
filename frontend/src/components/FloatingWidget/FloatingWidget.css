@@ -1,0 +1,85 @@
+.fw {
+  position: fixed;
+  bottom: 16px;
+  right: 16px;
+  z-index: 9990;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 10px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  box-shadow: 0 4px 3px 0 rgba(0, 0, 0, 0.3);
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  user-select: none;
+}
+
+.fw__icon {
+  width: 16px;
+  height: 16px;
+  display: block;
+}
+
+.fw__theme {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 2px;
+  color: var(--muted);
+  transition: color 0.15s;
+  line-height: 1;
+}
+.fw__theme:hover {
+  color: var(--text);
+}
+
+.fw__sep {
+  width: 1px;
+  height: 14px;
+  background: var(--border);
+  flex-shrink: 0;
+}
+
+.fw__lang {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 2px 3px;
+  color: var(--muted);
+  border-radius: 4px;
+  font-size: inherit;
+  font-weight: inherit;
+  font-family: inherit;
+  transition: color 0.15s;
+}
+.fw__lang:hover {
+  color: var(--text);
+}
+.fw__lang--on {
+  color: var(--accent);
+}
+
+.fw__author_by {
+  color: var(--muted);
+}
+
+.fw__author {
+  color: var(--muted);
+  text-decoration: none;
+  transition: color 0.15s;
+}
+.fw__author:hover {
+  color: var(--accent);
+}
+
+@media (max-width: 640px) {
+  .fw {
+    display: none;
+  }
+}
