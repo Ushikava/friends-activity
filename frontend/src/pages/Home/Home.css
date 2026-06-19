@@ -6,6 +6,13 @@
   align-items: start;
 }
 
+.home-row-first {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 32px;
+  align-items: start;
+}
+
 .home-col {
   min-width: 0;
 }
@@ -132,7 +139,12 @@
 
 @media (max-width: 640px) {
   .home-stats {
-    grid-template-columns: repeat(3, minmax(0, 140px));
+    grid-template-columns: repeat(2, 1fr);
+    justify-content: unset;
+  }
+  .home-stat {
+    aspect-ratio: unset;
+    padding: 14px 12px;
   }
 }
 
@@ -171,7 +183,8 @@
 }
 
 @media (max-width: 640px) {
-  .home-row {
+  .home-row,
+  .home-row-first {
     grid-template-columns: 1fr;
     gap: 24px;
     margin-bottom: 28px;

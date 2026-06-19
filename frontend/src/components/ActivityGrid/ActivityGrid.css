@@ -15,8 +15,8 @@
 }
 
 .activity__wrap {
-  overflow-x: auto;
   padding-bottom: 4px;
+  position: relative;
 }
 
 /* Month labels */

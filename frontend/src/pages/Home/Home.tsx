@@ -146,7 +146,7 @@ export default function Home() {
 
         {!loading && (
           <motion.div
-            className="home-row"
+            className="home-row-first"
             variants={sectionVariants}
             initial="hidden"
             animate="show"

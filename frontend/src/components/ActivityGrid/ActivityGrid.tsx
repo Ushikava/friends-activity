@@ -1,14 +1,14 @@
-import { motion } from 'framer-motion'
+import { useRef, useState, useLayoutEffect, useMemo } from 'react'
 import { useLang } from '../../i18n/LangContext'
-import { sectionVariants } from '../../utils/animations'
 import type { ActivityData } from '../../types'
 import './ActivityGrid.css'
 
-const WEEKS = 52
+const MAX_WEEKS = 52
 const CELL = 13
 const GAP = 3
 const STEP = CELL + GAP
 const DAY_LABEL_WIDTH = 26
+const DAY_LABEL_GAP = 6
 
 interface DayCell {
   date: Date
@@ -37,12 +37,12 @@ function startOfWeek(d: Date): Date {
   return date
 }
 
-function buildGrid(activity: ActivityData): WeekRow[] {
+function buildGrid(activity: ActivityData, weeks: number): WeekRow[] {
   const today = new Date()
   today.setHours(0, 0, 0, 0)
 
-  const start = startOfWeek(new Date(today.getTime() - (WEEKS - 1) * 7 * 86400000))
-  const weeks: WeekRow[] = []
+  const start = startOfWeek(new Date(today.getTime() - (weeks - 1) * 7 * 86400000))
+  const result: WeekRow[] = []
   const cur = new Date(start)
 
   while (cur <= today) {
@@ -55,9 +55,9 @@ function buildGrid(activity: ActivityData): WeekRow[] {
       )
       cur.setDate(cur.getDate() + 1)
     }
-    weeks.push(week)
+    result.push(week)
   }
-  return weeks
+  return result
 }
 
 function getMonthLabels(weeks: WeekRow[], months: string[]): MonthLabel[] {
@@ -102,60 +102,89 @@ export default function ActivityGrid({ activity }: Props) {
   const days = tRaw('activity.days') as string[]
   const plural = tRaw('activity.plural') as (n: number) => string
 
-  const weeks = buildGrid(activity)
-  const monthLabels = getMonthLabels(weeks, months)
+  const wrapRef = useRef<HTMLDivElement>(null)
+  const [weeksCount, setWeeksCount] = useState(0)
+  const [ready, setReady] = useState(false)
+
+  useLayoutEffect(() => {
+    const el = wrapRef.current
+    if (!el) return
+
+    const available = el.offsetWidth - DAY_LABEL_WIDTH - DAY_LABEL_GAP
+    setWeeksCount(Math.max(4, Math.min(MAX_WEEKS, Math.floor(available / STEP))))
+
+    const timer = setTimeout(() => setReady(true), 500)
+
+    const observer = new ResizeObserver(() => {
+      const avail = el.offsetWidth - DAY_LABEL_WIDTH - DAY_LABEL_GAP
+      setWeeksCount(Math.max(4, Math.min(MAX_WEEKS, Math.floor(avail / STEP))))
+    })
+    observer.observe(el)
+    return () => { observer.disconnect(); clearTimeout(timer) }
+  }, [])
+
+  const weeks = useMemo(() => buildGrid(activity, weeksCount), [activity, weeksCount])
+  const monthLabels = useMemo(() => getMonthLabels(weeks, months), [weeks, months])
+  const contentWidth = DAY_LABEL_WIDTH + DAY_LABEL_GAP + weeksCount * STEP
 
   return (
-    <motion.div className="activity" variants={sectionVariants} initial="hidden" animate="show">
+    <div className="activity">
       <h2 className="home-section__title" style={{ marginBottom: 12 }}>{t('activity.title') as string}</h2>
-
-      <div className="activity__wrap">
-        <div className="activity__months" style={{ paddingLeft: DAY_LABEL_WIDTH + GAP * 2 }}>
-          {monthLabels.map(({ col, text }) => (
-            <span key={col} className="activity__month" style={{ left: col * STEP }}>
-              {text}
-            </span>
-          ))}
-        </div>
-
-        <div className="activity__grid">
-          <div className="activity__days">
-            {days.map((label, i) => (
-              <span key={i}>{label}</span>
+      <div className="activity__wrap" ref={wrapRef}>
+        {!ready ? (
+          <div style={{ height: 152, display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%' }}>
+            <div className="loading-spinner" />
+          </div>
+        ) : (
+        <div style={{ width: contentWidth, margin: '0 auto' }}>
+          <div className="activity__months" style={{ paddingLeft: DAY_LABEL_WIDTH + DAY_LABEL_GAP }}>
+            {monthLabels.map(({ col, text }) => (
+              <span key={col} className="activity__month" style={{ left: col * STEP }}>
+                {text}
+              </span>
             ))}
           </div>
 
-          <div className="activity__weeks">
-            {weeks.map((week, wi) => (
-              <div key={wi} className="activity__week">
-                {week.map((day, di) =>
-                  day ? (
-                    <div
-                      key={di}
-                      className="activity__cell"
-                      style={{ background: getColor(day.count) }}
-                      title={day.count > 0
-                        ? `${formatDate(day.date, lang)}: ${plural(day.count)}`
-                        : formatDate(day.date, lang)
-                      }
-                    />
-                  ) : (
-                    <div key={di} className="activity__cell activity__cell--future" />
-                  )
-                )}
-              </div>
+          <div className="activity__grid">
+            <div className="activity__days">
+              {days.map((label, i) => (
+                <span key={i}>{label}</span>
+              ))}
+            </div>
+
+            <div className="activity__weeks">
+              {weeks.map((week, wi) => (
+                <div key={wi} className="activity__week">
+                  {week.map((day, di) =>
+                    day ? (
+                      <div
+                        key={di}
+                        className="activity__cell"
+                        style={{ background: getColor(day.count) }}
+                        title={day.count > 0
+                          ? `${formatDate(day.date, lang)}: ${plural(day.count)}`
+                          : formatDate(day.date, lang)
+                        }
+                      />
+                    ) : (
+                      <div key={di} className="activity__cell activity__cell--future" />
+                    )
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="activity__legend">
+            <span>{t('activity.less') as string}</span>
+            {[0, 1, 2, 4, 6].map((count, i) => (
+              <div key={i} className="activity__cell" style={{ background: getColor(count) }} />
             ))}
+            <span>{t('activity.more') as string}</span>
           </div>
         </div>
-
-        <div className="activity__legend">
-          <span>{t('activity.less') as string}</span>
-          {[0, 1, 2, 4, 6].map((count, i) => (
-            <div key={i} className="activity__cell" style={{ background: getColor(count) }} />
-          ))}
-          <span>{t('activity.more') as string}</span>
-        </div>
+        )}
       </div>
-    </motion.div>
+    </div>
   )
 }
