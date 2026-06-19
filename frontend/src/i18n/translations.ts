@@ -36,11 +36,11 @@ export const ru: Dict = {
   // home
   'home.title':           'Главная',
   'home.stats':           'Статистика',
-  'home.stat.screenshots':'скриншотов',
+  'home.stat.screenshots':'скринов',
   'home.stat.photos':     'фото',
   'home.stat.movies':     'фильмов',
   'home.stat.games':      'игр',
-  'home.stat.users':      'пользователей',
+  'home.stat.users':      'юзеров',
   'home.stat.streak':     'дней подряд',
   'home.gallery':         'Скриншоты',
   'home.places':          'ИРЛ Фото',
