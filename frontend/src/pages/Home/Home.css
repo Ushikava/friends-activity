@@ -132,6 +132,12 @@
   }
 }
 
+/* ── Movie/game preview on home page ── */
+.home-col .media-grid {
+  grid-template-columns: repeat(auto-fill, minmax(clamp(150px, 22%, 260px), 1fr));
+  gap: 12px;
+}
+
 /* ── Photo preview ── */
 .home-photos {
   display: grid;

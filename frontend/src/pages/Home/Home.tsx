@@ -20,7 +20,7 @@ import '../../components/MediaGrid/mediaGrid.css'
 import './Home.css'
 
 const PHOTO_LIMIT = 2
-const MEDIA_LIMIT = 5
+const MEDIA_LIMIT = 6
 
 const CIRCLE_R = 40
 const CIRCLE_SW = 5
