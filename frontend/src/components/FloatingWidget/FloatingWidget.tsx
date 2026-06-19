@@ -42,6 +42,8 @@ export default function FloatingWidget() {
       >
         Ushikava
       </a>
+      <div className="fw__sep" />
+      <span className="fw__version">v{__APP_VERSION__}</span>
     </div>
   )
 }

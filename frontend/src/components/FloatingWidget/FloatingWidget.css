@@ -78,6 +78,11 @@
   color: var(--accent);
 }
 
+.fw__version {
+  color: var(--muted);
+  opacity: 0.6;
+}
+
 @media (max-width: 640px) {
   .fw {
     display: none;
