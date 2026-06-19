@@ -97,6 +97,8 @@ export interface Stats {
   places: number
   movies: { total: number; watched: number }
   games: { total: number; played: number }
+  users: number
+  streak: number
 }
 
 export type ActivityData = Record<string, number>

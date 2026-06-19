@@ -174,6 +174,7 @@ export default function Home() {
                   total={stats?.games.total ?? 0}
                   label={t('home.stat.games')}
                 />
+                <NumberStat value={stats?.users ?? 0}  label={t('home.stat.users')} />
               </motion.div>
             </div>
           </motion.div>

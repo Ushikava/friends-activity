@@ -6,7 +6,7 @@ from sqlalchemy.orm import Session
 
 from core.auth import get_user_from_token
 from db.session import get_db
-from db.models import Photo, Place, Movie, Game, MovieWatch, GamePlay
+from db.models import Photo, Place, Movie, Game, MovieWatch, GamePlay, UserData, ActivityLog
 from db.activity_log import get_feed
 
 router = APIRouter(tags=["activity"])
@@ -43,6 +43,31 @@ def get_feed_endpoint(
     return get_feed(db, limit=15)
 
 
+def _calc_streak(db: Session, user_id: int) -> int:
+    rows = (
+        db.query(func.date(ActivityLog.created_at))
+        .filter(ActivityLog.user_id == user_id)
+        .distinct()
+        .all()
+    )
+    date_set: set[date] = set()
+    for (d,) in rows:
+        try:
+            date_set.add(d if isinstance(d, date) else date.fromisoformat(str(d)))
+        except (TypeError, ValueError):
+            pass
+
+    today = date.today()
+    start = today if today in date_set else (today - timedelta(days=1) if (today - timedelta(days=1)) in date_set else None)
+    if not start:
+        return 0
+    streak, day = 0, start
+    while day in date_set:
+        streak += 1
+        day -= timedelta(days=1)
+    return streak
+
+
 @router.get("/stats")
 def get_stats(
     user_id: int = Depends(get_user_from_token),
@@ -61,4 +86,6 @@ def get_stats(
             "played": db.query(func.count(GamePlay.id))
                       .filter(GamePlay.user_id == user_id, GamePlay.is_played.is_(True)).scalar(),
         },
+        "users": db.query(func.count(UserData.id)).filter(UserData.role != "observer").scalar(),
+        "streak": _calc_streak(db, user_id),
     }
