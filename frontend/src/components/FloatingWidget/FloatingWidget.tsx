@@ -1,11 +1,21 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { SunIcon, MoonIcon } from '@heroicons/react/24/outline'
 import { useLang } from '../../i18n/LangContext'
 import './FloatingWidget.css'
 
 export default function FloatingWidget() {
   const { lang, setLanguage } = useLang()
-  const [theme, setTheme] = useState(() => localStorage.getItem('theme') || 'light')
+  const [theme, setTheme] = useState(
+    () => document.documentElement.dataset.theme || localStorage.getItem('theme') || 'light'
+  )
+
+  useEffect(() => {
+    const observer = new MutationObserver(() => {
+      setTheme(document.documentElement.dataset.theme || 'light')
+    })
+    observer.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] })
+    return () => observer.disconnect()
+  }, [])
 
   function toggleTheme() {
     const next = theme === 'light' ? 'dark' : 'light'
