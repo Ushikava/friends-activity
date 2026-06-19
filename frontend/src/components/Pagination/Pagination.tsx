@@ -1,3 +1,4 @@
+import { ChevronLeftIcon, ChevronRightIcon } from '@heroicons/react/24/outline'
 import './Pagination.css'
 
 interface Props {
@@ -12,24 +13,27 @@ export default function Pagination({ page, total, limit, onChange }: Props) {
   if (totalPages <= 1) return null
 
   return (
-    <div className="pagination">
-      <button
-        className="pagination__btn"
-        disabled={page === 1}
-        onClick={() => onChange(page - 1)}
-        aria-label="Предыдущая страница"
-      >
-        ←
-      </button>
-      <span className="pagination__info">{page} / {totalPages}</span>
-      <button
-        className="pagination__btn"
-        disabled={page >= totalPages}
-        onClick={() => onChange(page + 1)}
-        aria-label="Следующая страница"
-      >
-        →
-      </button>
-    </div>
+    <>
+      <div className="pagination__spacer" aria-hidden="true" />
+      <div className="pagination">
+        <button
+          className="pagination__btn"
+          disabled={page === 1}
+          onClick={() => onChange(page - 1)}
+          aria-label="Предыдущая страница"
+        >
+          <ChevronLeftIcon className="pagination__icon" />
+        </button>
+        <span className="pagination__info">{page} / {totalPages}</span>
+        <button
+          className="pagination__btn"
+          disabled={page >= totalPages}
+          onClick={() => onChange(page + 1)}
+          aria-label="Следующая страница"
+        >
+          <ChevronRightIcon className="pagination__icon" />
+        </button>
+      </div>
+    </>
   )
 }

@@ -13,7 +13,7 @@ import '../page.css'
 import '../../components/MediaGrid/mediaGrid.css'
 import './Gallery.css'
 
-const PAGE_SIZE = 20
+const PAGE_SIZE = 40
 
 interface UploadModalProps {
   onClose: () => void

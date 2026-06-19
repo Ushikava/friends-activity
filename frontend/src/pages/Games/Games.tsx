@@ -18,7 +18,7 @@ import '../page.css'
 import '../../components/MediaGrid/mediaGrid.css'
 import './Games.css'
 
-const PAGE_SIZE = 20
+const PAGE_SIZE = 40
 
 type Tab = 'steam' | 'manual'
 

@@ -19,7 +19,7 @@ import '../page.css'
 import '../../components/MediaGrid/mediaGrid.css'
 import './Movies.css'
 
-const PAGE_SIZE = 20
+const PAGE_SIZE = 40
 
 type Tab = 'tmdb' | 'manual'
 
