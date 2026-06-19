@@ -1,7 +1,7 @@
 {
   "name": "frontend",
   "private": true,
-  "version": "0.50.2",
+  "version": "0.51.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -16,6 +16,7 @@
     "framer-motion": "^12.40.0",
     "react": "^19.2.6",
     "react-dom": "^19.2.6",
+    "react-easy-crop": "^6.0.2",
     "react-markdown": "^10.1.0",
     "react-router-dom": "^7.17.0",
     "remark-gfm": "^4.0.1"

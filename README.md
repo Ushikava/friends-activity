@@ -1,6 +1,6 @@
 # 🥳 Friends Activity Site 🫂
 
-A personal website for a small group of people — photo gallery, favorite places, movies and games tracker.
+A personal website for a small group of friends: photo gallery, favorite places, movies and games tracker, wishlist and activity feed.
 
 <p align="center">
   <img src="docs/hii.gif" alt="Hii" width="500" />
@@ -12,6 +12,10 @@ A personal website for a small group of people — photo gallery, favorite place
 
 <p align="center">
   <img src="docs/screenshots/home.png" alt="Home page" width="800" />
+</p>
+
+<p align="center">
+  <img src="docs/screenshots/games.png" alt="Games" width="800" />
 </p>
 
 <p align="center">
@@ -29,6 +33,9 @@ A personal website for a small group of people — photo gallery, favorite place
 
 - Photo gallery and IRL places with lightbox viewer
 - Movies & games tracker with watched/played status per user
+- Wishlist per user - add items with title, URL, price; view others' wishlists
+- Activity feed with per-user filter
+- User profiles with avatar upload (crop / zoom before saving)
 - Activity heatmap
 - Mini-statistics dashboard
 - AI chat assistant
@@ -124,6 +131,6 @@ uvicorn main:app --host 0.0.0.0 --port 8000
 
 ## Credits
 
-- Author of this version — [Ushikava](https://github.com/Ushikava)
-- Original idea and concept — [luluoliv/lovepage](https://github.com/luluoliv/lovepage)
-- UI design — [LovingDevs 2.0](https://www.figma.com/design/ORTGCVBP53r8833r17wLKp/LovingDevs-2.0?node-id=17-6&t=51jnchLJUcCKYWXi-0) on Figma
+- Author of this version - [Ushikava](https://github.com/Ushikava)
+- Original idea and concept - [luluoliv/lovepage](https://github.com/luluoliv/lovepage)
+- UI design - [LovingDevs 2.0](https://www.figma.com/design/ORTGCVBP53r8833r17wLKp/LovingDevs-2.0?node-id=17-6&t=51jnchLJUcCKYWXi-0) on Figma

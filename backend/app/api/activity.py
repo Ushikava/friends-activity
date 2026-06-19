@@ -1,6 +1,6 @@
 from datetime import date, timedelta
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Query
 from sqlalchemy import func
 from sqlalchemy.orm import Session
 
@@ -37,10 +37,11 @@ def get_activity(db: Session = Depends(get_db)):
 
 @router.get("/feed")
 def get_feed_endpoint(
-    user_id: int = Depends(get_user_from_token),
+    filter_user_id: int | None = Query(None, alias="user_id"),
+    _: int = Depends(get_user_from_token),
     db: Session = Depends(get_db),
 ):
-    return get_feed(db, limit=15)
+    return get_feed(db, limit=50, user_id=filter_user_id)
 
 
 def _calc_streak(db: Session, user_id: int) -> int:

@@ -29,6 +29,7 @@ export const ru: Dict = {
   'common.errUpload':       'Не удалось загрузить',
   'common.errAdd':          'Не удалось добавить',
   'common.errNoTitle':      'Введи название',
+  'common.cancel':          'Отмена',
   'common.errAction':       'Произошла ошибка, попробуй ещё раз',
   'common.errDeleteFail':   'Не удалось удалить',
   'common.errLoadUsers':    'Не удалось загрузить список юзеров',
@@ -196,6 +197,32 @@ export const ru: Dict = {
   'profile.deleteSelf.password':'Текущий пароль',
   'profile.deleteSelf.submit':  'Удалить аккаунт',
 
+  // profile tabs
+  'profile.tab.info':           'Инфо',
+  'profile.tab.wishlist':       'Вишлист',
+  'profile.tab.management':     'Управление',
+
+  // profile info tab
+  'profile.info.changeAvatar':  'Сменить фото',
+  'profile.info.avatarSave':    'Готово',
+  'profile.info.avatarSaved':   'Фото обновлено',
+  'profile.info.members':       'Участники',
+  'profile.info.activity':      'Активность',
+  'profile.info.avatarLoading': 'Загрузка...',
+  'profile.info.role.admin':    'Администратор',
+  'profile.info.role.observer': 'Наблюдатель',
+  'profile.info.role.user':     'Пользователь',
+
+  // profile wishlist tab
+  'profile.wishlist.title':     'Список желаний',
+  'profile.wishlist.itemTitle': 'Название',
+  'profile.wishlist.itemUrl':   'Ссылка',
+  'profile.wishlist.itemPrice': 'Цена (необязательно)',
+  'profile.wishlist.add':       'Добавить',
+  'profile.wishlist.empty':     'Список желаний пуст',
+  'profile.wishlist.me':        'Я',
+  'profile.wishlist.deleteItem':'Удалить',
+
   // feed
   'home.feed':          'Лента активности',
   'feed.photo_upload':  'загрузил(а) скриншот',
@@ -255,6 +282,7 @@ export const en: Dict = {
   'common.errUpload':       'Upload failed',
   'common.errAdd':          'Failed to add',
   'common.errNoTitle':      'Enter a title',
+  'common.cancel':          'Cancel',
   'common.errAction':       'An error occurred, please try again',
   'common.errDeleteFail':   'Failed to delete',
   'common.errLoadUsers':    'Failed to load users',
@@ -417,6 +445,32 @@ export const en: Dict = {
   'profile.deleteSelf.title':   'Delete my account',
   'profile.deleteSelf.password':'Current password',
   'profile.deleteSelf.submit':  'Delete account',
+
+  // profile tabs
+  'profile.tab.info':           'Info',
+  'profile.tab.wishlist':       'Wishlist',
+  'profile.tab.management':     'Management',
+
+  // profile info tab
+  'profile.info.changeAvatar':  'Change photo',
+  'profile.info.avatarSave':    'Done',
+  'profile.info.avatarSaved':   'Photo updated',
+  'profile.info.members':       'Members',
+  'profile.info.activity':      'Activity',
+  'profile.info.avatarLoading': 'Uploading...',
+  'profile.info.role.admin':    'Admin',
+  'profile.info.role.observer': 'Observer',
+  'profile.info.role.user':     'User',
+
+  // profile wishlist tab
+  'profile.wishlist.title':     'Wishlist',
+  'profile.wishlist.itemTitle': 'Title',
+  'profile.wishlist.itemUrl':   'Link',
+  'profile.wishlist.itemPrice': 'Price (optional)',
+  'profile.wishlist.add':       'Add',
+  'profile.wishlist.empty':     'Your wishlist is empty',
+  'profile.wishlist.me':        'Me',
+  'profile.wishlist.deleteItem':'Delete',
 
   // feed
   'home.feed':          'Activity Feed',

@@ -90,6 +90,29 @@ export interface GameDetail {
   statuses: GameUserStatus[]
 }
 
+// ── User profile ─────────────────────────────────────────────────────────────
+
+export interface UserProfile {
+  id: number
+  username: string
+  role: string
+  avatar_url: string | null
+  last_active: string | null
+}
+
+// ── Wishlist ──────────────────────────────────────────────────────────────────
+
+export type WishlistCurrency = 'EUR' | 'RUB' | 'USD'
+
+export interface WishlistItem {
+  id: number
+  title: string
+  url: string
+  price: number | null
+  currency: WishlistCurrency
+  created_at: string
+}
+
 // ── Stats & Activity ──────────────────────────────────────────────────────────
 
 export interface Stats {

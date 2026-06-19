@@ -1,6 +1,16 @@
 from datetime import datetime, timezone
 
-from sqlalchemy import Column, String, Text, DateTime, Integer, Boolean, ForeignKey, UniqueConstraint
+from sqlalchemy import ( 
+    Column, 
+    String, 
+    Text, 
+    DateTime, 
+    Integer, 
+    Boolean, 
+    ForeignKey, 
+    UniqueConstraint, 
+    Numeric,
+)
 
 from db.base import Base
 
@@ -149,3 +159,15 @@ class Favorite(Base):
     entity_type = Column(String, nullable=False)   # "movie" | "game"
     entity_id = Column(Integer, nullable=False)
     __table_args__ = (UniqueConstraint('user_id', 'entity_type', 'entity_id', name='uq_favorites'),)
+
+
+class Whishlist(Base):
+    __tablename__ = "whishlist"
+
+    id = Column(Integer, primary_key=True)
+    user_id = Column(Integer, ForeignKey("users_data.id", ondelete="CASCADE"), nullable=False)
+    wish_name = Column(String, nullable=False)
+    wish_url = Column(String, nullable=False)
+    price = Column(Numeric(10, 2), nullable=True)
+    currency = Column(String(3), nullable=False, default='RUB')
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))

@@ -13,11 +13,14 @@ from api.place import router as place_router
 from api.activity import router as activity_router
 from api.chat import router as chat_router
 from api.notifications import router as notifications_router
+from api.wishlist import router as wishlist_router
+from api.profile import router as profile_router
 
 os.makedirs("uploads/photos", exist_ok=True)
 os.makedirs("uploads/posters", exist_ok=True)
 os.makedirs("uploads/games", exist_ok=True)
 os.makedirs("uploads/places", exist_ok=True)
+os.makedirs("uploads/avatars", exist_ok=True)
 
 app = FastAPI(title="FriendsActivity API")
 app.add_exception_handler(AppError, app_error_handler)
@@ -40,5 +43,6 @@ app.include_router(place_router, prefix="/api")
 app.include_router(activity_router, prefix="/api")
 app.include_router(chat_router, prefix="/api")
 app.include_router(notifications_router, prefix="/api")
-
+app.include_router(wishlist_router, prefix="/api")
+app.include_router(profile_router, prefix="/api")
 app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")

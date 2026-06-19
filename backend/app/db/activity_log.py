@@ -27,8 +27,9 @@ def log_activity(
     db.commit()
 
 
-def get_feed(db: Session, limit: int = 15) -> list[dict]:
+def get_feed(db: Session, limit: int = 15, user_id: int | None = None) -> list[dict]:
     placeholders = ', '.join(f"'{a}'" for a in STACKABLE)
+    user_filter = "AND user_id = :user_id" if user_id is not None else ""
     sql = text(f"""
         WITH grouped AS (
             SELECT MAX(id)           AS id,
@@ -40,20 +41,23 @@ def get_feed(db: Session, limit: int = 15) -> list[dict]:
                    COUNT(*)          AS count,
                    MAX(created_at)   AS created_at
             FROM   activity_log
-            WHERE  action IN ({placeholders})
+            WHERE  action IN ({placeholders}) {user_filter}
             GROUP  BY username, action, DATE(created_at)
 
             UNION ALL
 
             SELECT id, username, action, entity_title, entity_type, entity_id, 1 AS count, created_at
             FROM   activity_log
-            WHERE  action NOT IN ({placeholders})
+            WHERE  action NOT IN ({placeholders}) {user_filter}
         )
         SELECT * FROM grouped
         ORDER  BY created_at DESC
         LIMIT  :limit
     """)
-    rows = db.execute(sql, {"limit": limit}).mappings().all()
+    params: dict = {"limit": limit}
+    if user_id is not None:
+        params["user_id"] = user_id
+    rows = db.execute(sql, params).mappings().all()
     return [
         {
             "id": r["id"],
