@@ -40,7 +40,7 @@ A personal website for a small group of friends: photo gallery, favorite places,
 - Mini-statistics dashboard
 - AI chat assistant
 - Simple role-based access without registration
-- User management — add, delete users, delete own account
+- User management - add, delete users, delete own account
 - Dark / light theme toggle
 - Pagination on all listing pages
 - Russian / English interface
@@ -118,7 +118,7 @@ alembic revision --autogenerate -m "description"
 
 ## Deployment
 
-Nginx is used as a reverse proxy in production. Config — `nginx.conf`.
+Nginx is used as a reverse proxy in production.
 
 ```bash
 # frontend

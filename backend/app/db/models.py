@@ -1,5 +1,6 @@
 from datetime import datetime, timezone
 
+from sqlalchemy.orm import relationship
 from sqlalchemy import ( 
     Column, 
     String, 
@@ -29,7 +30,7 @@ class RefreshToken(Base):
     __tablename__ = "refresh_tokens"
 
     id = Column(Integer, primary_key=True)
-    user_id = Column(Integer, ForeignKey("users_data.id"), nullable=False)
+    user_id = Column(Integer, ForeignKey("users_data.id", ondelete="CASCADE"), nullable=False)
     token = Column(String, unique=True, nullable=False)
     expires_at = Column(DateTime, nullable=False)
     created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
@@ -41,7 +42,7 @@ class Photo(Base):
     id = Column(Integer, primary_key=True)
     filename = Column(String, nullable=False)
     description = Column(Text, nullable=True)
-    uploaded_by = Column(Integer, ForeignKey("users_data.id"), nullable=False)
+    uploaded_by = Column(Integer, ForeignKey("users_data.id", ondelete="CASCADE"), nullable=False)
     uploaded_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
 
 
@@ -86,7 +87,7 @@ class Game(Base):
     title = Column(String, nullable=False)
     poster = Column(Text, nullable=True)
     steam_link = Column(Text, nullable=True)
-    added_by = Column(Integer, ForeignKey("users_data.id"), nullable=False)
+    added_by = Column(Integer, ForeignKey("users_data.id", ondelete="CASCADE"), nullable=False)
     created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
 
 
@@ -107,7 +108,7 @@ class ChatRoom(Base):
     __tablename__ = "chat_rooms"
 
     id = Column(Integer, primary_key=True)
-    user_id = Column(Integer, ForeignKey("users_data.id"), nullable=False)
+    user_id = Column(Integer, ForeignKey("users_data.id", ondelete="CASCADE"), nullable=False)
     name = Column(String, nullable=False, default="Новый чат")
     created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
 
@@ -116,8 +117,8 @@ class ChatMessage(Base):
     __tablename__ = "chat_messages"
 
     id = Column(Integer, primary_key=True)
-    user_id = Column(Integer, ForeignKey("users_data.id"), nullable=False)
-    room_id = Column(Integer, ForeignKey("chat_rooms.id"), nullable=False)
+    user_id = Column(Integer, ForeignKey("users_data.id", ondelete="CASCADE"), nullable=False)
+    room_id = Column(Integer, ForeignKey("chat_rooms.id", ondelete="CASCADE"), nullable=False)
     role = Column(String, nullable=False)   # "user" | "assistant"
     content = Column(Text, nullable=False)
     created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
