@@ -52,7 +52,7 @@ class Place(Base):
     id = Column(Integer, primary_key=True)
     filename = Column(String, nullable=False)
     description = Column(Text, nullable=True)
-    uploaded_by = Column(Integer, ForeignKey("users_data.id"), nullable=False)
+    uploaded_by = Column(Integer, ForeignKey("users_data.id", ondelete="CASCADE"), nullable=False)
     uploaded_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
 
 
@@ -62,7 +62,7 @@ class Movie(Base):
     id = Column(Integer, primary_key=True)
     title = Column(String, nullable=False)
     poster = Column(Text, nullable=True)
-    added_by = Column(Integer, ForeignKey("users_data.id"), nullable=False)
+    added_by = Column(Integer, ForeignKey("users_data.id", ondelete="CASCADE"), nullable=False)
     created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
 
 
