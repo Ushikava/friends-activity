@@ -1,7 +1,7 @@
 import os
 import uuid
 
-from fastapi import APIRouter, Depends, Query, UploadFile, File, Form
+from fastapi import APIRouter, Depends, Query, UploadFile, File, Form, Response
 from sqlalchemy.orm import Session
 
 from pydantic import BaseModel
@@ -12,6 +12,7 @@ from db.session import get_db
 from db import place as place_db
 from db import user as user_db
 from db.activity_log import log_activity
+from db.coins import award_coins
 from schemas.place import PlaceOut, PlacePage
 from utils.image import compress_image
 from core.exceptions import ForbiddenError, NotFoundError, BadRequestError
@@ -38,6 +39,7 @@ def list_places(
 
 @router.post("/", response_model=PlaceOut, status_code=201)
 def upload_place(
+    response: Response,
     file: UploadFile = File(...),
     description: str | None = Form(None),
     user_id: int = Depends(require_not_observer),
@@ -61,6 +63,9 @@ def upload_place(
 
     place = place_db.create_place(db, filename=filename, description=description, user_id=user_id)
     log_activity(db, user_id=user_id, username=user.username, action="place_upload", entity_title=description)
+    awarded = award_coins(db, user_id, "place_upload", entity_type="place", entity_id=place.id)
+    if awarded:
+        response.headers["X-Nya-Coins-Awarded"] = str(awarded)
     return place
 
 

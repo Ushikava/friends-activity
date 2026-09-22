@@ -1,7 +1,7 @@
 import os
 import uuid
 
-from fastapi import APIRouter, Depends, Query, UploadFile, File, Form
+from fastapi import APIRouter, Depends, Query, UploadFile, File, Form, Response
 from sqlalchemy.orm import Session
 
 from pydantic import BaseModel
@@ -12,6 +12,7 @@ from db.session import get_db
 from db import photo as photo_db
 from db import user as user_db
 from db.activity_log import log_activity
+from db.coins import award_coins
 from schemas.photo import PhotoOut, PhotoPage
 from utils.image import compress_image
 from core.exceptions import ForbiddenError, NotFoundError, BadRequestError
@@ -38,6 +39,7 @@ def list_photos(
 
 @router.post("/", response_model=PhotoOut, status_code=201)
 def upload_photo(
+    response: Response,
     file: UploadFile = File(...),
     description: str | None = Form(None),
     user_id: int = Depends(require_not_observer),
@@ -63,6 +65,9 @@ def upload_photo(
 
     photo = photo_db.create_photo(db, filename=filename, description=description, user_id=user_id)
     log_activity(db, user_id=user_id, username=user.username, action="photo_upload", entity_title=description)
+    awarded = award_coins(db, user_id, "photo_upload", entity_type="photo", entity_id=photo.id)
+    if awarded:
+        response.headers["X-Nya-Coins-Awarded"] = str(awarded)
     return photo
 
 

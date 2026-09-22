@@ -1,0 +1,138 @@
+/* ── Statusbar ── */
+.shop-statusbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: var(--surface);
+  border-radius: 16px;
+  padding: 14px 20px;
+  margin-bottom: 24px;
+  box-shadow: 0 4px 3px 0 rgba(0, 0, 0, 0.3);
+}
+
+.shop-statusbar__title {
+  font-size: 1.5rem;
+  font-weight: 700;
+}
+
+.shop-statusbar__balance {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--accent);
+}
+
+/* ── Tab group ── */
+.shop-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  background: var(--card-bg);
+  border-radius: 10px;
+  padding: 2px;
+  margin-bottom: 28px;
+  width: fit-content;
+}
+
+.shop-tab {
+  padding: 7px 18px;
+  border-radius: 8px;
+  border: none;
+  background: none;
+  color: var(--text);
+  font-size: 0.9rem;
+  font-weight: 500;
+  font-family: inherit;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+  white-space: nowrap;
+}
+
+.shop-tab:hover:not(.shop-tab--active) {
+  background: var(--surface-hover);
+}
+
+.shop-tab--active {
+  background: var(--accent);
+  color: #fff;
+  font-weight: 700;
+}
+
+/* ── Item grid ── */
+.shop-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 16px;
+}
+
+.shop-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  background: var(--surface);
+  border-radius: 16px;
+  padding: 20px 14px;
+  box-shadow: 0 4px 4px rgba(0, 0, 0, 0.15);
+}
+
+.shop-card__icon {
+  font-size: 2.6rem;
+  line-height: 1;
+}
+
+.shop-card__name {
+  font-size: 0.92rem;
+  font-weight: 600;
+  color: var(--text-h);
+  text-align: center;
+}
+
+.shop-card__owned-qty {
+  font-size: 0.76rem;
+  color: var(--muted);
+  margin-top: -4px;
+}
+
+.shop-card__buy {
+  margin-top: 4px;
+  width: 100%;
+  padding: 8px 10px;
+  border: none;
+  border-radius: 10px;
+  background: var(--accent);
+  color: #fff;
+  font-size: 0.85rem;
+  font-weight: 700;
+  font-family: inherit;
+  cursor: pointer;
+  transition: opacity 0.15s;
+}
+
+.shop-card__buy:hover:not(:disabled) {
+  opacity: 0.85;
+}
+
+.shop-card__buy:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+.shop-card__buy--owned {
+  background: var(--surface-hover);
+  color: var(--muted);
+}
+
+@media (max-width: 640px) {
+  .shop-statusbar {
+    padding: 10px 14px;
+  }
+
+  .shop-statusbar__title {
+    font-size: 1.2rem;
+  }
+
+  .shop-grid {
+    grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+    gap: 10px;
+  }
+}

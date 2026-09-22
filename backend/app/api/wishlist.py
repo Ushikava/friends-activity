@@ -1,9 +1,10 @@
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, Query, Response
 from sqlalchemy.orm import Session
 
 from core.auth import require_not_observer
 from db.session import get_db
 from db import wishlist as wishlist_db
+from db.coins import award_coins
 from schemas.wishlist import WishlistItemCreate, WishlistItemOut
 from core.exceptions import NotFoundError
 
@@ -25,6 +26,7 @@ def list_wishlist_items(
 @router.post("/", response_model=WishlistItemOut, status_code=201)
 def create_wishlist_item(
     item: WishlistItemCreate,
+    response: Response,
     user_id: int = Depends(require_not_observer),
     db: Session = Depends(get_db),
 ):
@@ -36,6 +38,9 @@ def create_wishlist_item(
         currency=item.currency,
         user_id=user_id,
     )
+    awarded = award_coins(db, user_id, "wishlist_add", entity_type="wishlist", entity_id=wish.id)
+    if awarded:
+        response.headers["X-Nya-Coins-Awarded"] = str(awarded)
     return wish
 
 

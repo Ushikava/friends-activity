@@ -150,6 +150,45 @@ export interface Notification {
   scheduled_at: string | null
 }
 
+// ── Coins ─────────────────────────────────────────────────────────────────────
+
+export interface CoinBalance {
+  balance: number
+}
+
+export interface CoinTransaction {
+  id: number
+  amount: number
+  reason: string
+  created_at: string
+}
+
+// ── Shop ──────────────────────────────────────────────────────────────────────
+
+export type ShopCategory = 'pet' | 'toy' | 'decoration' | 'environment' | 'food'
+
+export interface ShopItem {
+  id: string
+  category: ShopCategory
+  name_ru: string
+  name_en: string
+  price: number
+  icon: string
+  owned: boolean
+  quantity: number
+}
+
+export interface ShopCatalog {
+  categories: ShopCategory[]
+  items: ShopItem[]
+}
+
+export interface ShopPurchaseResult {
+  balance: number
+  item_id: string
+  quantity: number
+}
+
 // ── Chat ──────────────────────────────────────────────────────────────────────
 
 export interface ChatRoom {

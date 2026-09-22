@@ -15,6 +15,8 @@ from api.chat import router as chat_router
 from api.notifications import router as notifications_router
 from api.wishlist import router as wishlist_router
 from api.profile import router as profile_router
+from api.coins import router as coins_router
+from api.shop import router as shop_router
 
 os.makedirs("uploads/photos", exist_ok=True)
 os.makedirs("uploads/posters", exist_ok=True)
@@ -33,6 +35,7 @@ app.add_middleware(
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
+    expose_headers=["X-Nya-Coins-Awarded"],
 )
 
 app.include_router(auth_router, prefix="/api")
@@ -45,4 +48,6 @@ app.include_router(chat_router, prefix="/api")
 app.include_router(notifications_router, prefix="/api")
 app.include_router(wishlist_router, prefix="/api")
 app.include_router(profile_router, prefix="/api")
+app.include_router(coins_router, prefix="/api")
+app.include_router(shop_router, prefix="/api")
 app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")

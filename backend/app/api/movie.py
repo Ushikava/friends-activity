@@ -13,6 +13,7 @@ from db import movie as movie_db
 from db import user as user_db
 from db import favorites as fav_db
 from db.activity_log import log_activity
+from db.coins import award_coins
 from schemas.movie import MovieOut, MoviePage, MovieDetail, MovieWatchUpdate, MovieUpdateOut
 from utils.image import compress_image
 from core.exceptions import NotFoundError, BadRequestError
@@ -52,6 +53,7 @@ def list_movies(
 
 @router.post("/", response_model=MovieOut, status_code=201)
 def add_movie(
+    response: Response,
     title: str = Form(...),
     poster_url: str | None = Form(None),
     file: UploadFile | None = File(None),
@@ -93,6 +95,9 @@ def add_movie(
 
     movie = movie_db.create_movie(db, title=title, poster=poster, user_id=user_id)
     log_activity(db, user_id=user_id, username=user.username, action="movie_add", entity_title=title, entity_type="movie", entity_id=movie['id'])
+    awarded = award_coins(db, user_id, "movie_add", entity_type="movie", entity_id=movie['id'])
+    if awarded:
+        response.headers["X-Nya-Coins-Awarded"] = str(awarded)
     return movie
 
 
@@ -193,6 +198,7 @@ def toggle_movie_favorite(
 @router.patch("/{movie_id}/watched", response_model=MovieDetail)
 def toggle_watched(
     movie_id: int,
+    response: Response,
     body: MovieWatchUpdate = MovieWatchUpdate(),
     user_id: int = Depends(require_not_observer),
     db: Session = Depends(get_db),
@@ -209,6 +215,9 @@ def toggle_watched(
         has_review = bool(user_status.get('review')) or user_status.get('rating') is not None
         action = "movie_reviewed" if has_review else "movie_watched"
         log_activity(db, user_id=user_id, username=user.username, action=action, entity_title=detail['title'], entity_type="movie", entity_id=movie_id)
+        awarded = award_coins(db, user_id, action, entity_type="movie", entity_id=movie_id)
+        if awarded:
+            response.headers["X-Nya-Coins-Awarded"] = str(awarded)
     return detail
 
 

@@ -252,6 +252,32 @@ export const ru: Dict = {
   'notif.errSend':         'Не удалось отправить',
   'notif.scheduleLabel':   'Когда? (необязательно)',
   'notif.scheduledAt':     'Запланировано на',
+
+  // coins
+  'coins.title':                  'Ня-коины',
+  'coins.empty':                  'Пока нет начислений',
+  'coins.reason.photo_upload':    'Загружен скриншот',
+  'coins.reason.place_upload':    'Загружено фото',
+  'coins.reason.movie_add':       'Добавлен фильм',
+  'coins.reason.game_add':        'Добавлена игра',
+  'coins.reason.movie_watched':   'Фильм просмотрен',
+  'coins.reason.game_played':     'Игра пройдена',
+  'coins.reason.movie_reviewed':  'Рецензия на фильм',
+  'coins.reason.game_reviewed':   'Рецензия на игру',
+  'coins.reason.wishlist_add':    'Добавлено в вишлист',
+
+  // shop
+  'shop.title':                'Магазин',
+  'shop.category.pet':         'Котик',
+  'shop.category.toy':         'Игрушки',
+  'shop.category.decoration':  'Украшения',
+  'shop.category.environment': 'Окружение',
+  'shop.category.food':        'Еда',
+  'shop.buy':                  'Купить',
+  'shop.buying':                'Покупаем…',
+  'shop.owned':                'Куплено',
+  'shop.youHave':              'У тебя',
+  'shop.purchased':            'Куплено!',
 }
 
 export const en: Dict = {
@@ -501,4 +527,30 @@ export const en: Dict = {
   'notif.errSend':         'Failed to send',
   'notif.scheduleLabel':   'When? (optional)',
   'notif.scheduledAt':     'Scheduled for',
+
+  // coins
+  'coins.title':                  'Nya Coins',
+  'coins.empty':                  'No coins earned yet',
+  'coins.reason.photo_upload':    'Screenshot uploaded',
+  'coins.reason.place_upload':    'Photo uploaded',
+  'coins.reason.movie_add':       'Movie added',
+  'coins.reason.game_add':        'Game added',
+  'coins.reason.movie_watched':   'Movie watched',
+  'coins.reason.game_played':     'Game completed',
+  'coins.reason.movie_reviewed':  'Movie reviewed',
+  'coins.reason.game_reviewed':   'Game reviewed',
+  'coins.reason.wishlist_add':    'Added to wishlist',
+
+  // shop
+  'shop.title':                'Shop',
+  'shop.category.pet':         'Cat',
+  'shop.category.toy':         'Toys',
+  'shop.category.decoration':  'Decorations',
+  'shop.category.environment': 'Environment',
+  'shop.category.food':        'Food',
+  'shop.buy':                  'Buy',
+  'shop.buying':                'Buying…',
+  'shop.owned':                'Owned',
+  'shop.youHave':              'You have',
+  'shop.purchased':            'Purchased!',
 }

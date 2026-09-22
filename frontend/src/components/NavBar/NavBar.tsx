@@ -4,6 +4,7 @@ import { House, Image, GameControllerIcon, MountainsIcon, FilmStripIcon, UserIco
 import { getRole } from '../../api/auth'
 import { useLang } from '../../i18n/LangContext'
 import NotificationBell from '../NotificationBell/NotificationBell'
+import CoinBalance from '../CoinBalance/CoinBalance'
 import './NavBar.css'
 
 interface NavIconProps {
@@ -50,6 +51,7 @@ export default function NavBar() {
       </div>
 
       <div className="navbar__right">
+        {!isObserver && <CoinBalance />}
         {!isObserver && <NotificationBell />}
         {!isObserver
           ? <NavIcon to="/profile" label={t('nav.profile')} icon={UserIcon} />

@@ -2,6 +2,27 @@ import type { UserInfo } from '../types'
 
 const API = import.meta.env.VITE_API_URL
 
+// ── Cross-cutting events ────────────────────────────────────────────────────
+// Fired on any response carrying a coin award, and whenever the logged-in
+// user changes (login/logout) — CoinsContext listens for both without every
+// page that earns coins having to know about it.
+export const NYA_COINS_AWARDED_EVENT = 'nya-coins-awarded'
+export const NYA_AUTH_CHANGED_EVENT = 'nya-auth-changed'
+
+export interface NyaCoinsAwardedDetail {
+  amount: number
+}
+
+const COIN_HEADER = 'X-Nya-Coins-Awarded'
+
+function notifyCoinsAwarded(res: Response): void {
+  const raw = res.headers.get(COIN_HEADER)
+  const amount = raw ? parseInt(raw, 10) : 0
+  if (amount > 0) {
+    window.dispatchEvent(new CustomEvent<NyaCoinsAwardedDetail>(NYA_COINS_AWARDED_EVENT, { detail: { amount } }))
+  }
+}
+
 let _refreshPromise: Promise<boolean> | null = null
 
 async function tryRefresh(): Promise<boolean> {
@@ -27,7 +48,10 @@ async function tryRefresh(): Promise<boolean> {
 
 export async function apiFetch(url: string, options: RequestInit = {}): Promise<Response> {
   const res = await fetch(url, { ...options, credentials: 'include' })
-  if (res.status !== 401) return res
+  if (res.status !== 401) {
+    notifyCoinsAwarded(res)
+    return res
+  }
 
   const refreshed = await tryRefresh()
   if (!refreshed) {
@@ -36,7 +60,9 @@ export async function apiFetch(url: string, options: RequestInit = {}): Promise<
     return res
   }
 
-  return fetch(url, { ...options, credentials: 'include' })
+  const retried = await fetch(url, { ...options, credentials: 'include' })
+  notifyCoinsAwarded(retried)
+  return retried
 }
 
 export async function fetchUsers(): Promise<UserInfo[]> {
@@ -56,17 +82,20 @@ export async function login(username: string, password: string): Promise<{ usern
     const err = await res.json() as { detail?: string }
     throw new Error(err.detail || 'Ошибка входа')
   }
+  notifyCoinsAwarded(res)
   return res.json() as Promise<{ username: string; role: string }>
 }
 
 export function saveSession(data: { username: string; role: string }): void {
   localStorage.setItem('username', data.username)
   localStorage.setItem('role', data.role)
+  window.dispatchEvent(new Event(NYA_AUTH_CHANGED_EVENT))
 }
 
 export function clearSession(): void {
   localStorage.removeItem('username')
   localStorage.removeItem('role')
+  window.dispatchEvent(new Event(NYA_AUTH_CHANGED_EVENT))
 }
 
 export function getUsername(): string | null {

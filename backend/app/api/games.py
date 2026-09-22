@@ -3,7 +3,7 @@ import os
 import uuid
 
 import httpx
-from fastapi import APIRouter, Depends, Query, UploadFile, File, Form
+from fastapi import APIRouter, Depends, Query, UploadFile, File, Form, Response
 from sqlalchemy.orm import Session
 
 from core.auth import get_user_from_token, require_not_observer
@@ -13,6 +13,7 @@ from db import games as game_db
 from db import user as user_db
 from db import favorites as fav_db
 from db.activity_log import log_activity
+from db.coins import award_coins
 from schemas.games import GameOut, GamePage, GameDetail, GamePlayUpdate, GameUpdateOut
 from utils.image import compress_image
 from core.exceptions import NotFoundError, BadRequestError
@@ -52,6 +53,7 @@ def list_games(
 
 @router.post("/", response_model=GameOut, status_code=201)
 def add_game(
+    response: Response,
     title: str = Form(...),
     poster_url: str | None = Form(None),
     file: UploadFile | None = File(None),
@@ -81,6 +83,9 @@ def add_game(
 
     game = game_db.create_game(db, title=title, poster=poster, user_id=user_id, steam_link=steam_link)
     log_activity(db, user_id=user_id, username=user.username, action="game_add", entity_title=title, entity_type="game", entity_id=game['id'])
+    awarded = award_coins(db, user_id, "game_add", entity_type="game", entity_id=game['id'])
+    if awarded:
+        response.headers["X-Nya-Coins-Awarded"] = str(awarded)
     return game
 
 
@@ -187,6 +192,7 @@ def toggle_game_favorite(
 @router.patch("/{game_id}/played", response_model=GameDetail)
 def toggle_played(
     game_id: int,
+    response: Response,
     body: GamePlayUpdate = GamePlayUpdate(),
     user_id: int = Depends(require_not_observer),
     db: Session = Depends(get_db),
@@ -202,6 +208,9 @@ def toggle_played(
         has_review = bool(user_status.get('review')) or user_status.get('rating') is not None
         action = "game_reviewed" if has_review else "game_played"
         log_activity(db, user_id=user_id, username=user.username, action=action, entity_title=detail['title'], entity_type="game", entity_id=game_id)
+        awarded = award_coins(db, user_id, action, entity_type="game", entity_id=game_id)
+        if awarded:
+            response.headers["X-Nya-Coins-Awarded"] = str(awarded)
     return detail
 
 

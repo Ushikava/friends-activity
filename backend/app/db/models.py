@@ -24,6 +24,19 @@ class UserData(Base):
     hashed_password = Column(Text, nullable=False)
     role = Column(String, nullable=False, default="user")
     avatar_url = Column(String, nullable=True)
+    nya_coins = Column(Integer, nullable=False, default=0)
+
+
+class CoinTransaction(Base):
+    __tablename__ = "coin_transactions"
+
+    id = Column(Integer, primary_key=True)
+    user_id = Column(Integer, ForeignKey("users_data.id", ondelete="CASCADE"), nullable=False)
+    amount = Column(Integer, nullable=False)
+    reason = Column(String, nullable=False)
+    entity_type = Column(String, nullable=True)
+    entity_id = Column(Integer, nullable=True)
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
 
 
 class RefreshToken(Base):
@@ -160,6 +173,19 @@ class Favorite(Base):
     entity_type = Column(String, nullable=False)   # "movie" | "game"
     entity_id = Column(Integer, nullable=False)
     __table_args__ = (UniqueConstraint('user_id', 'entity_type', 'entity_id', name='uq_favorites'),)
+
+
+class ShopPurchase(Base):
+    __tablename__ = "shop_purchases"
+
+    id = Column(Integer, primary_key=True)
+    user_id = Column(Integer, ForeignKey("users_data.id", ondelete="CASCADE"), nullable=False)
+    item_id = Column(String, nullable=False)
+    quantity = Column(Integer, nullable=False, default=1)
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
+    updated_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
+
+    __table_args__ = (UniqueConstraint("user_id", "item_id", name="uq_shop_purchase_user_item"),)
 
 
 class Whishlist(Base):

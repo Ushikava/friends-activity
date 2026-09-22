@@ -5,6 +5,7 @@ import { createRoot } from 'react-dom/client'
 document.documentElement.dataset.theme = localStorage.getItem('theme') || 'light'
 import { BrowserRouter } from 'react-router-dom'
 import { LangProvider } from './i18n/LangContext'
+import { CoinsProvider } from './context/CoinsContext'
 import './index.css'
 import App from './App'
 
@@ -12,7 +13,9 @@ createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <BrowserRouter>
       <LangProvider>
-        <App />
+        <CoinsProvider>
+          <App />
+        </CoinsProvider>
       </LangProvider>
     </BrowserRouter>
   </StrictMode>,
