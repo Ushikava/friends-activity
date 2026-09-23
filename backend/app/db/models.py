@@ -188,6 +188,20 @@ class ShopPurchase(Base):
     __table_args__ = (UniqueConstraint("user_id", "item_id", name="uq_shop_purchase_user_item"),)
 
 
+class PetState(Base):
+    __tablename__ = "pet_state"
+
+    id = Column(Integer, primary_key=True)
+    user_id = Column(Integer, ForeignKey("users_data.id", ondelete="CASCADE"), nullable=False, unique=True)
+    name = Column(String, nullable=False, default="Котик")
+    adopted_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
+    satiety = Column(Integer, nullable=False, default=100)
+    satiety_updated_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
+    happiness = Column(Integer, nullable=False, default=50)
+    happiness_updated_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
+    active_environment_item_id = Column(String, nullable=True)
+
+
 class Whishlist(Base):
     __tablename__ = "whishlist"
 

@@ -17,6 +17,7 @@ from api.wishlist import router as wishlist_router
 from api.profile import router as profile_router
 from api.coins import router as coins_router
 from api.shop import router as shop_router
+from api.pet import router as pet_router
 
 os.makedirs("uploads/photos", exist_ok=True)
 os.makedirs("uploads/posters", exist_ok=True)
@@ -50,4 +51,5 @@ app.include_router(wishlist_router, prefix="/api")
 app.include_router(profile_router, prefix="/api")
 app.include_router(coins_router, prefix="/api")
 app.include_router(shop_router, prefix="/api")
+app.include_router(pet_router, prefix="/api")
 app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")

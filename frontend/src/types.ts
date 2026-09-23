@@ -174,6 +174,7 @@ export interface ShopItem {
   name_en: string
   price: number
   icon: string
+  image: string | null
   owned: boolean
   quantity: number
 }
@@ -187,6 +188,31 @@ export interface ShopPurchaseResult {
   balance: number
   item_id: string
   quantity: number
+}
+
+// ── Pet ───────────────────────────────────────────────────────────────────────
+
+export type PetSprite = 'hungry' | 'normal' | 'full'
+
+export interface PetItemRef {
+  id: string
+  icon: string
+  image: string | null
+  name_ru: string
+  name_en: string
+  quantity: number
+}
+
+export interface PetState {
+  name: string
+  age_days: number
+  satiety: number
+  sprite: PetSprite
+  happiness: number
+  active_environment_item_id: string | null
+  toys: PetItemRef[]
+  foods: PetItemRef[]
+  environments: PetItemRef[]
 }
 
 // ── Chat ──────────────────────────────────────────────────────────────────────

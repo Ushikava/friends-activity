@@ -8,6 +8,7 @@ export const ru: Dict = {
   'nav.games':   'Игры',
   'nav.places':  'ИРЛ фото',
   'nav.movies':  'Кино',
+  'nav.pet':     'Питомец',
   'nav.profile': 'Профиль',
   'nav.login':   'Войти',
 
@@ -278,6 +279,25 @@ export const ru: Dict = {
   'shop.owned':                'Куплено',
   'shop.youHave':              'У тебя',
   'shop.purchased':            'Куплено!',
+
+  // pet
+  'pet.title':      'Питомец',
+  'pet.noPet':      'У тебя пока нет питомца',
+  'pet.goToShop':   'Завести в магазине',
+  'pet.age':        'Возраст',
+  'pet.satiety':    'Сытость',
+  'pet.happiness':  'Удовольствие',
+  'pet.noFood':     'Еды нет — загляни в магазин',
+  'pet.agePlural': (n: number): string => {
+    const mod10 = n % 10
+    const mod100 = n % 100
+    const word = mod10 === 1 && mod100 !== 11 ? 'день'
+      : [2, 3, 4].includes(mod10) && ![12, 13, 14].includes(mod100) ? 'дня'
+      : 'дней'
+    return `${n} ${word}`
+  },
+  'pet.loadError':  'Не удалось загрузить питомца',
+  'pet.retry':      'Повторить',
 }
 
 export const en: Dict = {
@@ -287,6 +307,7 @@ export const en: Dict = {
   'nav.games':   'Games',
   'nav.places':  'IRL Photos',
   'nav.movies':  'Movies',
+  'nav.pet':     'Pet',
   'nav.profile': 'Profile',
   'nav.login':   'Sign in',
 
@@ -553,4 +574,16 @@ export const en: Dict = {
   'shop.owned':                'Owned',
   'shop.youHave':              'You have',
   'shop.purchased':            'Purchased!',
+
+  // pet
+  'pet.title':      'Pet',
+  'pet.noPet':      "You don't have a pet yet",
+  'pet.goToShop':   'Adopt one in the shop',
+  'pet.age':        'Age',
+  'pet.satiety':    'Satiety',
+  'pet.happiness':  'Happiness',
+  'pet.noFood':     'No food — check the shop',
+  'pet.agePlural': (n: number): string => `${n} ${n === 1 ? 'day' : 'days'}`,
+  'pet.loadError':  'Failed to load your pet',
+  'pet.retry':      'Retry',
 }

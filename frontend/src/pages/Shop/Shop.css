@@ -60,64 +60,76 @@
 /* ── Item grid ── */
 .shop-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
-  gap: 16px;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 20px;
+}
+
+/* Each grid cell: the card (variable content, stretches to fill the row's
+   height) plus the buy button pinned outside it, so a long item name never
+   pushes the button out of alignment with its neighbours in the same row. */
+.shop-item {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
 }
 
 .shop-card {
+  flex: 1;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 8px;
+  justify-content: center;
+  gap: 10px;
   background: var(--surface);
-  border-radius: 16px;
-  padding: 20px 14px;
+  border-radius: 20px;
+  padding: 32px 18px;
   box-shadow: 0 4px 4px rgba(0, 0, 0, 0.15);
 }
 
 .shop-card__icon {
-  font-size: 2.6rem;
+  font-size: 3.4rem;
   line-height: 1;
+  width: 3.4rem;
+  height: 3.4rem;
+  object-fit: contain;
 }
 
 .shop-card__name {
-  font-size: 0.92rem;
+  font-size: 1rem;
   font-weight: 600;
   color: var(--text-h);
   text-align: center;
 }
 
 .shop-card__owned-qty {
-  font-size: 0.76rem;
+  font-size: 0.8rem;
   color: var(--muted);
-  margin-top: -4px;
 }
 
-.shop-card__buy {
-  margin-top: 4px;
+.shop-item__buy {
   width: 100%;
-  padding: 8px 10px;
+  padding: 10px 10px;
   border: none;
-  border-radius: 10px;
+  border-radius: 12px;
   background: var(--accent);
   color: #fff;
-  font-size: 0.85rem;
+  font-size: 0.95rem;
   font-weight: 700;
   font-family: inherit;
   cursor: pointer;
   transition: opacity 0.15s;
 }
 
-.shop-card__buy:hover:not(:disabled) {
+.shop-item__buy:hover:not(:disabled) {
   opacity: 0.85;
 }
 
-.shop-card__buy:disabled {
+.shop-item__buy:disabled {
   opacity: 0.45;
   cursor: default;
 }
 
-.shop-card__buy--owned {
+.shop-item__buy--owned {
   background: var(--surface-hover);
   color: var(--muted);
 }
@@ -132,7 +144,17 @@
   }
 
   .shop-grid {
-    grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
-    gap: 10px;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 12px;
+  }
+
+  .shop-card {
+    padding: 22px 12px;
+  }
+
+  .shop-card__icon {
+    font-size: 2.6rem;
+    width: 2.6rem;
+    height: 2.6rem;
   }
 }

@@ -10,6 +10,7 @@ import Movies from './pages/Movies/Movies'
 import Profile from './pages/Profile/Profile'
 import Chat from './pages/Chat/Chat'
 import Shop from './pages/Shop/Shop'
+import Pet from './pages/Pet/Pet'
 import FloatingWidget from './components/FloatingWidget/FloatingWidget'
 
 function PrivateRoute({ children }: { children: ReactNode }) {
@@ -29,6 +30,7 @@ export default function App() {
         <Route path="/profile" element={<PrivateRoute><Profile /></PrivateRoute>} />
         <Route path="/chat"    element={<PrivateRoute><Chat /></PrivateRoute>} />
         <Route path="/shop"    element={<PrivateRoute><Shop /></PrivateRoute>} />
+        <Route path="/pet"     element={<PrivateRoute><Pet /></PrivateRoute>} />
         <Route path="*"        element={<Navigate to="/" replace />} />
       </Routes>
       <FloatingWidget />

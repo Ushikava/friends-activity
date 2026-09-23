@@ -30,6 +30,7 @@ def list_items(user_id: int = Depends(get_user_from_token), db: Session = Depend
                 "name_en": item.name_en,
                 "price": item.price,
                 "icon": item.icon,
+                "image": item.image,
                 "owned": inventory.get(item.id, 0) > 0,
                 "quantity": inventory.get(item.id, 0),
             }
@@ -43,6 +44,7 @@ def buy_item(item_id: str, user_id: int = Depends(require_not_observer), db: Ses
     ok, error = purchase_item(db, user_id, item_id)
     if not ok:
         raise BadRequestError(ERROR_MESSAGES.get(error, error))
+
 
     inventory = get_inventory(db, user_id)
     return {

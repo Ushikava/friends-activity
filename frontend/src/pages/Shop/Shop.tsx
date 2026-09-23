@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { Navigate } from 'react-router-dom'
 import NavBar from '../../components/NavBar/NavBar'
 import ToastContainer, { useToast } from '../../components/Toast/Toast'
+import ItemIcon from '../../components/ItemIcon/ItemIcon'
 import { fetchShopCatalog, purchaseItem } from '../../api/shop'
 import { getRole } from '../../api/auth'
 import { useLang } from '../../i18n/LangContext'
@@ -10,7 +11,7 @@ import type { ShopCatalog, ShopCategory, ShopItem } from '../../types'
 import '../page.css'
 import './Shop.css'
 
-const CATEGORY_ORDER: ShopCategory[] = ['pet', 'toy', 'decoration', 'environment', 'food']
+const CATEGORY_ORDER: ShopCategory[] = ['pet', 'toy', 'environment', 'food']
 
 export default function Shop() {
   const { t, lang } = useLang()
@@ -74,24 +75,27 @@ export default function Shop() {
           {items.map(item => {
             const name = lang === 'ru' ? item.name_ru : item.name_en
             const stackable = item.category === 'food'
-            const disabled = buyingId === item.id || (!stackable && item.owned) || balance < item.price
+            const owned = !stackable && item.owned
+            const disabled = buyingId === item.id || owned || balance < item.price
             return (
-              <div key={item.id} className="shop-card">
-                <div className="shop-card__icon">{item.icon}</div>
-                <span className="shop-card__name">{name}</span>
-                {stackable && item.quantity > 0 && (
-                  <span className="shop-card__owned-qty">{t('shop.youHave') as string}: {item.quantity}</span>
-                )}
+              <div key={item.id} className="shop-item">
+                <div className="shop-card">
+                  <ItemIcon image={item.image} fallback={item.icon} className="shop-card__icon" alt={name} />
+                  <span className="shop-card__name">{name}</span>
+                  {stackable && item.quantity > 0 && (
+                    <span className="shop-card__owned-qty">{t('shop.youHave') as string}: {item.quantity}</span>
+                  )}
+                </div>
                 <button
-                  className={`shop-card__buy${!stackable && item.owned ? ' shop-card__buy--owned' : ''}`}
+                  className={`shop-item__buy${owned ? ' shop-item__buy--owned' : ''}`}
                   onClick={() => handleBuy(item)}
                   disabled={disabled}
                 >
-                  {!stackable && item.owned
+                  {owned
                     ? t('shop.owned') as string
                     : buyingId === item.id
-                      ? t('shop.buying') as string
-                      : `${t('shop.buy') as string} · 🪙 ${item.price}`
+                      ? '…'
+                      : <>🪙 {item.price}</>
                   }
                 </button>
               </div>

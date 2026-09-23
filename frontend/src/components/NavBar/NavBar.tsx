@@ -1,6 +1,6 @@
 import { NavLink } from 'react-router-dom'
 import type { Icon as PhosphorIcon } from '@phosphor-icons/react'
-import { House, Image, GameControllerIcon, MountainsIcon, FilmStripIcon, UserIcon, ChatCircleIcon, SignInIcon } from '@phosphor-icons/react'
+import { House, Image, GameControllerIcon, MountainsIcon, FilmStripIcon, UserIcon, ChatCircleIcon, SignInIcon, PawPrint } from '@phosphor-icons/react'
 import { getRole } from '../../api/auth'
 import { useLang } from '../../i18n/LangContext'
 import NotificationBell from '../NotificationBell/NotificationBell'
@@ -47,6 +47,9 @@ export default function NavBar() {
         <NavIcon to="/movies"  label={t('nav.movies')}  icon={FilmStripIcon} />
         {!isObserver && (
           <NavIcon to="/chat" label={t('chat.title')} icon={ChatCircleIcon} />
+        )}
+        {!isObserver && (
+          <NavIcon to="/pet" label={t('nav.pet')} icon={PawPrint} />
         )}
       </div>
 
